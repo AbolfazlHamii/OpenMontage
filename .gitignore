@@ -27,6 +27,9 @@ tests/qa/output/
 
 # Project workspaces (generated assets, renders — all regenerable)
 projects/
+# Live channel bibles stay out of the public fork (OPENMONTAGE_CHANNELS_DIR).
+channels/*
+!channels/_template/
 
 # Corpus directories (downloaded stock clips, thumbnails, embeddings —
 # regenerable from source APIs via corpus_builder). Explicit rule even

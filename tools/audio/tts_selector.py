@@ -208,6 +208,10 @@ class TTSSelector(BaseTool):
                 "type": "array",
                 "items": {"type": "string"},
             },
+            "channel": {
+                "type": "string",
+                "description": "Channel bible slug; its lexicon.tsv respells terms in the text before synthesis.",
+            },
             "operation": {
                 "type": "string",
                 "enum": ["generate", "rank"],
@@ -274,6 +278,14 @@ class TTSSelector(BaseTool):
             )
 
         # Normal generation — use scored selection
+        lexicon_applied = None
+        if inputs.get("channel"):
+            from lib.channel_bible import apply_channel_lexicon
+
+            try:
+                inputs, lexicon_applied = apply_channel_lexicon(inputs)
+            except (FileNotFoundError, ValueError) as exc:
+                return ToolResult(success=False, error=str(exc))
         language = resolve_tts_language(inputs)
         # Persian falls through PERSIAN_TTS_PRIORITY when a provider fails at
         # call time (e.g. Gemini refusing the caller's region), so AvalAI can
@@ -325,6 +337,8 @@ class TTSSelector(BaseTool):
                 result.data["fallback_from"] = failures
             if language:
                 result.data.setdefault("language", language)
+            if lexicon_applied is not None:
+                result.data["lexicon_applied"] = lexicon_applied
             # Pipelines check narration length against the edit (explainer
             # scene/compose directors read audio_duration_seconds), but many
             # providers do not report it. Measure it here for all of them.

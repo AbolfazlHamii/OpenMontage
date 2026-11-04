@@ -3,6 +3,8 @@
 Read this before any stage of a production whose narration, dub or captions
 are in Persian. It covers the parts that break silently for Persian: voice
 routing, text written for TTS, dubbing gaps and right-to-left captions.
+Read the channel's bible too (`skills/creative/channel-bible.md`): tone,
+voice, lexicon and past edits live there.
 
 ## Voice
 
@@ -88,7 +90,20 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
 - Numbers as words in narration («هزار و نهصد و هفتاد و شش»); captions may
   keep digits («۱۹۷۶»). Keep the two versions side by side in the script.
 - Foreign names in Persian spelling the voice can read («استیو جابز»,
-  «وازنیاک»); keep a per-channel pronunciation list and reuse it.
+  «وازنیاک»); the channel's `lexicon.tsv` is that list, and `tts_selector`
+  applies it when given `channel`. `lib/fa_text.spell_numbers` turns digits
+  into words.
+- Pace: Gemini 3.8 voices read spoken Persian at **8.6–10.5 letters per
+  second** (6 voices × calm/energetic, 2026-11-04 audition; letters and
+  digits only, `lib/fa_text.chars_per_second`). Budget ~9.5, not the 14
+  an English rule of thumb suggests: a 150-letter line is ~16 s.
+- Round-trip check (`scripts/fa_voice_audition.py`, `avalai_stt`): the
+  transcriber writes spoken forms in written Persian («جوون» → «جوان»,
+  «کوچیک» → «کوچک»), so compare with `lib/fa_text.round_trip`, which folds
+  those. Real slips seen: «صدها» heard as «ست‌ها» (2 of 12 voices), a year
+  replaced by «سالی از اون روزها», «جیب» read as «دست». The lite and full
+  models both change words now and then; listen to any final clip whose
+  round-trip is under 0.97.
 - Zero-width non-joiner (U+200C) in «می‌شه», «شرکت‌ها».
 - One register per production: spoken Tehrani for YouTube storytelling,
   written Persian for formal explainers. Never mix.

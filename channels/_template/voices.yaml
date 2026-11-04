@@ -1,0 +1,16 @@
+# Voice per role. cps = spoken letters per second, measured with
+# scripts/fa_voice_audition.py; dub timing budgets lines with it.
+channel: <channel>
+updated: null
+roles:
+  narrator:
+    status: pending_owner_pick   # pending_owner_pick | approved
+    voice: null
+    style: null
+    model_draft: gemini-3.8-flash-lite-tts
+    model_final: gemini-3.8-flash-tts
+    providers: [gemini, avalai]
+    cps: null
+    source: null
+# Voices the dub pipeline maps source speakers to, in order.
+dub_pool: []

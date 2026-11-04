@@ -98,6 +98,7 @@ Key capability families to look for in the output:
 | Skill | File | Trigger | Agent Skills (Layer 3) |
 |-------|------|---------|----------------------|
 | Video Editing | `creative/video-editing.md` | Cut decisions, pacing, rhythm | `ffmpeg`, `video-toolkit` |
+| Channel Bible | `creative/channel-bible.md` | Per-channel memory for Persian productions: tone, voices, lexicon for TTS, glossary, owner edits, retros (`lib/channel_bible.py`) | — |
 | Camera Language | `creative/camera-language.md` | Shot size, angle, lens, movement; virtual camera snippets for stills (Ken Burns, parallax, 2.5D, shake, rack focus) | `gsap-core`, `remotion-best-practices` |
 | Editing Tricks | `creative/editing-tricks.md` | 32 cut/transition/text/sound tricks with retention effect and HF/RM/FF recipes; edit style cards in `styles/editing/` | `ffmpeg`, `gsap-timeline` |
 | Enhancement Strategy | `creative/enhancement-strategy.md` | Overlay placement and density | `ffmpeg` |
