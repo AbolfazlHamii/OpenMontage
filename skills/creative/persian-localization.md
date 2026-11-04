@@ -173,6 +173,13 @@ voice, lexicon and past edits live there.
   `SSL: UNEXPECTED_EOF`) while `curl --noproxy "*"` answers in a second.
   Add `api.avalai.ir` to `NO_PROXY` for the run. A broken mid-response call
   may still be billed; check the AvalAI dashboard.
+- Video understanding (`gemini_video_analyze`): AvalAI accepts a YouTube
+  `fileUri` but the model never sees the video and invents an analysis
+  (434 prompt tokens, an answer about a different topic; 2026-11-04). The
+  tool refuses links on the AvalAI route and rejects any answer whose
+  prompt token count is far below the video's (~98 tokens/s at low
+  resolution). Pass a local file instead; files over ~14 MB go as a 360p
+  proxy. A 3-minute reference cost $0.020 through AvalAI.
 - `hyperframes render` downloads `chrome-headless-shell` from Google
   storage, which answers 403 from Iran. Point it at the installed Chrome:
   `HYPERFRAMES_BROWSER_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`

@@ -37,6 +37,25 @@ video_analyzer.execute({
 })
 ```
 
+**Richer read (optional, paid, ~$0.02 per 3 minutes):** when
+`gemini_video_analyze` is available, run it too. Gemini watches the whole
+video with sound and returns story beats with times, a hook analysis of the
+first 15 s, shot length, visual style, on-screen text and per-segment
+speaker/emotion/energy (what a dub needs). Pass a public YouTube URL to send
+it by link without downloading (Google route only), or the local file. Use
+`video_analyzer` for exact cut times and keyframes, Gemini for the
+interpretation; when the two disagree on pacing, trust the measured cuts.
+From Iran, Google answers 403 and AvalAI does not fetch YouTube links, so
+download the reference first (`video_downloader`) and pass the file.
+
+```python
+gemini_video_analyze.execute({
+    "source": "<youtube url or local path>",
+    "start_offset": 0, "end_offset": 180,   # optional, seconds or "MM:SS"
+    "output_path": "projects/_reference/<slug>/gemini_analysis.json",
+})
+```
+
 Read the resulting VideoAnalysisBrief. Before proceeding, present a summary to the
 user. This is NOT a raw dump. It's a conversational interpretation, and it MUST be
 structured by the 5 aspects so downstream stages can lift fields directly:
