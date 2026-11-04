@@ -26,11 +26,16 @@ Last updated: 2026-11-04
 |---|---|---|
 | Persian TTS routing | `tools/audio/tts_selector.py` | Persian text → `PERSIAN_TTS_PRIORITY`; falls through to the next provider on a call-time failure; reports `fallback_from` |
 | AvalAI Gemini TTS | `tools/audio/avalai_gemini_tts.py` | Same Gemini 3.8 voices via AvalAI native `generateContent`; cost from `usageMetadata` |
+| AvalAI Gemini image | `tools/graphics/avalai_gemini_image.py` | Nano Banana models via AvalAI native `generateContent`; per-image cost from AvalAI's live catalog |
+| Image mirror routing | `tools/graphics/image_selector.py` (`MIRROR_ORDER`) | Pinned Gemini image model → `google_imagen` first, same request on `avalai_gemini_image` if it fails; reports `fallback_from` |
+| Short fallback errors | `tools/provider_routing.py` (`short_error`) | HTML error pages and escaped SDK payloads reduced to one line in `fallback_from` (TTS and images) |
 | RTL subtitles | `tools/subtitle/subtitle_gen.py`, `tools/video/video_compose.py` | RLM per line + ASS `Encoding=-1`; `SUBTITLE_FONTS_DIR` / `fonts_dir` for per-user fonts on Windows |
 | Control panel | `studio_fa/`, `studio-fa.bat` | `python -m studio_fa` → http://127.0.0.1:4760/ |
 | Smoke test | `scripts/fa_smoke_test.py` | `subtitles` (free) and `tts` (paid, < $0.01) |
 | Gateway check | `scripts/check_gateway.py` | OpenAI-compatible gateways |
-| Tests | `tests/tools/test_persian_localization.py`, `test_avalai_gemini_tts.py`, `test_subtitle_fonts_dir.py`, `test_studio_fa.py` | all mocked |
+| Tests | `tests/tools/test_persian_localization.py`, `test_avalai_gemini_tts.py`, `test_avalai_gemini_image.py`, `test_subtitle_fonts_dir.py`, `test_studio_fa.py` | all mocked |
+| Test network guard | `tests/conftest.py` | Also clears `HTTP(S)_PROXY` and sets `NO_PROXY=*` for the session: a loopback proxy (v2rayN) otherwise carried requests past the socket guard |
+| Desktop shortcut | `Desktop\استودیو ویدیو فارسی.lnk` | Opens `studio-fa.bat` minimized (not in the repo) |
 
 ## Environment (owner's Windows laptop)
 
@@ -44,7 +49,16 @@ Last updated: 2026-11-04
   pages return 403. Downloads often truncate silently — retry through the
   local proxy `127.0.0.1:10808` with resume.
 - Verified for real: `gemini_tts` (9 s Persian clip), `avalai_gemini_tts`
-  (9.2 s, $0.0014), subtitle frame with Vazirmatn in correct RTL order.
+  (9.2 s, $0.0014), subtitle frame with Vazirmatn in correct RTL order,
+  `image_selector` → google_imagen 403 → `avalai_gemini_image`
+  (gemini-3.1-flash-image, 16:9 1K PNG 1376×768, 13 s, $0.0672;
+  `fa_smoke/avalai_image_test.png`).
+- This session's environment carries `HTTPS_PROXY=http://127.0.0.1:10808`
+  (not set in Windows user/machine variables). Python clients use it.
+- Full suite: `pytest tests` ≈ 7 min, 2289 passed. One known failure that
+  predates `fa` work (fails on fc2747d too):
+  `test_local_video_cache_inputs.py::test_scene_analysis_cache_tracks_requested_minimum_length`
+  (scene_detect finds 0 scenes with this ffmpeg 8.1 / PySceneDetect).
 
 ## Phase status
 
@@ -73,11 +87,15 @@ Done:
   so both came from `avalai_gemini_tts` via the fall-through (~$0.0035 total).
   Sample script lines are in the hub file and below.
 
-Blocked: Google API (images, Lyria) returns 403 from the owner's current
-network (IP 83.122.107.129) and from the local proxy exit 45.65.112.227.
-It worked earlier from 205.252.135.82 (owner's VPN). Owner decision ("both"):
-build an AvalAI image tool that is always available, and prefer Google when
-the VPN makes it reachable.
+Google API (images, Lyria) returns 403 from the owner's current network
+(IP 83.122.107.129) and from the local proxy exit 45.65.112.227. It worked
+earlier from 205.252.135.82 (owner's VPN). Owner decision ("both"): AvalAI
+image tool always available, Google preferred when reachable — done
+(2026-11-04), see the mirror routing above. Lyria is still blocked (AvalAI
+has no Lyria), so the Lyria music variant needs the VPN or a VPS.
+
+Spent on this production so far: ~$0.0035 (sample narration) + $0.0672
+(tool test image, not one of the three sample stills). Sample budget $0.50.
 
 Sample script:
 1. «احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟»
@@ -88,16 +106,13 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
 
 ## Next steps
 
-1. New tool `tools/graphics/avalai_gemini_image.py` (BaseTool, capability
-   image_generation): AvalAI native `POST https://api.avalai.ir/v1beta/models/{model}:generateContent`
-   with Bearer `AVALAI_API_KEY`, models `gemini-3.1-flash-image` (Nano Banana 2,
-   ~$0.067/img) and `gemini-3-pro-image`; reference images as `inlineData`;
-   `responseModalities: ["IMAGE"]`; mocked tests. Route: Google first, AvalAI
-   when Google fails (same idea as the TTS fall-through). AvalAI has no Lyria.
-2. `tts_selector`: shorten HTML error pages in `fallback_from` (Google's 403
-   page is dumped in full).
-3. Sample images (3 stills: hook phone, 1938 Daegu dried-fish shop, 1995
-   Gumi bonfire; no text in images), Pixabay track, then HyperFrames
-   composition with Vazirmatn RTL captions; character-animation sample.
-4. Present samples + actual cost; then script stage for the full 90 s.
-5. Phase 1 voice audition before the final narration.
+1. Sample images through the pipeline (read the asset director skill
+   first): 3 stills — hook phone, 1938 Daegu dried-fish shop, 1995 Gumi
+   bonfire; no text in images — via `image_selector` with
+   `model: "gemini-3.1-flash-image"`, 16:9 (~$0.20). Then a Pixabay track,
+   HyperFrames composition with Vazirmatn RTL captions, character-animation
+   sample. Lyria variant only if Google becomes reachable.
+2. Present samples + actual cost; then script stage for the full 90 s.
+3. Phase 1 voice audition before the final narration.
+4. Optional: show image providers in Studio FA's health panel (it only
+   covers TTS today).

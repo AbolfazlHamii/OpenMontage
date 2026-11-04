@@ -18,6 +18,13 @@ from tools.base_tool import (
     ToolTier,
 )
 
+# Tools that serve the same Gemini image models from different hosts, in the
+# order to try them. In auto mode the selector picks the first one available,
+# and when it fails at call time (Google refusing the caller's region) retries
+# the same request and model on the next. No other provider is ever
+# substituted this way.
+MIRROR_ORDER = ["google_imagen", "avalai_gemini_image"]
+
 
 class ImageSelector(BaseTool):
     name = "image_selector"
@@ -356,6 +363,20 @@ class ImageSelector(BaseTool):
                 )
 
         result = tool.execute(adapted)
+        model = adapted.get("model") or (
+            tool.input_schema.get("properties", {}).get("model", {}).get("default")
+        )
+        mirror = None if result.success else self._next_mirror(tool, model, inputs, candidates)
+        if mirror is not None:
+            from tools.provider_routing import short_error
+
+            failure = {"tool": tool.name, "error": short_error(result.error)}
+            retry = self.execute({**inputs, "preferred_tool": mirror.name, "model": model})
+            if retry.success:
+                retry.data["fallback_from"] = [failure]
+            else:
+                retry.error = f"{failure['tool']}: {failure['error']}; {mirror.name}: {retry.error}"
+            return retry
         if result.success:
             result.data.setdefault("selected_tool", tool.name)
             result.data["selected_provider"] = tool.provider
@@ -404,9 +425,43 @@ class ImageSelector(BaseTool):
 
         for score_item in rankings:
             if score_item.tool_name in tool_by_name:
+                if score_item.tool_name in MIRROR_ORDER and (
+                    inputs.get("model") or inputs.get("model_name")
+                ):
+                    # One pinned model on two hosts: keep the host order, not
+                    # the score. (Unpinned, their default models differ.)
+                    name = next(n for n in MIRROR_ORDER if n in tool_by_name)
+                    score_item = next(s for s in rankings if s.tool_name == name)
                 return tool_by_name[score_item.tool_name], score_item
 
         return None, None
+
+    def _next_mirror(
+        self,
+        failed: BaseTool,
+        model: str | None,
+        inputs: dict[str, Any],
+        candidates: list[BaseTool],
+    ) -> BaseTool | None:
+        """The host after ``failed`` in MIRROR_ORDER that serves the same model."""
+        if (
+            failed.name not in MIRROR_ORDER
+            or inputs.get("preferred_tool")
+            or inputs.get("preferred_provider", "auto") != "auto"
+        ):
+            return None
+        allowed = set(inputs.get("allowed_providers") or [])
+        by_name = {t.name: t for t in candidates}
+        for name in MIRROR_ORDER[MIRROR_ORDER.index(failed.name) + 1 :]:
+            tool = by_name.get(name)
+            if (
+                tool is not None
+                and model in tool.input_schema["properties"]["model"]["enum"]
+                and (not allowed or tool.provider in allowed)
+                and tool.get_status() == ToolStatus.AVAILABLE
+            ):
+                return tool
+        return None
 
     def _prepare_task_context(self, inputs: dict[str, Any]) -> dict[str, Any]:
         from lib.scoring import normalize_task_context

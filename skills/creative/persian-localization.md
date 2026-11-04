@@ -49,6 +49,25 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
 - Always render one 20–30 second sample and get approval before the full
   narration.
 
+## Images
+
+- Pin the model: `image_selector` with `model: "gemini-3.1-flash-image"`
+  (Nano Banana 2) tries `google_imagen` first and, when Google refuses the
+  call (403 from Iranian IPs and many VPN exits), retries the same request
+  and model on `avalai_gemini_image`. `fallback_from` lists what failed.
+  Without a pinned model there is no fall-through: Google's default
+  (`gemini-nano-banana-2.1`) is not on AvalAI, and the scorer may pick any
+  provider.
+- `avalai_gemini_image` (`AVALAI_API_KEY`): `gemini-3.1-flash-image`
+  ($0.0672 1K / $0.101 2K / $0.151 4K), `gemini-3-pro-image` ($0.134 up to
+  2K, $0.24 4K), `gemini-3.1-flash-lite-image` ($0.0336 1K, drafts),
+  `gemini-2.5-flash-image` ($0.04, 1K). Prices are AvalAI's live catalog;
+  its docs say 2.5 was shut down on 2026-10-02 while the catalog still lists
+  it. Up to 14 local reference images (`image_path`/`image_paths`,
+  `generation_mode: "edit"`); no image URLs, no masks, no Imagen.
+- AvalAI has no Lyria: music has to come from Pixabay/the music library, or
+  from Google on a machine Google serves.
+
 ## Writing the script for TTS
 
 - Numbers as words in narration («هزار و نهصد و هفتاد و شش»); captions may

@@ -104,7 +104,15 @@ def _block_network():
     socket.socket.connect_ex = guarded_connect_ex
     socket.create_connection = guarded_create_connection
     try:
-        yield
+        with pytest.MonkeyPatch.context() as mp:
+            # A proxy on loopback (a local VPN client) would carry requests and
+            # httpx traffic past the guard, so clients connect directly.
+            # NO_PROXY=* also stops urllib from reading the Windows proxy.
+            for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
+                mp.delenv(name, raising=False)
+                mp.delenv(name.lower(), raising=False)
+            mp.setenv("NO_PROXY", "*")
+            yield
     finally:
         socket.socket.connect = _real_connect
         socket.socket.connect_ex = _real_connect_ex

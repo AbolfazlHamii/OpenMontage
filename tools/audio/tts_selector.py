@@ -257,7 +257,7 @@ class TTSSelector(BaseTool):
         from lib.scoring import rank_providers
 
         task_context = self._prepare_task_context(inputs)
-        from tools.provider_routing import filter_explicit_route
+        from tools.provider_routing import filter_explicit_route, short_error
 
         candidates = filter_explicit_route(inputs, self._providers())
 
@@ -316,7 +316,7 @@ class TTSSelector(BaseTool):
             result = tool.execute(adapted)
             if result.success or not fall_through:
                 break
-            failures.append({"tool": tool.name, "error": str(result.error)})
+            failures.append({"tool": tool.name, "error": short_error(result.error)})
 
         if result.success:
             if failures:

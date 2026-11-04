@@ -150,14 +150,14 @@ def test_cost_switches_to_standard_rate_after_promo():
 
 # ---- selector fall-through -------------------------------------------------
 
-def _install(monkeypatch, behaviours, calls):
+def _install(monkeypatch, behaviours, calls, error="User location is not supported"):
     """behaviours: list of (tool_class, succeed: bool)."""
     for cls, succeed in behaviours:
         def fake_execute(self, inputs, _ok=succeed):
             calls.append(self.name)
             if _ok:
                 return ToolResult(success=True, data={"output": "", "audio_duration_seconds": 1.0})
-            return ToolResult(success=False, error="User location is not supported")
+            return ToolResult(success=False, error=error)
 
         monkeypatch.setattr(cls, "get_status", lambda self: ToolStatus.AVAILABLE)
         monkeypatch.setattr(cls, "execute", fake_execute)
@@ -178,6 +178,22 @@ def test_gemini_failure_falls_back_to_avalai(monkeypatch, tmp_path):
     assert calls == ["gemini_tts", "avalai_gemini_tts"]
     assert result.data["selected_tool"] == "avalai_gemini_tts"
     assert result.data["fallback_from"][0]["tool"] == "gemini_tts"
+
+
+def test_html_error_page_is_shortened_in_fallback_from(monkeypatch, tmp_path):
+    from tools.audio.gemini_tts import GeminiTTS
+
+    page = (
+        "Gemini returned HTTP 403: <!DOCTYPE html><html><title>Error 403 (Forbidden)!!1</title>"
+        "<style>html{background:#fff;color:#222}</style><p><b>403.</b> That&#8217;s an error."
+    )
+    calls: list = []
+    _install(monkeypatch, [(GeminiTTS, False), (AvalAIGeminiTTS, True)], calls, error=page)
+    result = TTSSelector().execute({"text": FA_TEXT, "output_path": str(tmp_path / "n.wav")})
+    assert result.success, result.error
+    error = result.data["fallback_from"][0]["error"]
+    assert error.startswith("Gemini returned HTTP 403: Error 403 (Forbidden)")
+    assert "<" not in error and "background" not in error and "’" in error
 
 
 def test_all_persian_providers_failing_lists_each_error(monkeypatch, tmp_path):

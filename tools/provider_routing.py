@@ -2,6 +2,24 @@
 
 from __future__ import annotations
 
+import html
+import re
+
+
+def short_error(error, limit: int = 300) -> str:
+    """One readable line from a provider error, for fallback reports.
+
+    Some gateways answer a refused region with a full HTML page (Google's 403
+    page is ~1.5 KB of markup and CSS); keep only its text. SDK errors that
+    repr() a payload carry escaped newlines, which go too.
+    """
+    text = str(error)
+    if re.search(r"<!doctype html|<html", text, re.IGNORECASE):
+        text = re.sub(r"(?is)<(style|script)\b.*?</\1>", " ", text)
+        text = html.unescape(re.sub(r"<[^>]+>", " ", text))
+    text = " ".join(text.replace("\\n", " ").split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
 
 def filter_explicit_route(inputs, candidates):
     tool_name = inputs.get("preferred_tool")
