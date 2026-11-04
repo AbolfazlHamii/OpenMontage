@@ -74,13 +74,17 @@ Last updated: 2026-11-04 (build phases 1–3, 5)
   wait for the owner (e.g. «صدها» heard as «ست‌ها»).
 - Phase 3 (`gemini_video_analyze`): done. AvalAI does not fetch YouTube
   links (it invents an answer); pass local files.
-- Phase 4 (first transcreation): **waiting for the owner** — character
-  animation sample, then the budget for the full 90 s video.
-- Phase 5 (dub gaps): code done (`stem_separator`, `lib/dub_timing.py`,
-  `lib/fa_dub.py`, `scripts/fa_dub.py`, `rights` in the brief). Acceptance
-  run on an owned 2.5 min two-speaker test source
-  (`projects/_dub_test/`, rights own): prepare and translate done
-  (25 lines); next: review lines → approve → synth → mix → qa.
+- Phase 4 (first transcreation): **waiting for the owner** — both samples
+  exist now: animated-explainer `renders/sample_music_a_fun_and_games.mp4`
+  and character-animation `renders/sample_character_animation.mp4` (10 s,
+  hand-drawn SVG rig in `character-sample/`, $0, decision d12, review
+  `renders/sample_character_review.json`). Owner: pick the pipeline, the
+  narrator voice, and approve the full 90 s budget (~$2).
+- Phase 5 (dub gaps): **done.** Acceptance run on an owned 2.5 min
+  two-speaker test source (`projects/_dub_test/`, rights own): QA passes
+  (no overlaps, round-trip ≥ 0.90 on all 25 lines, −13.96 LUFS /
+  −1.07 dBTP). Render: `projects/_dub_test/renders/dub_fa.mp4`. Cost of the
+  whole test about $0.28.
 
 Tooling upgrade (separate brief, `UPGRADE_PROMPT.md` v2 in the parent
 folder): progress in `docs/fa/UPGRADE_PROGRESS.md`, measured starting point
@@ -170,12 +174,10 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
 
 ## Next steps
 
-1. Finish the dub acceptance run in `projects/_dub_test/`: review
-   `dub/segments_fa.json` (the draft wrote 1967 as «نهصد و شصت و هفت»),
-   `approve --project projects/_dub_test`, then `synth`, `mix`, `qa`.
-   Run with `NO_PROXY` including `api.avalai.ir`.
-2. Character-animation sample (approved plan: a 10 s sample of both
-   pipelines), then the owner picks the pipeline for the full video.
+1. Research sessions started 2026-11-04 (animation craft, editing craft,
+   narration/hooks/retention, YouTube packaging) each add a skill and
+   tools; add their rows to `skills/INDEX.md` once they report.
+2. Owner picks the pipeline for the full video from the two samples.
 3. Owner: pick the narrator voice (audition page) and approve the full
    90 s budget; then script stage for the full video.
 4. Optional: show image providers in Studio FA's health panel (it only

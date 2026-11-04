@@ -148,6 +148,16 @@ mix → qa. Notes from the first real run (2026-11-04, 2.5 min, 2 speakers):
   picture, then `loudness_normalize` to −14 LUFS / −1 dBTP.
 - QA (`qa`): no line more than 200 ms into the next, round-trip per line
   ≥ 0.90, loudness, and a warning when the brief's `rights` is `unknown`.
+  Transcribe with `gpt-4o-transcribe`: the mini model read 2 s Persian
+  clips as Kurdish or Turkish. A low score on the sped-up placed copy is
+  re-checked on the raw clip. A line both transcripts mishear the same way
+  is a real risk (the voice turned «سکته» into «سکسه»): rewrite it with a
+  different word rather than re-rolling the take. The final loudnorm aims
+  at −1.5 dBTP, because the AAC encode lifted −1 back to −0.7.
+- First real run (owned 2.5 min, 2 speakers, 25 lines): 11 worker
+  rewrites, of which the agent kept 6 and rewrote 5 itself (the worker
+  wrote «لاب», digits in speech, and dropped meaning); final QA passed.
+  Cost about $0.28 including the test source and every retry.
 - Energy matters more than accuracy for entertainment dubs: styles come from
   `gemini_video_analyze` segments (emotion, energy) by overlap.
 
