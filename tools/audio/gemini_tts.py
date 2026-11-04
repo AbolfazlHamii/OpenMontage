@@ -107,6 +107,12 @@ class GeminiTTS(BaseTool):
             raise ValueError("Provide text or turns, exclusively")
         if inputs.get("turns"):
             speakers = inputs.get("speakers", [])
+            if len(speakers) > 2:
+                raise ValueError(
+                    "Gemini TTS accepts at most 2 speakers per request. For dubs "
+                    "with more speakers, synthesize each turn separately (one "
+                    "voice per call) and place the clips on the timeline."
+                )
             names = [s["speaker"] for s in speakers]
             if len(set(names)) != len(names) or any(
                 t["speaker"] not in names for t in inputs["turns"]
@@ -192,6 +198,7 @@ class GeminiTTS(BaseTool):
                     "model": request["model"],
                     "output": str(path),
                     "format": "wav",
+                    "audio_duration_seconds": self._wav_duration(path),
                     "cost_status": "unquoted",
                 },
                 artifacts=[str(path)],
@@ -200,3 +207,14 @@ class GeminiTTS(BaseTool):
             )
         except Exception as exc:
             return ToolResult(success=False, error=str(exc))
+
+    @staticmethod
+    def _wav_duration(path: Path) -> float | None:
+        """Duration of the returned WAV (24 kHz mono PCM) without ffprobe."""
+        import wave
+
+        try:
+            with wave.open(str(path), "rb") as wav:
+                return round(wav.getnframes() / float(wav.getframerate()), 2)
+        except (wave.Error, EOFError, OSError, ZeroDivisionError):
+            return None

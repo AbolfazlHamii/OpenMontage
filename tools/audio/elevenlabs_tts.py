@@ -228,15 +228,25 @@ class ElevenLabsTTS(BaseTool):
 
         validate(inputs, self.input_schema)
         text = inputs["text"]
+        # eleven_multilingual_v2 has no Persian; eleven_v3 is the model that
+        # lists it (as "fas"). Pick v3 for Persian unless a model was chosen.
+        default_model = (
+            "eleven_v3"
+            if str(inputs.get("language_code", "")).lower() in {"fa", "fas", "per", "fa-ir"}
+            else "eleven_multilingual_v2"
+        )
+        model_id = inputs.get("model_id", default_model)
         limit = (
             2000
-            if inputs.get("model_id", "").startswith("eleven_v4")
-            else 5000 if inputs.get("model_id") == "eleven_v3" else 40000
+            if model_id.startswith("eleven_v4")
+            else 5000 if model_id == "eleven_v3" else 40000
         )
         if not text.strip() or len(text) > limit:
             raise ValueError(f"Text must contain 1–{limit} characters for this model")
         voice_id = inputs.get("voice_id", self.DEFAULT_VOICE_ID)
-        model_id = inputs.get("model_id", "eleven_multilingual_v2")
+        # ELEVENLABS_BASE_URL lets a compatible gateway stand in for
+        # api.elevenlabs.io (same paths and xi-api-key header expected).
+        base_url = os.environ.get("ELEVENLABS_BASE_URL", "https://api.elevenlabs.io").rstrip("/")
         output_format = inputs.get("output_format", "mp3_44100_128")
         voice_settings = {
             "stability": inputs.get("stability", 0.5),
@@ -259,7 +269,7 @@ class ElevenLabsTTS(BaseTool):
             if field in inputs:
                 payload[field] = inputs[field]
         with_timestamps = bool(inputs.get("with_timestamps", False))
-        endpoint = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+        endpoint = f"{base_url}/v1/text-to-speech/{voice_id}"
         if with_timestamps:
             endpoint += "/with-timestamps"
         if model_id == "eleven_v4":
@@ -292,7 +302,7 @@ class ElevenLabsTTS(BaseTool):
                 len(payload.get(k, "")) > 100 for k in ("previous_text", "future_text")
             ):
                 raise ValueError("Dialogue context text must be at most 100 characters")
-            endpoint = "https://api.elevenlabs.io/v1/text-to-dialogue"
+            endpoint = f"{base_url}/v1/text-to-dialogue"
             if with_timestamps:
                 endpoint += "/with-timestamps"
         if model_id == "eleven_v4_turbo":

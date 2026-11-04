@@ -8,6 +8,7 @@ the standard library.
 from __future__ import annotations
 
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -69,6 +70,20 @@ class SubtitleGen(BaseTool):
                     "Example: {\"cloud\": \"Claude\", \"co-pilot\": \"Copilot\"}."
                 ),
             },
+            "direction": {
+                "type": "string",
+                "enum": ["auto", "ltr", "rtl"],
+                "default": "auto",
+                "description": (
+                    "Text direction of the subtitles. 'auto' picks RTL when most "
+                    "words are Persian/Arabic/Hebrew/Urdu. RTL cues get a U+200F "
+                    "RIGHT-TO-LEFT MARK at the start of every text line so that "
+                    "lines opening with a Latin name (\"Steve Jobs و ...\") or "
+                    "ending in punctuation still render in Persian reading order. "
+                    "Burn RTL subtitles with video_compose (which sets ASS "
+                    "Encoding=-1 for automatic base direction)."
+                ),
+            },
         },
     }
 
@@ -109,6 +124,12 @@ class SubtitleGen(BaseTool):
         else:
             return ToolResult(success=False, error=f"Unknown format: {fmt}")
 
+        direction = inputs.get("direction", "auto")
+        if direction == "auto":
+            direction = self._detect_direction(cues)
+        if direction == "rtl" and fmt in ("srt", "vtt"):
+            content = self._mark_rtl_lines(content)
+
         if output_path is None:
             output_path = f"subtitles{ext}"
         out = Path(output_path)
@@ -122,6 +143,7 @@ class SubtitleGen(BaseTool):
             data={
                 "format": fmt,
                 "cue_count": len(cues),
+                "direction": direction,
                 "output": str(out),
             },
             artifacts=[str(out)],
@@ -307,6 +329,52 @@ class SubtitleGen(BaseTool):
                 lines.append(cue["text"])
                 lines.append("")
         return "\n".join(lines)
+
+    # Hebrew, Arabic (incl. Persian/Urdu letters), Syriac, Thaana, NKo, Samaritan,
+    # Arabic Extended-A, and the Hebrew/Arabic presentation-form blocks.
+    _RTL_CHAR = re.compile(r"[֐-ࣿיִ-﷿ﹰ-﻿]")
+    _RLM = "‏"
+
+    @classmethod
+    def _detect_direction(cls, cues: list[dict]) -> str:
+        """Majority vote over words, not the first letter.
+
+        Persian lines often open with a Latin brand or name and must still
+        read right-to-left (same rule as Remotion's CaptionOverlay).
+        """
+        rtl = ltr = 0
+        for cue in cues:
+            for word in cue.get("text", "").split():
+                if cls._RTL_CHAR.search(word):
+                    rtl += 1
+                elif any(ch.isalpha() for ch in word):
+                    ltr += 1
+        return "rtl" if rtl > ltr else "ltr"
+
+    @classmethod
+    def _mark_rtl_lines(cls, content: str) -> str:
+        """Prefix every subtitle text line with U+200F (RIGHT-TO-LEFT MARK).
+
+        libass (ffmpeg's subtitles filter) lays a line out left-to-right by
+        default, which puts the trailing '.'/'!' of a Persian sentence on the
+        wrong side and reverses Latin names inside it. With Encoding=-1 it
+        uses the first strong character instead; the leading RLM makes that
+        character right-to-left even when the line starts with "Steve Jobs".
+        """
+        out = []
+        for line in content.split("\n"):
+            is_text = (
+                line.strip()
+                and line != "WEBVTT"
+                and "-->" not in line
+                # SRT cue numbers are ASCII digits; a line of Persian digits
+                # ("۱۹۷۶") is subtitle text and must still be marked.
+                and not (line.strip().isascii() and line.strip().isdigit())
+            )
+            if is_text and not line.startswith(cls._RLM):
+                line = cls._RLM + line
+            out.append(line)
+        return "\n".join(out)
 
     @staticmethod
     def _hmsms(seconds: float) -> tuple[int, int, int, int]:

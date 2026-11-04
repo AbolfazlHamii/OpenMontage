@@ -2937,6 +2937,13 @@ class VideoCompose(BaseTool):
         parts.append(f"Shadow={_safe(style.get('shadow', 0))}")
         parts.append(f"MarginV={_safe(style.get('margin_v', 40))}")
         parts.append(f"Alignment={_safe(style.get('alignment', 2))}")
+        # Encoding=-1 makes libass pick each line's base direction from its
+        # first strong character instead of forcing left-to-right. Without it
+        # Persian/Arabic lines keep their letters shaped but put the trailing
+        # '.'/'!' on the wrong side and reverse embedded Latin names. LTR text
+        # is unaffected. subtitle_gen adds a leading U+200F to RTL cues so a
+        # line that opens with a Latin name still resolves to RTL.
+        parts.append(f"Encoding={_safe(style.get('encoding', -1))}")
         return ",".join(parts)
 
     @staticmethod

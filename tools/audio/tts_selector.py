@@ -7,6 +7,7 @@ the tool file in tools/audio/; no changes to this selector are needed.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from tools.base_tool import (
@@ -17,6 +18,49 @@ from tools.base_tool import (
     ToolTier,
     ToolStatus,
 )
+
+# ---- Language-aware routing -------------------------------------------------
+# The scorer in lib/scoring.py has no notion of language, so for Persian text it
+# could pick Piper (English model by default), ElevenLabs multilingual_v2 (no
+# Persian) or Google Cloud TTS (no fa-IR Chirp voices) and produce garbage
+# without any error. Persian is therefore routed by an explicit, ordered
+# allowlist of tools known to speak it, with the inputs each one needs.
+
+_ARABIC_SCRIPT = re.compile(r"[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
+# Letters Persian uses and Arabic does not: پ چ ژ گ and the Persian kāf/yeh.
+_PERSIAN_LETTERS = re.compile(r"[پچژگکی]")
+
+PERSIAN_TTS_PRIORITY = [
+    "gemini_tts",      # Gemini 3.8 Flash TTS lists Iranian Persian; style control
+    "elevenlabs_tts",  # only with eleven_v3 (language_code=fa selects it)
+    "openai_tts",      # gpt-4o-mini-tts reads Persian; no Persian-native voice
+    "azure_tts",       # fa-IR neural voices
+    "piper_tts",       # offline fallback; needs a downloaded fa_IR voice
+]
+PERSIAN_TOOL_DEFAULTS: dict[str, dict[str, Any]] = {
+    "elevenlabs_tts": {"language_code": "fa"},
+    "azure_tts": {"voice": "fa-IR-DilaraNeural", "locale": "fa-IR"},
+    "piper_tts": {"model": "fa_IR-amir-medium"},
+}
+
+
+def detect_text_language(text: str) -> str | None:
+    """Return "fa" for Persian text, else None (unknown / leave to the scorer)."""
+    words = text.split()
+    if not words:
+        return None
+    arabic_script = sum(1 for w in words if _ARABIC_SCRIPT.search(w))
+    if arabic_script * 2 <= len(words):
+        return None
+    return "fa" if _PERSIAN_LETTERS.search(text) else None
+
+
+def resolve_tts_language(inputs: dict[str, Any]) -> str | None:
+    """Explicit language_code wins; otherwise detect from the text."""
+    code = str(inputs.get("language_code") or "").strip().lower()
+    if code:
+        return "fa" if code.split("-")[0] in {"fa", "fas", "per"} else None
+    return detect_text_language(str(inputs.get("text") or ""))
 
 
 class TTSSelector(BaseTool):
@@ -229,16 +273,45 @@ class TTSSelector(BaseTool):
             )
 
         # Normal generation — use scored selection
+        language = resolve_tts_language(inputs)
         tool, score = self._select_best_tool(inputs, candidates, task_context)
         if tool is None:
+            if language == "fa":
+                return ToolResult(
+                    success=False,
+                    error=(
+                        "No Persian-capable TTS provider is available. Configure one of: "
+                        + ", ".join(PERSIAN_TTS_PRIORITY)
+                        + " (e.g. GOOGLE_API_KEY for gemini_tts)."
+                    ),
+                )
             return ToolResult(success=False, error="No TTS provider available.")
 
         try:
             adapted = self._adapt_inputs(tool, inputs)
         except (ValueError, TypeError) as exc:
             return ToolResult(success=False, error=str(exc))
+        if language == "fa":
+            for key, value in PERSIAN_TOOL_DEFAULTS.get(tool.name, {}).items():
+                adapted.setdefault(key, value)
         result = tool.execute(adapted)
         if result.success:
+            if language:
+                result.data.setdefault("language", language)
+            # Pipelines check narration length against the edit (explainer
+            # scene/compose directors read audio_duration_seconds), but many
+            # providers do not report it. Measure it here for all of them.
+            if result.data.get("audio_duration_seconds") is None:
+                output = result.data.get("output") or (result.artifacts or [None])[0]
+                if output:
+                    try:
+                        from tools.analysis.audio_probe import probe_duration
+
+                        duration = probe_duration(output)
+                        if duration:
+                            result.data["audio_duration_seconds"] = round(duration, 2)
+                    except Exception:  # duration is best-effort metadata
+                        pass
             result.data.setdefault("selected_tool", tool.name)
             result.data["selected_provider"] = tool.provider
             result.data["selection_reason"] = (
@@ -308,6 +381,10 @@ class TTSSelector(BaseTool):
         if allowed:
             candidates = [tool for tool in candidates if tool.provider in allowed]
 
+        language = resolve_tts_language(inputs)
+        if language == "fa":
+            candidates = [t for t in candidates if t.name in PERSIAN_TTS_PRIORITY]
+
         rankings = rank_providers(candidates, task_context)
 
         tool_by_name: dict[str, BaseTool] = {}
@@ -317,6 +394,14 @@ class TTSSelector(BaseTool):
                 and tool.get_status() == ToolStatus.AVAILABLE
             ):
                 tool_by_name[tool.name] = tool
+
+        if language == "fa" and preferred == "auto":
+            # Generic scores do not know Persian quality; use the known order.
+            score_by_name = {s.tool_name: s for s in rankings}
+            for name in PERSIAN_TTS_PRIORITY:
+                if name in tool_by_name:
+                    return tool_by_name[name], score_by_name.get(name)
+            return None, None
 
         if preferred != "auto":
             for score_item in rankings:
