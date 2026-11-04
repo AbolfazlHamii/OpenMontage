@@ -141,11 +141,24 @@ starting Studio FA / Backlot. Not counted above.
 
 ## Before → after (filled in by later phases)
 
-| Metric | Before (this file) | After | Phase |
-|---|---|---|---|
-| Render loudness | −11.5 LUFS | | 1 |
-| Preview render time (15 s) | 38 s / 63 s at 1080p CRF 18 | | 1 |
-| 3 stills, wall time | 54 s serial | | 1 |
-| Test suite wall time | 418 s (serial) | | 1 |
-| Cost estimate error vs actual | no estimator | | 1 |
-| Cost of the sample | $0.2721 | | 1–2 |
+| Metric | Before (this file) | After | Phase | Source of "after" |
+|---|---|---|---|---|
+| Render loudness | −11.5 LUFS, TP −2.8 | −14.0 LUFS, TP −5.2 (ebur128: −13.9 / −5.2) | 1 | `loudness_normalize` on a copy of `sample_music_a_fun_and_games.mp4` (scratch dir), 1.4 s |
+| Preview render (15 s, HyperFrames) | 53.3 s at `standard` (CRF 18) | 37.3 s at `draft` (CRF 28, subme=0) — −30% | 1 | both rendered back to back from a copy of `hyperframes-sample/`; the 38 s in §3 was an earlier run |
+| 3 stills, wall time | 54 s serial | ~11 s planned with 3 parallel slots | 1 | `plan_makespan` on the measured 10–11.6 s per still; no paid call made to confirm |
+| Cost of a look iteration (per still) | $0.0672 (flash 1K) | $0.0336 draft (flash-lite 1K); approved stills $0 | 1 | `config/fa_pricing.yaml` (AvalAI catalog 2026-11-04) |
+| Test run | 418 s serial, full suite | 31 s `make test-fast` (1914 tests, 12 workers); full suite in parallel 310 s | 1 | this laptop, 2026-11-04 |
+| Cost estimate vs actual | no estimator | $0.2049 estimated vs $0.2049 metered in the project (0%); vs $0.2721 incl. the tool-test image outside the project: −24.7% | 1 | `scripts/fa_estimate.py --plan docs/fa/examples/samsung_sample_plan.json` |
+
+Notes on phase 1 numbers:
+
+- Test collection alone took 72 s: `test_agent_skill_pointers.py` calls
+  `get_info()` on every tool at import (ComfyUI probes time out against an
+  empty `COMFYUI_SERVER_URL`), and `tests/qa/` runs real renders at import.
+  `--fast` skips collecting those files (`tests/slow_tests.txt`).
+- `tests/qa/` is not xdist-safe (module-level code shares one project dir),
+  so a full parallel run reports 10 collection errors there; run the full
+  suite serially (`make test`) or add `--ignore=tests/qa`.
+- HyperFrames cannot render below the composition's size, so the 720/540
+  preview profiles apply to FFmpeg/Remotion paths; HyperFrames previews use
+  `quality: draft`.

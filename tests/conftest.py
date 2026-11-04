@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import os
 import socket
+from pathlib import Path
 
 import pytest
 
@@ -119,16 +120,73 @@ def _block_network():
         socket.create_connection = _real_create_connection
 
 
+_SLOW_LIST = Path(__file__).with_name("slow_tests.txt")
+
+
+def _slow_entries() -> tuple[list[str], list[str]]:
+    """(paths skipped at collection, node-id prefixes) from slow_tests.txt."""
+    paths, prefixes = [], []
+    for line in _SLOW_LIST.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "::" not in line and (line.endswith("/") or line.endswith(".py")):
+            paths.append(line.rstrip("/"))
+        else:
+            prefixes.append(line)
+    return paths, prefixes
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--fast",
+        action="store_true",
+        default=False,
+        help="Skip the tests listed in tests/slow_tests.txt (make test-fast).",
+    )
+
+
+def pytest_ignore_collect(collection_path, config):
+    if not config.getoption("--fast", default=False):
+        return None
+    rel = collection_path.resolve().relative_to(Path(__file__).resolve().parent.parent)
+    rel = rel.as_posix()
+    paths, _ = _slow_entries()
+    if any(rel == p or rel.startswith(p + "/") for p in paths):
+        return True
+    return None
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "live_api: test performs a real, billable API call. Skipped unless "
         f"{_ALLOW_ENV_FLAG}=1 is set.",
     )
+    config.addinivalue_line(
+        "markers",
+        "slow: listed in tests/slow_tests.txt; left out of `pytest --fast`.",
+    )
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip live_api tests unless the operator explicitly opted in."""
+    """Mark slow tests (dropped under --fast); skip live_api tests unless opted in."""
+    paths, prefixes = _slow_entries()
+    slow_marker = pytest.mark.slow
+    kept, dropped = [], []
+    for item in items:
+        nodeid = item.nodeid.replace("\\", "/")
+        if any(nodeid.startswith(p) for p in prefixes) or any(
+            nodeid.startswith(p + "/") or nodeid.startswith(p + "::") for p in paths
+        ):
+            item.add_marker(slow_marker)
+            dropped.append(item)
+        else:
+            kept.append(item)
+    if config.getoption("--fast", default=False) and dropped:
+        config.hook.pytest_deselected(items=dropped)
+        items[:] = kept
+
     if _network_allowed():
         return
     skip = pytest.mark.skip(

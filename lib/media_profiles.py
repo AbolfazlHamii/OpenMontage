@@ -35,6 +35,7 @@ class MediaProfile:
     max_duration_seconds: Optional[float] = None
     caption_format: str = "srt"
     notes: str = ""
+    preset: Optional[str] = None
 
 
 # ---- Platform profiles ----
@@ -127,6 +128,26 @@ GENERIC_HD = MediaProfile(
     notes="Generic HD output (no platform-specific constraints)",
 )
 
+# Review renders: everything before the owner approves a cut. Small and fast
+# to encode; never a delivery profile.
+PREVIEW_720 = MediaProfile(
+    name="preview_720",
+    width=1280, height=720,
+    aspect_ratio=AspectRatio.LANDSCAPE_16_9,
+    fps=30, codec="libx264", audio_codec="aac", crf=28,
+    preset="veryfast",
+    notes="Pre-approval preview (720p, fast encode)",
+)
+
+PREVIEW_540 = MediaProfile(
+    name="preview_540",
+    width=960, height=540,
+    aspect_ratio=AspectRatio.LANDSCAPE_16_9,
+    fps=30, codec="libx264", audio_codec="aac", crf=28,
+    preset="veryfast",
+    notes="Pre-approval preview (540p, fastest encode)",
+)
+
 
 # ---- Profile registry ----
 
@@ -135,6 +156,7 @@ ALL_PROFILES: dict[str, MediaProfile] = {
         YOUTUBE_LANDSCAPE, YOUTUBE_4K, YOUTUBE_SHORTS,
         INSTAGRAM_REELS, INSTAGRAM_FEED,
         TIKTOK, LINKEDIN, CINEMATIC, GENERIC_HD,
+        PREVIEW_720, PREVIEW_540,
     ]
 }
 
@@ -162,4 +184,6 @@ def ffmpeg_output_args(profile: MediaProfile) -> list[str]:
         "-r", str(profile.fps),
         "-vf", f"scale={profile.width}:{profile.height}",
     ]
+    if profile.preset:
+        args[2:2] = ["-preset", profile.preset]
     return args

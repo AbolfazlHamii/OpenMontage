@@ -1,0 +1,10 @@
+{
+  "note": "Samsung 15 s sample as produced on 2026-11-04 (docs/fa/BASELINE.md): two narration lines, three 1K stills from gemini-3.1-flash-image.",
+  "mode": "final",
+  "image_model": "gemini-3.1-flash-image",
+  "resolution": "1K",
+  "scenes": [
+    {"id": "s1", "images": 2, "narration": "احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟"},
+    {"id": "s2", "images": 1, "narration": "سال هزار و نهصد و نود و پنج، رئیس سامسونگ صد و پنجاه هزار تا گوشیِ خراب رو جلوی کارگرهاش آتیش زد!"}
+  ]
+}

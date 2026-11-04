@@ -1,0 +1,36 @@
+# Tests left out of the fast run (`pytest tests --fast`, `make test-fast`).
+# A line naming a directory or a .py file skips collecting it entirely (these
+# do slow work at import time); any other line is a node-id prefix that is
+# deselected and marked `slow`. Measured on the owner's laptop, 2026-11-04.
+# The full suite (`make test`) still runs everything.
+
+# Script-style QA: renders at import time, shares one project dir (not xdist-safe).
+tests/qa/
+# Calls get_info() on every tool at import; ComfyUI/HyperFrames probes ~29 s.
+tests/contracts/test_agent_skill_pointers.py
+# ComfyUI reachability probes, ~4 s each.
+tests/contracts/test_comfyui_tools.py
+tests/contracts/test_hunyuan_cloud_video.py::TestExecuteWithMocks
+tests/tools/test_hunyuan_image.py::test_execute_full_flow_with_mocked_api
+# Full registry discovery, 12-32 s each.
+tests/tools/test_hyperframes_compose.py::test_provider_menu_summary
+tests/tools/test_documentary_governance.py::test_provider_menu_preserves_tool_discovery_metadata
+tests/contracts/test_phase0_contracts.py::TestToolRegistry::test_support_envelope
+tests/contracts/test_phase3_contracts.py::TestCapabilityMetadata::test_registry_catalog_views
+tests/contracts/test_phase2_contracts.py::TestPhase2ErrorHandling::test_image_selector_no_provider
+tests/contracts/test_phase2_contracts.py::TestPhase2ToolContracts::test_dry_run_returns_dict[ImageSelector]
+tests/contracts/test_kling_official_image.py::test_image_selector_prefers_official_provider
+tests/contracts/test_kling_official_video.py::test_video_selector_prefers_official_provider_without_fal_upload
+tests/contracts/test_phase3_contracts.py::TestGoogleMusic
+# Real ffmpeg renders, 1-5 s each.
+tests/tools/test_local_video_cache_inputs.py::test_actual_video_rendering_inputs_change_cached_artifact
+tests/tools/test_local_video_cache_inputs.py::test_scene_analysis_cache_tracks_requested_minimum_length
+tests/tools/test_silence_speed_timeline.py::test_speed_up_keeps_ordered_source_regions_once
+tests/tools/test_video_compose_vertical.py
+tests/tools/test_audio_mixer_amix_normalize.py::test_sequential_lines_keep_standalone_peak
+tests/tools/test_audio_mixer_segmented_music.py
+tests/tools/test_base_tool_cache_formats.py::test_changed_container_renders_but_same_format_renames_hit
+tests/lib/test_source_media_review_real_media.py
+tests/tools/test_green_screen_workspace_isolation.py
+tests/tools/test_caption_workspace_isolation.py
+tests/backlot/test_gate_scenarios.py::test_awaiting_then_approved_archives_history_without_gate_skip

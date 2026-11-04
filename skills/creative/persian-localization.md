@@ -155,6 +155,44 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   box in words like «دلار»). Confirm with
   `python scripts/fa_smoke_test.py subtitles` and look at the frame.
 
+## Cost and speed defaults
+
+Measured against the Samsung sample (`docs/fa/BASELINE.md`): images were 98%
+of the spend, and 57% of tool time went to failed calls.
+
+- **Estimate first.** Before any paid stage run
+  `python scripts/fa_estimate.py --scene-plan … --script …` (or `--brief`,
+  or `--plan`) and show the owner draft and final totals. Prices come from
+  `config/fa_pricing.yaml`; the script warns when the table is older than
+  14 days (`python scripts/fa_pricing_update.py` refreshes it from AvalAI).
+  On the sample it matched the project's metered cost ($0.2049).
+- **Images go through `fa_image`.** `mode: draft` (flash-lite 1K, $0.0336)
+  while the look is being decided; `mode: final` (flash 2K, $0.101) only for
+  stills the owner has agreed on. When the owner approves a still, call
+  `fa_image` with `operation: approve`: it is pinned under
+  `assets/approved/` by hash and every later request for that scene returns
+  the pinned file for free. Never regenerate an approved scene; ask the owner
+  to unapprove it first. Gemini image models take no seed, so these calls
+  are never cached; providers that take a seed get a stable one from
+  `fa_image`.
+- **Independent calls run in parallel.** Scene stills go through
+  `fa_image` with `operation: batch` (one item per scene); narration lines
+  through `lib/parallel_runner.run_parallel` around `tts_selector`. Both cap
+  concurrency per provider (default 3). A failed item is reported in the batch summary; retry only
+  that item. Three stills: 54 s serial in the sample, ~11 s in parallel
+  (`plan_makespan`).
+- **Every render before approval is a preview.** HyperFrames:
+  `quality: "draft"` (CRF 28, fastest x264 settings; 15 s sample rendered
+  in 37 s instead of 53 s). FFmpeg path: `profile: "preview_720"` or
+  `"preview_540"`. Delivery settings (`standard`/`high`,
+  `youtube_landscape`) only for the approved cut.
+- **Delivery loudness: −14 LUFS, true peak ≤ −1 dBTP.** HyperFrames and
+  Remotion mix their own audio (the sample came out at −11.5 LUFS), so run
+  `loudness_normalize` on the final render (its defaults are −14 / −1).
+  When `audio_mixer` builds the mix, pass `loudnorm_target: -14`; its
+  limiter sits at −1.5 dBTP, which already meets the ceiling. Do not change
+  `audio_mixer`'s −16 default: it belongs to upstream podcast pipelines.
+
 ## Control panel
 
 `python -m studio_fa` (or `studio-fa.bat`) opens a local Persian panel on
