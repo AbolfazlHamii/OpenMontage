@@ -15,7 +15,7 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 | 3 | Editing style library + camera language | done | 2026-11-04 | 057f766 | $0 | 8 cards, snippets rendered |
 | 4 | Learn style from a reference video | done | 2026-11-04 | f221e07 | $0.0375 | ASL 3.75 vs 3.75 (0%) |
 | 5 | Quality gate | done | 2026-11-04 | cccb269 | $0.0009 | QA flags −11.5 LUFS |
-| 6 | Studio FA usability | done | 2026-11-04 | see git log | $0 | 9 screenshots in docs/fa/screens/ |
+| 6 | Studio FA usability | done | 2026-11-04 | 41e1f40 | $0 | 9 screenshots in docs/fa/screens/ |
 | 7 | Series template | **waiting** (منتظر) | 2026-11-04 | – | $0 | Samsung video not approved yet; skipped as the brief says |
 
 Paid spend across phases 0–7: **$0.2393** (phase 2 $0.2008 incl. one $0.0001
