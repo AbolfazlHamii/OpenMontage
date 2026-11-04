@@ -108,3 +108,4 @@ venv/
 # Persian smoke-test and gateway-check outputs
 fa_smoke/
 gateway_check/
+.studio_fa/

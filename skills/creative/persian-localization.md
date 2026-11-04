@@ -100,6 +100,14 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   box in words like «دلار»). Confirm with
   `python scripts/fa_smoke_test.py subtitles` and look at the frame.
 
+## Control panel
+
+`python -m studio_fa` (or `studio-fa.bat`) opens a local Persian panel on
+http://127.0.0.1:4760/: provider order and health, keys (written to `.env`),
+voice auditions through `tts_selector` with duration, cps, cost and
+fallback, RTL subtitle frames, the Persian tests, and each project opened in
+Backlot. Auditions are kept in `.studio_fa/tts_history.jsonl`.
+
 ## Review
 
 Before presenting a Persian render, extract frames where captions contain

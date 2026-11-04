@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>استودیو فارسی</title>
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <span class="brand-mark">ف</span>
+      <div>
+        <strong>استودیو فارسی</strong>
+        <small>کنترل تولید روی OpenMontage</small>
+      </div>
+    </div>
+    <nav id="nav">
+      <button data-tab="home" class="active">داشبورد</button>
+      <button data-tab="voice">استودیو صدا</button>
+      <button data-tab="subs">زیرنویس</button>
+      <button data-tab="projects">پروژه‌ها</button>
+      <button data-tab="keys">کلیدها و تنظیمات</button>
+      <button data-tab="tests">تست‌ها</button>
+    </nav>
+    <div class="side-foot" id="side-foot">در حال بررسی…</div>
+  </aside>
+
+  <main>
+    <!-- Dashboard -->
+    <section id="tab-home" class="tab active">
+      <header class="page-head">
+        <h1>داشبورد</h1>
+        <p>وضعیت ارائه‌دهنده‌ها، ابزارها و کلیدها.</p>
+      </header>
+      <div class="grid">
+        <div class="card span-2">
+          <div class="card-head">
+            <h2>صدای فارسی</h2>
+            <span class="hint">به این ترتیب امتحان می‌شن؛ اگه یکی خطا بده، بعدی</span>
+          </div>
+          <ol class="providers" id="providers"></ol>
+        </div>
+        <div class="card">
+          <h2>ابزارها</h2>
+          <ul class="checks" id="tools"></ul>
+        </div>
+        <div class="card">
+          <h2>کلیدها</h2>
+          <ul class="checks" id="keys-summary"></ul>
+          <button class="link" data-goto="keys">ویرایش کلیدها ←</button>
+        </div>
+        <div class="card span-2">
+          <h2>کارهای سریع</h2>
+          <div class="actions">
+            <button class="btn" data-goto="voice">ساخت نمونه‌ی صدا</button>
+            <button class="btn ghost" data-goto="subs">پیش‌نمایش زیرنویس</button>
+            <button class="btn ghost" id="open-library">باز کردن Backlot</button>
+            <button class="btn ghost" data-goto="tests">اجرای تست‌ها</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Voice studio -->
+    <section id="tab-voice" class="tab">
+      <header class="page-head">
+        <h1>استودیو صدا</h1>
+        <p>متن فارسی بنویس، صدا و لحن رو انتخاب کن و نتیجه رو بشنو. همون مسیری که پایپ‌لاین استفاده می‌کنه.</p>
+      </header>
+      <div class="grid">
+        <form class="card span-2" id="tts-form">
+          <label>متن
+            <textarea id="tts-text" rows="5" maxlength="3000"></textarea>
+          </label>
+          <div class="row">
+            <span class="hint" id="tts-count"></span>
+          </div>
+          <div class="fields">
+            <label>صدا
+              <select id="tts-voice"></select>
+            </label>
+            <label>مدل
+              <select id="tts-model">
+                <option value="gemini-3.8-flash-lite-tts">پیش‌نویس (Flash-Lite، ارزون‌تر)</option>
+                <option value="gemini-3.8-flash-tts">نهایی (Flash)</option>
+              </select>
+            </label>
+            <label>ارائه‌دهنده
+              <select id="tts-provider">
+                <option value="auto">خودکار (گوگل، بعد AvalAI)</option>
+                <option value="gemini">فقط گوگل</option>
+                <option value="avalai">فقط AvalAI</option>
+              </select>
+            </label>
+          </div>
+          <p class="voice-desc" id="voice-desc"></p>
+          <label>لحن (style)
+            <input id="tts-style" type="text" maxlength="500" placeholder="مثلاً: پرانرژی مثل یوتیوبر قصه‌گو، لهجه‌ی تهرانی محاوره">
+          </label>
+          <div class="chips" id="style-chips">
+            <button type="button" data-style="راوی آرام و گرم، قصه‌گو، با مکث‌های طبیعی، لهجه‌ی تهرانی محاوره">راوی آرام</button>
+            <button type="button" data-style="پرانرژی و هیجان‌زده مثل یوتیوبر قصه‌گو، سریع و سرزنده، لهجه‌ی تهرانی محاوره">راوی پرانرژی یوتیوبی</button>
+            <button type="button" data-style="رسمی و شمرده مثل گوینده‌ی مستند">گوینده‌ی مستند</button>
+            <button type="button" data-style="">بدون لحن</button>
+          </div>
+          <div class="actions">
+            <button class="btn" type="submit" id="tts-go">ساخت صدا</button>
+            <span class="status" id="tts-status"></span>
+          </div>
+        </form>
+        <div class="card span-2 hidden" id="tts-result"></div>
+        <div class="card span-2">
+          <div class="card-head">
+            <h2>نمونه‌های قبلی</h2>
+            <span class="hint">برای مقایسه‌ی صداها کنار هم</span>
+          </div>
+          <div id="tts-history" class="history"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Subtitles -->
+    <section id="tab-subs" class="tab">
+      <header class="page-head">
+        <h1>پیش‌نمایش زیرنویس</h1>
+        <p>هر خط یه زیرنویس. با همون ffmpeg و فونتی رندر می‌شه که ویدیوی نهایی.</p>
+      </header>
+      <div class="grid">
+        <form class="card span-2" id="subs-form">
+          <label>خط‌ها (حداکثر ۴)
+            <textarea id="subs-lines" rows="4"></textarea>
+          </label>
+          <div class="fields">
+            <label>اندازه‌ی فونت
+              <input id="subs-size" type="number" min="16" max="96" value="36">
+            </label>
+          </div>
+          <div class="actions">
+            <button class="btn" type="submit" id="subs-go">رندر فریم</button>
+            <span class="status" id="subs-status"></span>
+          </div>
+        </form>
+        <div class="card span-2 hidden" id="subs-result"></div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="tab-projects" class="tab">
+      <header class="page-head">
+        <h1>پروژه‌ها</h1>
+        <p>تولیدهای پوشه‌ی <code>projects/</code>. جزئیات هر کدوم توی Backlot.</p>
+      </header>
+      <div class="card">
+        <div class="actions">
+          <button class="btn ghost" id="projects-refresh">به‌روزرسانی</button>
+          <button class="btn ghost" id="open-library-2">کتابخونه‌ی Backlot</button>
+        </div>
+        <div id="projects-list" class="projects"></div>
+      </div>
+    </section>
+
+    <!-- Keys -->
+    <section id="tab-keys" class="tab">
+      <header class="page-head">
+        <h1>کلیدها و تنظیمات</h1>
+        <p>فقط توی فایل <code>.env</code> همین پروژه ذخیره می‌شن و دیگه نمایش داده نمی‌شن.</p>
+      </header>
+      <div class="card" id="env-form"></div>
+    </section>
+
+    <!-- Tests -->
+    <section id="tab-tests" class="tab">
+      <header class="page-head">
+        <h1>تست‌ها</h1>
+        <p>تست‌های مسیر فارسی (مسیریابی صدا، AvalAI، زیرنویس RTL). هیچ API پولی صدا زده نمی‌شه.</p>
+      </header>
+      <div class="card">
+        <div class="actions">
+          <button class="btn" id="tests-go">اجرای تست‌ها</button>
+          <span class="status" id="tests-status"></span>
+        </div>
+        <pre id="tests-output" class="hidden"></pre>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast hidden" id="toast"></div>
+<script src="/ui/app.js"></script>
+</body>
+</html>
