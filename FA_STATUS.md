@@ -56,25 +56,48 @@ Last updated: 2026-11-04
 
 ## Current production: first transcreation
 
-Reference: CEOzoned, "The ENTIRE History of Coca-Cola in 11 Minutes"
-(https://www.youtube.com/watch?v=_OuJBX6Q4Cc, 323K views).
-Analysis files: `projects/_reference/ceozoned-coca-cola/` (git-ignored):
-`video_analysis_brief.json` (first 180 s: 48 scenes), `transcript_full_brief.json`
-(full transcript, 1720 words), `keyframes/`, `contact_sheet.jpg`, `REFERENCE_NOTES.md`.
+Project: `projects/samsung-history-fa/` (git-ignored), "کل تاریخ سامسونگ در ۹۰ ثانیه".
+Backlot: `python -m backlot open samsung-history-fa`.
 
-What the reference does: 45 of 48 shots are still cartoon images with camera
-moves (3 motion clips), ~3.75 s per shot, 16 cuts/min, ~157 wpm narration.
-Hook = huge present-day number → paradox origin → "This is the entire
-history of X". Recurring round-headed characters, warm sepia palette.
+Approved by the owner (2026-11-04): concept Samsung; runtime **HyperFrames**
+(agent had recommended Remotion); music = three variants to compare (Pixabay,
+Lyria, none); 10 s samples of both `animated-explainer` and
+`character-animation`. Sample budget approved: $0.50. Full production needs a
+second approval.
 
-Next step: the owner picks a concept, pipeline sample and runtime (see the
-proposal in the hub file / conversation). Nothing has been generated yet;
-spend so far on this production: $0.
+Done:
+- research + proposal checkpoints written (`artifacts/research_brief.json`,
+  `proposal_packet.json`, `decision_log.json`, schema-valid).
+- Sample narration: `assets/sample/s1_narration.wav`, `s2_narration.wav`
+  (voice Kore, gemini-3.8-flash-tts, energetic style). Google returned 403,
+  so both came from `avalai_gemini_tts` via the fall-through (~$0.0035 total).
+  Sample script lines are in the hub file and below.
+
+Blocked: Google API (images, Lyria) returns 403 from the owner's current
+network (IP 83.122.107.129) and from the local proxy exit 45.65.112.227.
+It worked earlier from 205.252.135.82 (owner's VPN). Owner decision ("both"):
+build an AvalAI image tool that is always available, and prefer Google when
+the VPN makes it reachable.
+
+Sample script:
+1. «احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟»
+2. «سال هزار و نهصد و نود و پنج، رئیس سامسونگ صد و پنجاه هزار تا گوشیِ خراب رو جلوی کارگرهاش آتیش زد!»
+   (captions use digits: ۱۹۹۵، ۱۵۰ هزار)
+
+Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.md`).
 
 ## Next steps
 
-1. Owner approves a concept → `init_project`, open Backlot, run
-   `animated-explainer` stage by stage (read each director skill first).
-2. 10 s samples: `animated-explainer` (Nano Banana stills + camera moves) vs
-   `character-animation`, owner picks.
-3. Phase 1 voice audition before the final narration.
+1. New tool `tools/graphics/avalai_gemini_image.py` (BaseTool, capability
+   image_generation): AvalAI native `POST https://api.avalai.ir/v1beta/models/{model}:generateContent`
+   with Bearer `AVALAI_API_KEY`, models `gemini-3.1-flash-image` (Nano Banana 2,
+   ~$0.067/img) and `gemini-3-pro-image`; reference images as `inlineData`;
+   `responseModalities: ["IMAGE"]`; mocked tests. Route: Google first, AvalAI
+   when Google fails (same idea as the TTS fall-through). AvalAI has no Lyria.
+2. `tts_selector`: shorten HTML error pages in `fallback_from` (Google's 403
+   page is dumped in full).
+3. Sample images (3 stills: hook phone, 1938 Daegu dried-fish shop, 1995
+   Gumi bonfire; no text in images), Pixabay track, then HyperFrames
+   composition with Vazirmatn RTL captions; character-animation sample.
+4. Present samples + actual cost; then script stage for the full 90 s.
+5. Phase 1 voice audition before the final narration.
