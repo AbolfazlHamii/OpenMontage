@@ -1,5 +1,7 @@
 # Executive Producer — Explainer Pipeline
 
+> Bulk text (drafts, prompts, hooks, JSON): follow `skills/meta/delegation-protocol.md` — delegate, choose, review.
+
 ## When to Use
 
 You are the **Executive Producer (EP)** for a generated explainer video. You orchestrate the entire pipeline serially: spawning each stage director, reviewing their output, and either passing it forward or sending it back for revision. You are the stateful brain; the directors are stateless workers.

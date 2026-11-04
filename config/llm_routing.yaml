@@ -1,0 +1,90 @@
+# LLM routing for tools/text (openai_compat_llm + llm_selector).
+#
+# Two run modes:
+#   interactive (default): the agent running OpenMontage IS the premium tier.
+#     Only worker / bulk / vision_bulk tasks are sent out; anything that
+#     escalates to premium comes back to the agent as a message.
+#   headless: unattended runs; premium is called through the API.
+# OPENMONTAGE_LLM_MODE overrides `mode`.
+#
+# Order of preference everywhere: local (free) -> bulk -> worker -> premium.
+# Prices are USD per 1M tokens; when an entry has no price, the AvalAI price
+# from config/fa_pricing.yaml (llm.avalai) is used.
+#
+# Tier models below are the bake-off picks (scripts/llm_bakeoff.py,
+# docs/fa/llm_bakeoff/). The owner makes the final call.
+mode: interactive
+
+profiles:
+  avalai:
+    base_url: https://api.avalai.ir/v1
+    key_env: AVALAI_API_KEY
+    # Through the VPN proxy AvalAI responses broke mid-stream (images, Nov 4);
+    # direct works from Iran.
+    proxy: direct
+  gemini:
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    key_env: GOOGLE_API_KEY
+    proxy: env
+  moonshot:
+    base_url: https://api.moonshot.ai/v1
+    key_env: MOONSHOT_API_KEY
+    proxy: env
+  openrouter:
+    base_url: https://openrouter.ai/api/v1
+    key_env: OPENROUTER_API_KEY
+    proxy: env
+  ollama:
+    base_url: http://127.0.0.1:11434/v1
+    key_env: null
+    local: true
+    proxy: direct
+
+tiers:
+  local: []
+  bulk:
+    - {profile: avalai, model: gemini-3.1-flash-lite}
+    - {profile: avalai, model: deepseek-v4.1-flash}
+    - {profile: avalai, model: qwen3.8-flash}
+  worker:
+    - {profile: avalai, model: deepseek-v4.1-flash}
+    - {profile: avalai, model: claude-haiku-5-5}
+    - {profile: avalai, model: gemini-3.8-flash}
+    - {profile: gemini, model: gemini-3.8-flash, price: {input: 0.75, output: 3.75}}
+  # Not covered by the bake-off (text only): vision quality unverified.
+  vision_bulk:
+    - {profile: avalai, model: gemini-3.1-flash-lite}
+  # Headless only. Not benchmarked; both are min_tier 1 in AvalAI's catalog.
+  premium:
+    - {profile: avalai, model: claude-opus-5-5}
+    - {profile: avalai, model: claude-sonnet-5-5}
+
+escalation: [local, bulk, worker, premium]
+
+# task -> tier. `final_persian: true` marks text that reaches viewers:
+# a cheap model never delivers it (red line in persian-localization.md).
+tasks:
+  source_summary: {tier: worker}
+  outline_draft: {tier: worker}
+  scene_breakdown_draft: {tier: worker}
+  translation_draft_en_fa: {tier: worker}
+  image_prompts: {tier: worker, json: true}
+  hooks: {tier: worker, json: true}
+  title_tag_variants: {tier: worker, json: true}
+  json_fill: {tier: worker, json: true}
+  classification: {tier: bulk, json: true}
+  transcript_chunk_summary: {tier: bulk}
+  json_repair: {tier: bulk, json: true}
+  claim_extraction: {tier: bulk, json: true}
+  frame_labels: {tier: vision_bulk, json: true}
+  narration_final: {tier: premium, final_persian: true}
+  subtitles_final: {tier: premium, final_persian: true}
+  title_final: {tier: premium, final_persian: true}
+  description_final: {tier: premium, final_persian: true}
+
+defaults:
+  timeout_seconds: 60
+  max_attempts_per_model: 2
+  temperature: 0.7
+  max_tokens: 2048
+  concurrency_per_profile: 3

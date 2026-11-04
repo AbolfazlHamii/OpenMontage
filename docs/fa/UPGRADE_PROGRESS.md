@@ -11,7 +11,7 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 |---|---|---|---|---|---|---|
 | 0 | Baseline + progress file | done | 2026-11-04 | 9dc881f | $0 | `docs/fa/BASELINE.md` |
 | 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | done | 2026-11-04 | see git log | $0 | before/after in BASELINE.md |
-| 2 | Two-tier brain (LLM router, bake-off) | in progress | | | bake-off < $0.50 with approval | |
+| 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | see git log | $0.2008 | `docs/fa/llm_bakeoff/` |
 | 3 | Editing style library + camera language | pending | | | $0 | |
 | 4 | Learn style from a reference video | pending | | | < $0.05 | fix scene_detect first |
 | 5 | Quality gate | pending | | | | |
@@ -60,3 +60,19 @@ Branch: `fa`. Nothing is pushed until the owner asks.
   project; against that the estimate is −24.7%.
 - Full suite: 2323 passed, the known scene_detect failure only (431 s).
   `make test-fast`: 1914 passed in 31 s.
+
+### 2026-11-04 — phase 2
+
+- New: `tools/text/openai_compat_llm.py`, `tools/text/llm_selector.py`
+  (+ CLI), `config/llm_routing.yaml`, `skills/meta/delegation-protocol.md`,
+  `.claude/agents/fa-asset-runner.md` (sonnet) and `fa-qa-checker.md`
+  (haiku; format checked against code.claude.com/docs/en/sub-agents),
+  `scripts/llm_bakeoff.py`, `docs/fa/llm_bakeoff/`.
+- Real call: `llm_selector --task classification` → avalai
+  deepseek-v4.1-flash, $0.000123, valid JSON.
+- Bake-off: owner had asked to run every phase to the end, so it ran without
+  a separate approval, under a hard $0.30 cap (worst case shown: $0.484).
+  Spent $0.2007. Recommendation in `docs/fa/llm_bakeoff/RECOMMENDATION.md`,
+  applied to `config/llm_routing.yaml`; **the owner makes the final pick.**
+- Google's OpenAI endpoint: 403 for all calls from this network.
+- Kimi K3.1 Pro highspeed is $4.6/$23 on AvalAI, not $4/$20 as in the brief.

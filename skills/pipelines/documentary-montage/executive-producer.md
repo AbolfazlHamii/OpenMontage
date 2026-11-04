@@ -1,5 +1,7 @@
 # Executive Producer - Documentary Montage Pipeline
 
+> Bulk text (drafts, prompts, hooks, JSON): follow `skills/meta/delegation-protocol.md` — delegate, choose, review.
+
 ## When To Use
 
 The user wants a short (30-180s) non-narrative piece built from existing

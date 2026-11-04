@@ -193,6 +193,24 @@ of the spend, and 57% of tool time went to failed calls.
   limiter sits at −1.5 dBTP, which already meets the ceiling. Do not change
   `audio_mixer`'s −16 default: it belongs to upstream podcast pipelines.
 
+## Text models (LLM router)
+
+- **Red line: a cheap model never delivers final Persian text.** Narration,
+  final subtitles, titles and descriptions always pass premium review (the
+  agent in interactive mode). `llm_selector` refuses to send `*_final` tasks
+  to a cheap tier. Drafts from cheap models are raw material only.
+- Bulk text goes through `python -m tools.text.llm_selector` (see
+  `skills/meta/delegation-protocol.md`). Bake-off 2026-11-04
+  (`docs/fa/llm_bakeoff/`): deepseek-v4.1-flash wrote the most accurate
+  colloquial Persian per dollar; gemini-3.8-flash sounds liveliest but
+  invents facts (an unsourced "20% of Korea's economy" hook), so fact-check
+  its drafts; Kimi K2.6 returned empty answers when its reasoning used the
+  whole output budget; qwen misspelled the founder's name (لی بونگ‌چول).
+- Google's OpenAI-compatible endpoint answered 403 from the owner's network
+  on 2026-11-04, same as images; the router falls through to AvalAI.
+- Cheap models add preambles ("for a YouTube video I wrote…") to
+  translations; strip them, and ask for "output only the text".
+
 ## Control panel
 
 `python -m studio_fa` (or `studio-fa.bat`) opens a local Persian panel on

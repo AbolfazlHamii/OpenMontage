@@ -70,8 +70,8 @@ Last updated: 2026-11-04
 
 Tooling upgrade (separate brief, `UPGRADE_PROMPT.md` v2 in the parent
 folder): progress in `docs/fa/UPGRADE_PROGRESS.md`, measured starting point
-in `docs/fa/BASELINE.md`. Phase 0 (baseline) done 2026-11-04; phase 1
-(quick wins) is next.
+in `docs/fa/BASELINE.md`. Phases 0–2 done 2026-11-04 (baseline, quick
+wins, LLM router + bake-off); see the progress file for the rest.
 
 ## Current production: first transcreation
 

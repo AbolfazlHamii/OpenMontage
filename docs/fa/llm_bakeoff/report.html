@@ -1,0 +1,497 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>LLM bake-off</title>
+<style>
+body{font-family:Vazirmatn,Tahoma,sans-serif;margin:16px;background:#fbfaf7;color:#1b1f2a;line-height:1.7}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #ddd;padding:4px 8px;text-align:start}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #e3e0d8;border-radius:8px;padding:8px}
+.card h4{margin:0 0 4px;font-size:14px}pre{white-space:pre-wrap;font-family:inherit;margin:0;font-size:15px}
+.meta{color:#666;font-size:12px}.err{color:#a12;font-size:13px}section{margin-top:28px}
+</style></head><body>
+<h1>مقایسه مدل‌ها برای کارهای worker/bulk</h1>
+<p>تاریخ 2026-11-04 · هزینه کل $0.2007 (سقف $0.3) · سقف خروجی هر پاسخ 2500 توکن.
+امتیاز کیفیت (۱ تا ۵) را ایجنت بعد از خواندن خروجی‌ها داده؛ تصمیم نهایی با شماست.</p>
+<table><tr><th>خانواده</th><th>مدل</th><th>موفق</th><th>هزینه</th><th>ثانیه (میانگین)</th><th>JSON معتبر</th><th>توکن خروجی</th><th>کیفیت</th><th>یادداشت</th></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k3.1-pro</td><td>4/5</td><td>$0.0975</td><td>32.0</td><td>2/3</td><td>9491</td><td>3.9</td><td>Natural Persian; hooks JSON invalid after repair; most expensive</td></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k2.6</td><td>5/5</td><td>$0.0619</td><td>51.0</td><td>3/3</td><td>15171</td><td>2.9</td><td>Empty answers on 2/5 (reasoning used all 2500 tokens); a hook invents &#x27;5 trillion dollars&#x27;</td></tr><tr><td>DeepSeek</td><td dir='ltr'>avalai / deepseek-v4.1-flash</td><td>5/5</td><td>$0.0032</td><td>7.5</td><td>3/3</td><td>5083</td><td>4.4</td><td>Accurate, natural, faithful translation; best quality per dollar</td></tr><tr><td>Qwen</td><td dir='ltr'>avalai / qwen3.8-flash</td><td>5/5</td><td>$0.0058</td><td>35.0</td><td>3/3</td><td>12070</td><td>4.1</td><td>Founder&#x27;s name misspelled; slow (35 s avg)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.8-flash</td><td>5/5</td><td>$0.0267</td><td>16.2</td><td>3/3</td><td>6971</td><td>3.9</td><td>Liveliest colloquial voice; embellishes facts in translation and hooks (unsourced &#x27;20% of Korea&#x27;s economy&#x27;)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.1-flash-lite</td><td>5/5</td><td>$0.0022</td><td>2.3</td><td>3/3</td><td>1337</td><td>3.7</td><td>Fastest and cheapest; added a preamble and notes to the translation</td></tr><tr><td>Claude Haiku</td><td dir='ltr'>avalai / claude-haiku-5-5</td><td>5/5</td><td>$0.0034</td><td>8.8</td><td>3/3</td><td>6594</td><td>4.1</td><td>Good prompts and hooks; got the shop&#x27;s name wrong in the narration</td></tr><tr><td>Gemini direct</td><td dir='ltr'>gemini / gemini-3.8-flash</td><td>0/5</td><td>$0.0000</td><td>–</td><td>0/3</td><td>0</td><td>–</td><td>Google API 403 from this network for all 5 calls</td></tr></table>
+<section><h2>پیش‌نویس narration محاوره‌ای</h2><details><summary>prompt</summary><pre dir='ltr'>Write a 20-second Persian narration (about 55-65 words) in colloquial spoken Tehran Persian for a fast history video. Topic: in 1938 Lee Byung-chul opened a small trading shop in Daegu, Korea, selling dried fish, vegetables and noodles; it was called Samsung Sanghoe, &#x27;three stars&#x27;. Open with a question to the viewer. Write numbers as words the narrator will say. Output only the narration.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01627 · 42.78 s</div><pre>فکرش رو می‌کنی سامسونگ با ماهی خشک شروع شده باشه؟ سال هزار و نهصد و سی‌وهشت، لی بیونگ‌چول تو دائگوی کره یه مغازه‌ی تجاری کوچیک باز کرد. اونجا ماهی خشک، سبزیجات و نودل می‌فروخت و اسمش رو گذاشت سامسونگ سانگهوه، یعنی «سه ستاره». همین مغازه‌ی ساده، نقطه‌ی شروع یه ماجرای بزرگ بود؛ ماجرایی که از دلش یه برند جهانی دراومد!</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 1/5</h4><div class='meta'>$0.01012 · 77.14 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00065 · 6.84 s</div><pre>می‌دونستید سامسونگ از یه مغازهٔ کوچیک شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ چول تو شهر دگو کره، یه دکهٔ تجاری کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهوئه، یعنی «سه ستاره». فکرشو بکن؛ همین شروع ساده و فروتنانه بعداً شد غول فناوری دنیا.</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00190 · 46.56 s</div><pre>تا حالا فکر کردی یه مغازه کوچیک واقعاً چطور می‌تونه امپراتوری جهانی بشه؟ سال هزار و نهصد و سی و هشت، لی بونگ‌چول توی دئگو، کره، یه مغازه تجارتی کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهه، یعنی سه ستاره. از همین شروع ساده، خیلی زود شد سامسونگ بزرگ.</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00708 · 20.55 s</div><pre>می‌دونستین غول فناوری دنیا کارشو با چی شروع کرده؟ سال هزار و نهصد و سی و هشت، مردی به اسم لی بیونگ‌چول، توی شهر دگوی کره یه تجارتخونه‌ی نقلی راه انداخت. کارش چی بود؟ فروش ماهی خشک، سبزیجات و نودل! اسم مغازه‌شو گذاشت «سامسونگ سانگ‌هو» که یعنی «سه ستاره». باورتون می‌شه غول تکنولوژی امروز از همین دکون ساده متولد شد؟</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00021 · 2.41 s</div><pre>تا حالا فکر کردین سامسونگ چطوری شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ‌چول توی شهر دگو یه مغازه کوچیک باز کرد. اونجا فقط ماهی خشک، سبزیجات و نودل می‌فروخت! اسمش رو هم گذاشت «سامسونگ سانگهو» که یعنی «سه ستاره». کی فکرش رو می‌کرد اون بقالی کوچیک، یه روزی بشه غول دنیای تکنولوژی و گوشی‌های موبایل؟ عجیبه، نه؟</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.00065 · 8.08 s</div><pre>می‌دونی سامسونگ، اون غول تکنولوژی، از کجا شروع شد؟ تو سال هزار و نهصد و سی و هشت، یه مرد کره‌ای به اسم لی بیونگ‌چول، توی شهر دائگو، یه مغازه کوچیک باز کرد. اون‌جا ماهی خشک، سبزی و رشته‌فرنگی می‌فروخت. اسم مغازه‌اش هم شد «سان‌هوی سامسونگ»، یعنی «سه ستاره». از یه دکون خواروبارفروشی کوچیک، تا یکی از بزرگ‌ترین برندهای دنیا!</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>ترجمه EN→FA</h2><details><summary>prompt</summary><pre dir='ltr'>Translate into natural colloquial Persian for a voice-over (not word for word; keep facts exact):
+
+&quot;In 1995, Samsung&#x27;s chairman ordered 150,000 faulty phones to be piled up in a factory yard in Gumi and set on fire in front of the employees. The message was simple: quality first, whatever it costs.&quot;</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01084 · 30.89 s</div><pre>سال ۱۹۹۵، رئیس هیئت‌مدیره‌ی سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو توی حیاط کارخونه‌ی گومی روی هم بچینن و جلوی چشم کارمندا آتیش بزنن. پیامش هم خیلی ساده بود: کیفیت، قبل از هر چیزی؛ هر هزینه‌ای هم که داشته باشه.</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 1/5</h4><div class='meta'>$0.01010 · 17.2 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00049 · 7.25 s</div><pre>سال ۱۹۹۵، رئیس سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو تو حیاط یه کارخونه تو گومی روی هم بریزن و جلوی چشم کارکنان آتیششون بزنن. پیامش ساده بود: اول کیفیت، هرچی هم که هزینه داشته باشه.</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00104 · 24.56 s</div><pre>«سال ۱۹۹۵، رئیس سامسونگ دستور داد صد و پنجاه هزار گوشی معیوب رو توی حیاط کارخونه گومی روی هم جمع کنن و جلوی چشم کارمندا آتیش بزنن. پیامش ساده بود: اول کیفیت، هر هزینه‌ای هم که بخواد.»</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00312 · 14.59 s</div><pre>سال ۱۹۹۵، رئیس سامسونگ یه حرکت عجیب زد؛ دستور داد ۱۵۰ هزار تا گوشی معیوب و مشکل‌دار رو بیارن وسط حیاط کارخونه تو شهر «گومی»، جلو چشم تک‌تک کارمندها کپه کنن و به آتیش بکشن! پیام این کار خیلی ساده و بی‌تعارف بود: کیفیت حرف اول رو می‌زنه، به هر قیمتی که تموم بشه!</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 2.5/5</h4><div class='meta'>$0.00040 · 2.05 s</div><pre>برای یک ویدیو یوتیوب با لحنی پرانرژی و خودمانی، این متن رو به این صورت برات نوشتم:
+
+«سال ۱۹۹۵، رئیس سامسونگ یه دستور عجیب داد! اون دستور داد ۱۵۰ هزار تا گوشیِ معیوب رو وسط حیاط کارخونه‌شون تو شهر &quot;گومی&quot; تلنبار کنن و همه‌شون رو جلوی چشمِ کارمندها به آتیش بکشن. پیامش هم خیلی کوتاه و کوبنده بود: کیفیت، حرف اول رو می‌زنه؛ فارغ از اینکه چقدر برامون آب می‌خوره!»
+
+***
+
+**چند نکته برای اجرا:**
+*   **«آب می‌خوره»**: یک اصطلاح خیلی رایج در فارسی برای وقتی که می‌خوایم بگیم «هزینه داشتن» یا «خرج برداشتن».
+*   **«کوبنده»**: برای اینکه حسِ اقتدارِ اون مدیر رو توی صدا منتقل کنی، این کلمه عالیه.
+*   **لحن**: سعی کن جمله‌ی آخر رو با تأکیدِ بیشتر و کمی شمرده‌تر بگی تا تأثیرش روی مخاطب بمونه.</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00038 · 6.45 s</div><pre>«سال ۱۹۹۵، رئیس سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو بیارن وسط حیاط کارخونه‌ی گومی، تلنبارشون کنن و جلوی چشم کارمندها آتیشون بزنن. پیامش خیلی ساده بود: کیفیت اولِ اولِ کاره، هرچی که قیمتش بشه.»</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>prompt تصویر برای ۵ صحنه</h2><details><summary>prompt</summary><pre dir='ltr'>Write English image-generation prompts for 5 scenes of a 2D editorial illustration video (flat shapes, grain, limited palette: navy, cream, cobalt accent). No text, letters or logos may appear in any image. Scenes: 1) a phone in a viewer&#x27;s hand, today; 2) a small 1938 Daegu storefront selling dried fish; 3) 1969 first electronics factory; 4) 1995 bonfire of phones in a factory yard, workers watching; 5) a modern foldable phone on a pedestal. Return JSON: {&quot;prompts&quot;: [{&quot;scene&quot;: 1, &quot;prompt&quot;: &quot;...&quot;}, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01281 · 38.89 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;Wide 16:9 composition, first-person view of a present-day viewer’s hand holding a generic modern smartphone in a relaxed contemporary home, thumb resting near the screen, the display showing only an abstract cobalt-and-cream video-like composition with no interface elements. 2D editorial illustration, flat geometric shapes, expressive clean silhouettes, subtle paper grain, limited palette of deep navy, warm cream, and cobalt blue as the only accent, restrained lighting, no gradients, no photorealism. Strictly no text, letters, numbers, logos, watermarks, or readable symbols anywhere.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;Wide 16:9 composition of a tiny Korean storefront in Daegu in 1938, modest timber-and-plaster architecture with a traditional tiled roof, an open shopfront displaying hanging dried fish and neat baskets of dried seafood, a shopkeeper and one customer in period-appropriate Korean clothing, quiet historical street atmosphere, completely blank signboard and unmarked packaging. 2D editorial illustration, flat shapes, simplified human figures, subtle analog grain, limited palette of deep navy, warm cream, and small cobalt-blue accents, no gradients, no photorealism. Strictly no text, letters, numbers, calligraphy, logos, watermarks, or signage anywhere.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;Wide 16:9 composition showing the exterior and cutaway interior of a modest first electronics factory in South Korea in 1969, simple industrial building with sawtooth roof and chimneys, workers in period uniforms assembling generic radios and early electronic components at long benches, orderly machinery and stacked unmarked crates, optimistic mid-century industrial mood. 2D editorial illustration, flat geometric shapes, crisp silhouettes, subtle printed-paper grain, limited palette of deep navy, warm cream, and cobalt blue as a restrained accent, no gradients, no photorealism. Strictly no text, letters, numbers, logos, brand marks, labels, watermarks, or readable instruments anywhere.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;Wide 16:9 composition of a dramatic 1995 scene in a South Korean factory yard: a large controlled bonfire built from a pile of generic mobile phones and electronic devices, angular flames rising in cream and cobalt, smoke forming bold flat shapes, rows of workers in simple 1990s factory uniforms standing at a safe distance and watching solemnly, industrial buildings behind them, serious atmosphere of accountability and renewal rather than celebration. 2D editorial illustration, flat shapes, strong graphic composition, subtle grain, limited palette of deep navy, warm cream, and cobalt blue only, no gradients, no photorealism. Strictly no text, letters, numbers, logos, brand marks, banners, labels, or watermarks anywhere.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;Wide 16:9 composition of a sleek modern foldable smartphone displayed partially open on a minimal cylindrical pedestal, elegant three-quarter view clearly showing the hinge and two screen panels, screens containing only abstract flat cobalt and cream shapes, gallery-like setting with a soft pool of light and generous negative space, premium futuristic mood. 2D editorial illustration, flat geometric shapes, refined silhouette, subtle paper grain, limited palette of deep navy, warm cream, and cobalt blue as the accent, no gradients, no photorealism. Strictly no text, letters, numbers, logos, interface icons, watermarks, or branding anywhere.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01897 · 38.11 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat geometric shapes, visible paper grain texture, strict limited palette of navy blue, cream white, and cobalt accent only. Close-up first-person view of a contemporary hand holding a modern smartphone with a completely blank dark screen and smooth bezel, absolutely no text, no letters, no logos, no brand marks, abstract minimal background with bold flat color blocks, vintage print aesthetic, graphic design style.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat graphic shapes, heavy grain overlay, colors strictly limited to navy, cream, and cobalt accent only. A small dried-fish storefront in 1938 Daegu Korea, wooden stall with simplified dried fish hanging on lines, 1930s Korean colonial architecture rendered in bold geometric shapes, a single vendor silhouette, completely blank surfaces with no signage text, no letters, no logos, no words anywhere, nostalgic muted editorial composition.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat geometric shapes, textured grain, palette restricted to navy, cream, and cobalt accent only. Interior of a 1969 electronics factory, simplified worker silhouettes at a long assembly line building vintage circuit boards and radios, geometric machinery and large industrial windows, blank equipment faces with no text, no labels, no logos, no letters on uniforms, vintage industrial editorial style.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat graphic shapes, paper grain texture, strict limited palette of navy, cream, and cobalt accent only. A 1995 factory yard at night with a large bonfire burning a pile of old mobile phones, simplified worker silhouettes standing and watching the flames, industrial fence and buildings in background, fire rendered as abstract geometric cobalt and cream shapes, absolutely no text, no letters, no logos, no brand marks on devices, dramatic editorial composition.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat geometric shapes, subtle grain texture, colors limited to navy, cream, and cobalt accent only. A sleek modern foldable phone resting closed on a tall minimalist pedestal in a clean gallery-like space, device surface completely blank and reflective with no text, no logos, no letters, no interface icons, abstract geometric shadows and shapes in background, contemporary editorial product showcase style.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00049 · 5.86 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat vector-like shapes with subtle grain texture, limited palette of navy, cream, and cobalt blue accent. Close-up of a viewer&#x27;s hand holding a modern smartphone in the present day, soft cream background, simplified stylized fingers, phone screen glowing cobalt with abstract blank shapes only, no text, no letters, no numbers, no logos, no icons, no UI typography. Crisp geometric composition, restrained shadows, editorial magazine feel.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes with grainy print texture, limited palette of navy, cream, and cobalt blue accent. A small 1938 Daegu storefront selling dried fish, simplified Korean-style low building, wooden crates and hanging dried fish silhouettes, blank signboard with no lettering, cobblestone street, muted cream walls and navy shadows, cobalt accent on a small awning or bucket. Historical editorial mood, no text, no letters, no numbers, no logos, no signage writing.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat geometric shapes with subtle grain, limited palette of navy, cream, and cobalt blue accent. Interior of the first electronics factory in 1969, simplified workers in cream uniforms assembling small components at long benches, conveyor shapes, overhead lamps, navy machinery silhouettes, cobalt accent on one tool or part. Clean editorial composition, period-industrial atmosphere, no text, no letters, no numbers, no logos, no labels, no signage.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes with grainy texture, limited palette of navy, cream, and cobalt blue accent. 1995 factory yard at dusk, a bonfire made of piled mobile phones and electronic parts, stylized workers standing and watching in silhouette, navy night sky, cream smoke shapes, cobalt blue flame accents. Dramatic but restrained editorial scene, no text, no letters, no numbers, no logos, no branding on devices, no signage.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes with subtle grain, limited palette of navy, cream, and cobalt blue accent. A modern foldable smartphone displayed on a simple pedestal, partially open at a elegant angle, blank screens with abstract cream and cobalt reflections only, cream gallery-like background, navy pedestal shadows, minimal editorial composition. No text, no letters, no numbers, no logos, no icons, no UI elements, no branding.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00062 · 22.3 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, subtle paper grain, limited palette of navy, cream, and cobalt accent. Close-up of a viewer&#x27;s hand holding a modern smartphone today, screen showing only abstract blank light and simple shapes, no readable text, no letters, no logos, no UI labels, clean minimal composition, contemporary mood.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, subtle paper grain, limited palette of navy, cream, and cobalt accent. Small 1938 Daegu storefront selling dried fish, open wooden shop front, dried fish hanging on lines, simple crates and baskets, period clothing, quiet street atmosphere, no signage, no readable text, no letters, no logos, no branding.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, subtle paper grain, limited palette of navy, cream, and cobalt accent. First electronics factory interior in 1969, workers at simple assembly tables with basic circuit boards and radio-like devices, large windows, industrial machinery, muted historical atmosphere, no text, no letters, no logos, no labels, no readable signage.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, subtle paper grain, limited palette of navy, cream, and cobalt accent. 1995 bonfire of old phones in a factory yard, workers standing in a loose circle watching, smoke rising, simple factory buildings in background, dramatic but restrained mood, no text, no letters, no logos, no labels, no readable signage.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, subtle paper grain, limited palette of navy, cream, and cobalt accent. Modern foldable phone displayed on a simple pedestal, screen blank with abstract shapes, elegant minimal composition, contemporary product presentation, no text, no letters, no logos, no labels, no branding.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00595 · 17.55 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;A modern first-person perspective 2D editorial illustration of a human hand holding a sleek smartphone in a contemporary room. Clean graphic vector shapes, textured risograph grain, minimalist composition with ample negative space. Strict limited color palette of deep navy, soft warm cream, and vivid cobalt blue accent reflections radiating from the screen. Completely blank screen, strictly no text, no letters, no icons, no logos.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;A nostalgic 2D editorial illustration of a small traditional Korean wooden storefront in 1938 Daegu. Bunches of dried fish hanging under the wooden eaves, rustic crates, woven baskets, and a dirt path. Stylized flat shapes, vintage storybook atmosphere, heavy paper grain texture. Limited color palette strictly consisting of deep navy silhouettes, warm cream tones, and sharp cobalt blue accents. Completely blank facade, no signage, no text, no letters, no logos.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;An industrial 2D editorial illustration set inside a 1969 electronics factory. Silhouettes of assembly line workers in uniform methodically assembling vintage vacuum-tube television sets along a conveyor system. Mid-century industrial geometry, stylized flat art, heavy stipple grain. Limited color palette featuring deep midnight navy, rich cream surfaces, and vibrant cobalt blue accents on mechanical elements. Clean surfaces, strictly no text, no letters, no symbols, no logos.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;A dramatic 2D editorial illustration of a large courtyard bonfire inside an industrial facility in 1995. Piles of plastic handheld mobile devices engulfed in stylized flames and rising smoke plumes, while rows of uniformed factory workers stand watch solemnly in the background. High-contrast graphic composition, risograph grain, flat shapes. Limited palette of deep navy blue shadows, warm cream smoke silhouettes, and intense cobalt blue flame accents. No banners, no signs, no text, no letters, no logos.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;A futuristic minimalist 2D editorial illustration of a modern foldable smartphone resting open at an angle on a sculpted geometric pedestal in an exhibition space. Sophisticated product showcase aesthetic, elegant shadows, flat vector design with fine sandpaper grain texture. Harmonious limited palette of deep navy background, warm cream sculptural plinth, and glowing cobalt blue accents along the hinge and edges. Pure minimal form, strictly no text, no letters, no numbers, no logos.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00060 · 2.38 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat vector style with subtle film grain. A close-up of a person&#x27;s hands holding a modern smartphone, minimalist aesthetic, navy blue and cream background, cobalt blue accent highlights, clean lines, no text, no letters.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes, grain texture. A small 1938 Daegu storefront exterior, hanging dried fish, vintage architectural elements, limited palette of navy, cream, and cobalt blue accents, artistic simplicity, no text, no letters.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat vector style. A 1969 electronics factory interior, early assembly line workers, mid-century industrial machinery, minimalist geometry, navy and cream color scheme with cobalt blue accents, grain texture, no text, no letters.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat shapes. A 1995 factory yard at night, a large bonfire of old mobile phones, silhouettes of workers watching the fire, dramatic shadows, navy blue sky, cream smoke, cobalt blue glowing embers, grain texture, no text, no letters.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;2D editorial illustration, flat vector style. A modern foldable smartphone displayed on a minimalist museum pedestal, clean composition, navy and cream color palette, vibrant cobalt blue accents, grain texture, sharp edges, no text, no letters.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00089 · 11.26 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;Flat 2D editorial illustration, a viewer&#x27;s hand holding a modern smartphone at chest height, seen from a slight angle, simple geometric shapes, minimal detail. Contemporary living room background with a soft cobalt accent wall and a cream sofa silhouette. Limited palette of deep navy, cream, and cobalt blue only. Visible film grain texture over the whole image, subtle paper-like surface. Phone screen is a plain dark navy rectangle with no content. Clean vector edges, calm and modern mood. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;Flat 2D editorial illustration of a small 1938 storefront in Daegu, Korea, a narrow wooden shop with a tiled roof and an open front. Shelves and hanging strings of dried fish, stacked baskets of dried goods, a wooden counter with a simple weighing scale. A shopkeeper in traditional 1930s clothing stands behind the counter, simplified faces and shapes. Limited palette of navy, cream, and cobalt blue, with cobalt used for the shop&#x27;s awning or shadows. Visible grain texture across the image, flat shading with no gradients beyond the grain. Signboards and any surfaces are left blank with no characters or markings. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;Flat 2D editorial illustration of a 1969 electronics factory interior, a long hall with rows of workbenches, simple black-and-white era machinery, and workers in white coats assembling small circuit boards under hanging lamps. Clean geometric composition with strong perspective lines. Limited palette of deep navy, cream, and cobalt blue, cobalt used for the lamp light and highlights. Visible film grain texture, flat vector shapes, no outlines beyond shape edges. Machines and equipment have no labels, dials are plain shapes. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;Flat 2D editorial illustration of a 1995 factory yard at night, a large bonfire in the center made of stacked mobile phones glowing orange-cobalt, sparks rising into a navy sky. A group of workers in simple work clothes stand in a loose semicircle watching the fire, silhouettes and simplified faces with no identifiable features. Factory buildings in the background with rows of dark windows. Limited palette of navy, cream, and cobalt blue, with the fire rendered as cream and cobalt accents. Visible grain texture, flat shapes, dramatic but restrained composition. Phones in the fire have blank, unreadable shapes. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;Flat 2D editorial illustration of a modern foldable smartphone standing upright on a cylindrical cream pedestal in a minimal navy studio space. The phone is shown half-open, with the screen displaying only abstract cobalt geometric shapes and no text. Soft spotlight from above creates a clean cobalt halo on the back wall. Limited palette of navy, cream, and cobalt blue only. Visible film grain across the image, crisp flat vector shapes, symmetrical and calm composition. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>۱۰ هوک</h2><details><summary>prompt</summary><pre dir='ltr'>Write 10 different opening hooks (first 3 seconds, max 18 words each) in colloquial Persian for a 90-second video &#x27;The whole history of Samsung in 90 seconds&#x27;. Mix: big number, paradox of origins, direct question, shocking moment (1995 phone bonfire). Return JSON: {&quot;hooks&quot;: [&quot;...&quot;, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 1/5</h4><div class='err'>invalid JSON after one repair: not JSON: Expecting value</div></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.01865 · 95.7 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;۵ تریلیون دلار؛ یه شرکت ماهی فروشی این همه پول رو از کجا آورد؟&quot;,
+  &quot;سامسونگ اول ماهی می‌فروخت، الان میلیاردها گوشی توی دست ماست!&quot;,
+  &quot;تا حالا فکر کردی غول کره‌ای از یه مغازه کوچیک شروع شد؟&quot;,
+  &quot;۱۹۹۵؛ اون روزی که سامسونگ گوشیا رو آتیش زد و تاریخو عوض کرد!&quot;,
+  &quot;از صفر تا صد میلیارد دلار؛ فقط نود ثانیه وقت داری!&quot;,
+  &quot;قبل از گوشی، نودل و ماهی خشک می‌فروختن؛ باورم نمی‌شه!&quot;,
+  &quot;چطور یه کارخونه ماهی تبدیل شد به سلطان گوشی دنیا؟&quot;,
+  &quot;۱۵۰ هزار گوشی تو آتیش؛ سامسونگ اینجوری برند شد!&quot;,
+  &quot;هشتاد سال تاریخ تو نود ثانیه؛ آماده‌ای بترکی؟&quot;,
+  &quot;کره‌ای که برنج و ماهی می‌فروخت، الان دنیا رو می‌چرخونه!&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00115 · 12.3 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;سامسونگ نزدیک ۹۰ ساله که هست؛ تو ۹۰ ثانیه کل ماجراش رو می‌بینی.&quot;,
+  &quot;سامسونگ اولش نه موبایل می‌ساخت نه تلویزیون؛ یه شرکت تجاری بود که ماهی خشک و نودل جابه‌جا می‌کرد.&quot;,
+  &quot;می‌دونی سامسونگ قبل از اینکه غول تکنولوژی بشه، با چی شروع کرد؟&quot;,
+  &quot;سال ۱۹۹۵ سامسونگ ۱۵۰ هزار گوشی خودش رو آتش زد تا درس عبرت بشه.&quot;,
+  &quot;۱۵۰ هزار گوشی، ۵۰ میلیون دلار خسارت، فقط برای یه درس کیفیت.&quot;,
+  &quot;سامسونگ قبل از چیپ و گوشی، تو کره ماهی خشک و سبزیجات پخش می‌کرد.&quot;,
+  &quot;چرا سامسونگ یه روز گوشی‌هاش رو آتش زد؟&quot;,
+  &quot;تصور کن ۱۵۰ هزار گوشی سامسونگ وسط کارخانه آتش گرفته؛ این واقعاً اتفاق افتاد.&quot;,
+  &quot;۹۰ ثانیه وقت داری بفهمی سامسونگ چطور از انبار ماهی خشک به غول گوشی دنیا تبدیل شد.&quot;,
+  &quot;اگه سامسونگ تو ۱۹۹۵ گوشی‌هاش رو آتش نزد، امروز اصلاً وجود داشت؟&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00194 · 71.62 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;۹۰ ثانیه، کل سامسونگ از ۱۹۳۸ تا امروز.&quot;,
+  &quot;می‌دونستی سامسونگ اولش فقط ماهی و رشته می‌فروخت؟&quot;,
+  &quot;۱۹۹۵: سامسونگ گوشی‌های معیوبش رو آتیش زد!&quot;,
+  &quot;سامسونگ یعنی «سه ستاره»؛ ولی الان کهکشانه.&quot;,
+  &quot;از ماهی تا گوشی تاشو؛ سامسونگ چطور عوض شد؟&quot;,
+  &quot;یه آتیش بزرگ تو ۱۹۹۵، سامسونگ رو زنده کرد.&quot;,
+  &quot;تو ۹۰ ثانیه، تاریخ سامسونگ از ماهی تا چیپ.&quot;,
+  &quot;سامسونگ اول غذای کره‌ای می‌داد، الان همه‌جا هست.&quot;,
+  &quot;سامسونگ چرا گوشی‌هایش رو سوزوند و بزرگ شد؟&quot;,
+  &quot;از یه شرکت غذای ۱۹۳۸ تا امپراتوری گوشی.&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00551 · 15.84 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;می‌دونستی بزرگ‌ترین غول تکنولوژی دنیا اولش فقط ماهی خشک و رشته‌فرنگی می‌فروخت؟ داستان سامسونگ باورت نمیشه!&quot;,
+  &quot;سال ۱۹۹۵ رئیس سامسونگ ۱۵۰ هزار تا گوشی بی‌کیفیت خودشو جلوی چشم کارمنداش آتیش زد!&quot;,
+  &quot;شرکتی که ۲۰ درصد کل اقتصاد کره‌جنوبی رو می‌چرخونه، دقیقاً از کجا به اینجا رسید؟&quot;,
+  &quot;فکر می‌کنی سامسونگ از اولش غول موبایل بود؟ نه، تاریخچه‌ش قشنگ شبیه فیلم‌های مافیاییه!&quot;,
+  &quot;باور می‌کنی صاحبِ گوشی توی دستت، کارشو با صادرات سبزیجات و نودل شروع کرده؟&quot;,
+  &quot;چرا مدیر سامسونگ ۵۰ میلیون دلار از گوشی‌های خودشو با بولدوزر له کرد و سوزوند؟&quot;,
+  &quot;تو ۹۰ ثانیه ببین چطور یه حجره کوچیک ماهی‌فروشی شد امپراتوری ۵۰۰ میلیارد دلاری!&quot;,
+  &quot;اگه بهت بگم سامسونگ حتی تانک جنگی و بیمارستان هم می‌سازه باورت میشه؟ داستان عجیبیه!&quot;,
+  &quot;از نودل‌فروشی تو سئول تا ساختن قطعات اصلی آیفون؛ سامسونگ چطوری دنیا رو گرفت؟&quot;,
+  &quot;روزی که سامسونگ تصمیم گرفت تمام گوشی‌هاشو آتیش بزنه، تاریخ دنیای تکنولوژی عوض شد!&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00048 · 2.53 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;سامسونگ از فروش ماهی و نودل به غول تکنولوژی رسید! چطوری؟ در ۹۰ ثانیه ببین.&quot;,
+  &quot;فکر می‌کردی سامسونگ همیشه گوشی می‌ساخته؟ سخت در اشتباهی! ماجرا خیلی عجیب‌تره.&quot;,
+  &quot;سال ۱۹۹۵ سامسونگ تمام گوشی‌های خرابش رو آتیش زد! چرا؟ داستانش رو برات میگم.&quot;,
+  &quot;می‌دونی سامسونگ چطور از یه بقالی کوچیک به غول دنیای موبایل تبدیل شد؟&quot;,
+  &quot;فقط ۹۰ ثانیه وقت داری تا بفهمی سامسونگ چطور دنیا رو تسخیر کرد!&quot;,
+  &quot;داستان سامسونگ مثل فیلم‌های سینماییه؛ از فروش خشکبار تا تسخیر بازار گوشی!&quot;,
+  &quot;فکر می‌کنی سامسونگ رو می‌شناسی؟ این ۹۰ ثانیه تمام باورهای غلطت رو می‌ترکونه.&quot;,
+  &quot;چطور یه شرکت کره‌ای توی ۹۰ سال، کل دنیای تکنولوژی رو تغییر داد؟&quot;,
+  &quot;وقتی سامسونگ گوشی‌هاش رو آتیش زد، هیچ‌کس فکر نمی‌کرد اینجوری برگرده!&quot;,
+  &quot;می‌خوای بدونی سامسونگ چطور از هیچی به اینجا رسید؟ توی ۹۰ ثانیه برات فاشش می‌کنم.&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00112 · 13.41 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;از ماهی خشک تا بیش از ۲۰۰ میلیارد دلار درآمد سالانه؛ سامسونگ چطوری به اینجا رسید؟&quot;,
+  &quot;یه شرکتی که الان گوشی‌هاش تو جیب همه‌ست، اولش فقط ماهی خشک و نودل می‌فروخت!&quot;,
+  &quot;اسم سامسونگ یعنی «سه ستاره»، ولی اولین کسب‌وکارش یه مغازه‌ی کوچیک ماهی خشک و سبزی بود.&quot;,
+  &quot;می‌دونستی گوشی‌ای که الان تو دستته، ریشه‌ش به یه مغازه‌ی بقالی کوچیک برمی‌گرده؟&quot;,
+  &quot;چرا یه برند کره‌ای که روزی کیفیتش مسخره بود، الان رقیب سرسخت اپله؟&quot;,
+  &quot;سال ۱۹۹۵، حدود ۱۵۰ هزار گوشی معیوب سامسونگ جلوی چشم کارمندا آتیش زده شد!&quot;,
+  &quot;تو ۱۹۹۵، مدیرعامل سامسونگ دستور داد گوشی‌های معیوب رو جلوی همه بسوزونن. چرا؟&quot;,
+  &quot;سامسونگ بیش از ۸۵ سال قدمت داره؛ و تو ۹۰ ثانیه همه‌ی این مسیر رو با هم می‌بینیم.&quot;,
+  &quot;از ۱۹۳۸ تا امروز، سامسونگ با بیش از ۲۰۰ هزار کارمند، یکی از بزرگ‌ترین شرکت‌های دنیاست.&quot;,
+  &quot;سامسونگ الان تراشه و گوشی می‌سازه، ولی اولین محصولش یه بساط ماهی‌فروشی بود؛ باورت می‌شه؟&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>پرکردن JSON</h2><details><summary>prompt</summary><pre dir='ltr'>Extract the timeline from this text into JSON {&quot;events&quot;: [{&quot;year&quot;: int, &quot;event_fa&quot;: short Persian description, &quot;category&quot;: one of founding|product|crisis|expansion}]}. Text: Samsung was founded in 1938 as a trading company. It entered electronics in 1969, made its first semiconductor investment in 1974, burned 150,000 faulty phones in 1995, launched the first Galaxy S in 2010 and its first foldable phone in 2019.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00676 · 15.45 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به‌عنوان یک شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود سامسونگ به صنعت الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;نخستین سرمایه‌گذاری سامسونگ در صنعت نیمه‌رساناها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سوزاندن ۱۵۰ هزار گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه نخستین گوشی گلکسی S&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;عرضه نخستین گوشی تاشوی سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00409 · 26.86 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به‌عنوان یه شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود سامسونگ به صنعت الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری تو حوزه نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;آتش زدن ۱۵۰ هزار گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی Galaxy S&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;رونمایی از اولین گوشی تاشو&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00038 · 5.12 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به‌عنوان شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود به حوزه الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری در نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سوزاندن ۱۵۰ هزار گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گلکسی S&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی تاشو&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00030 · 9.83 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به‌عنوان شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود سامسونگ به حوزه الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;سرمایه‌گذاری اولیه سامسونگ در نیمه‌رساناها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سوزاندن ۱۵۰۰۰۰ گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;راه‌اندازی اولین گوشی گلکسی اس&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی تاشو سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00501 · 12.45 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;شروع به کار سامسونگ به عنوان یه شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود رسمی و پر سر و صدا به دنیای الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری مهم روی چیپ‌ها و نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;آتیش زدن ۱۵۰ هزار تا گوشی معیوب جلوی چشم کارمندا&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;ترکوندن بازار با معرفی اولین گوشی گلکسی اس&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;رونمایی از اولین نسل گوشی‌های تاشوی سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00047 · 2.27 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تاسیس سامسونگ به عنوان یک شرکت بازرگانی&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود رسمی سامسونگ به حوزه لوازم الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری بزرگ در صنعت نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;آتش زدن ۱۵۰ هزار گوشی معیوب برای حفظ کیفیت&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی از سری محبوب گلکسی اس&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;رونمایی از اولین گوشی تاشوی سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00035 · 4.95 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به‌عنوان یک شرکت تجاری&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود سامسونگ به حوزه الکترونیک&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری سامسونگ در نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سوزاندن ۱۵۰ هزار گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی Galaxy S&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی تاشو سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section>
+</body></html>

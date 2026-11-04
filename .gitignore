@@ -109,3 +109,6 @@ venv/
 fa_smoke/
 gateway_check/
 .studio_fa/
+
+# LLM response cache (tools/text/openai_compat_llm.py)
+.llm_cache/
