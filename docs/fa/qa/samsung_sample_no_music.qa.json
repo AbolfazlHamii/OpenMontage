@@ -1,0 +1,145 @@
+{
+  "render": "projects\\samsung-history-fa\\renders\\sample_no_music.mp4",
+  "duration_seconds": 15.0,
+  "status": "fail",
+  "checks": [
+    {
+      "name": "probe",
+      "status": "pass",
+      "detail": "15.00 s",
+      "evidence": {
+        "operation": "probe",
+        "input": "projects\\samsung-history-fa\\renders\\sample_no_music.mp4",
+        "duration": 15.0,
+        "file_size_mb": 15.4,
+        "has_audio": true,
+        "width": 1920,
+        "height": 1080,
+        "pixel_format": "yuv420p",
+        "video_codec": "h264",
+        "frame_rate": "30/1",
+        "audio_codec": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "validation_issues": [],
+        "validation_passed": true
+      }
+    },
+    {
+      "name": "loudness",
+      "status": "fail",
+      "detail": "integrated -11.5 LUFS (target -14 ±1) — fix: loudness_normalize (defaults -14 / -1)",
+      "evidence": {
+        "integrated_lufs": -11.52,
+        "true_peak_dbtp": -2.88,
+        "lra": 1.4
+      }
+    },
+    {
+      "name": "black_frames",
+      "status": "pass",
+      "detail": "no black frames",
+      "evidence": {}
+    },
+    {
+      "name": "frozen_frames",
+      "status": "pass",
+      "detail": "no hold over 6 s",
+      "evidence": {
+        "spans": []
+      }
+    },
+    {
+      "name": "av_sync",
+      "status": "pass",
+      "detail": "streams start together and end within 0.25 s",
+      "evidence": {
+        "video_start": 0.0,
+        "audio_start": 0.0,
+        "video_duration": 15.0,
+        "audio_duration": 15.0
+      }
+    },
+    {
+      "name": "duration_vs_script",
+      "status": "skipped",
+      "detail": "no script given",
+      "evidence": {}
+    },
+    {
+      "name": "captions",
+      "status": "skipped",
+      "detail": "no captions given",
+      "evidence": {}
+    },
+    {
+      "name": "workspace_rtl",
+      "status": "pass",
+      "detail": "Persian text with RTL direction set",
+      "evidence": {
+        "lang_fa": true,
+        "dir_rtl": true
+      }
+    },
+    {
+      "name": "image_text",
+      "status": "pass",
+      "detail": "no text in 3 generated image(s)",
+      "evidence": {
+        "images": [
+          {
+            "image": "projects\\samsung-history-fa\\assets\\sample\\s1a_hook_phone.png",
+            "has_text": false,
+            "script": "none",
+            "error": null
+          },
+          {
+            "image": "projects\\samsung-history-fa\\assets\\sample\\s1b_fish_shop_1938.png",
+            "has_text": false,
+            "script": "none",
+            "error": null
+          },
+          {
+            "image": "projects\\samsung-history-fa\\assets\\sample\\s2_gumi_bonfire_1995.png",
+            "has_text": false,
+            "script": "none",
+            "error": null
+          }
+        ]
+      }
+    }
+  ],
+  "review_frames": {
+    "frames": [
+      {
+        "timestamp": 2.5,
+        "path": "C:\\Users\\hp\\AppData\\Local\\Temp\\claude\\D--project-videio-v\\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\\scratchpad\\qa_frames\\frame_2_5s.jpg"
+      },
+      {
+        "timestamp": 5.0,
+        "path": "C:\\Users\\hp\\AppData\\Local\\Temp\\claude\\D--project-videio-v\\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\\scratchpad\\qa_frames\\frame_5_0s.jpg"
+      },
+      {
+        "timestamp": 7.5,
+        "path": "C:\\Users\\hp\\AppData\\Local\\Temp\\claude\\D--project-videio-v\\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\\scratchpad\\qa_frames\\frame_7_5s.jpg"
+      },
+      {
+        "timestamp": 10.0,
+        "path": "C:\\Users\\hp\\AppData\\Local\\Temp\\claude\\D--project-videio-v\\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\\scratchpad\\qa_frames\\frame_10_0s.jpg"
+      },
+      {
+        "timestamp": 12.5,
+        "path": "C:\\Users\\hp\\AppData\\Local\\Temp\\claude\\D--project-videio-v\\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\\scratchpad\\qa_frames\\frame_12_5s.jpg"
+      }
+    ],
+    "timestamps": [
+      2.5,
+      5.0,
+      7.5,
+      10.0,
+      12.5
+    ]
+  },
+  "cost_usd": 0.000926,
+  "summary_fa": "بررسی کیفیت: sample_no_music.mp4 — نتیجه کلی: ❌ مشکل\n- مشخصات فایل: ✅ درست (15.00 s)\n- بلندی صدا: ❌ مشکل (integrated -11.5 LUFS (target -14 ±1) — fix: loudness_normalize (defaults -14 / -1))\n- فریم سیاه: ✅ درست (no black frames)\n- تصویر ثابت طولانی: ✅ درست (no hold over 6 s)\n- هم‌زمانی صدا و تصویر: ✅ درست (streams start together and end within 0.25 s)\n- مدت در برابر متن: — بررسی نشد (no script given)\n- زیرنویس: — بررسی نشد (no captions given)\n- راست‌به‌چپ در کامپوزیشن: ✅ درست (Persian text with RTL direction set)\n- متن داخل تصویرهای تولیدی: ✅ درست (no text in 3 generated image(s))\nهزینه این بررسی: $0.0009"
+}

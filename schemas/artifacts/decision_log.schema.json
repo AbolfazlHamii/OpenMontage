@@ -41,7 +41,9 @@
               "capability_extension",
               "playbook_override",
               "visual_accuracy_check",
-              "approval_policy"
+              "approval_policy",
+              "fact_check",
+              "hook_selection"
             ],
             "description": "What class of decision this is"
           },

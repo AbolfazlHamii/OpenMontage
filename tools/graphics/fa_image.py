@@ -14,6 +14,10 @@ This tool sits in front of image_selector:
   approved.json. From then on, generating that scene returns the pinned file
   at no cost; it is never sent to a provider again. To change it, the owner
   asks for operation="unapprove" (the file stays on disk).
+- Visual consistency: operation="set_style" pins a style reference image,
+  character sheets and palette tokens for the project. Every later
+  generation appends the palette tokens to the prompt and sends the style
+  reference (plus the sheets named in `characters`) as reference images.
 - A seed derived from scene + prompt is always passed. image_selector drops
   it for providers without a seed input; providers that take one become
   cacheable by lib/asset_cache.
@@ -48,6 +52,7 @@ MODES = {
 }
 APPROVED_DIR = Path("assets") / "approved"
 MANIFEST = "approved.json"
+STYLE_FILE = "style.json"
 
 
 def stable_seed(scene_id: str, prompt: str) -> int:
@@ -107,7 +112,7 @@ class FaImage(BaseTool):
         "properties": {
             "operation": {
                 "type": "string",
-                "enum": ["generate", "batch", "approve", "unapprove", "status"],
+                "enum": ["generate", "batch", "approve", "unapprove", "status", "set_style"],
                 "default": "generate",
             },
             "mode": {"type": "string", "enum": list(MODES), "default": "draft"},
@@ -127,6 +132,12 @@ class FaImage(BaseTool):
                 "description": "batch: generate inputs, one per scene; run in parallel",
             },
             "concurrency": {"type": "integer", "default": 3},
+            "characters": {"type": "array", "items": {"type": "string"},
+                           "description": "generate: character sheets to send as references"},
+            "style_reference": {"type": "string", "description": "set_style: image path"},
+            "character_sheets": {"type": "object", "description": "set_style: {name: image path}"},
+            "palette_tokens": {"type": "string", "description": "set_style: e.g. 'navy #1b2a4a, cream #fff8ec'"},
+            "use_style": {"type": "boolean", "default": True},
         },
     }
     idempotency_key_fields = ["operation", "mode", "scene_id", "prompt", "aspect_ratio",
@@ -182,6 +193,68 @@ class FaImage(BaseTool):
             return entry
         return None
 
+    def _style(self, project: Optional[Path]) -> dict[str, Any]:
+        if project is None:
+            return {}
+        path = project / APPROVED_DIR / STYLE_FILE
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+    def _apply_style(self, request: dict[str, Any], inputs: dict[str, Any]) -> dict[str, Any]:
+        project = infer_project_dir(inputs)
+        style = self._style(project) if inputs.get("use_style", True) else {}
+        if not style:
+            return request
+        refs = []
+        if style.get("style_reference"):
+            refs.append(str(project / style["style_reference"]))
+        sheets = style.get("character_sheets", {})
+        missing = [c for c in inputs.get("characters", []) if c not in sheets]
+        if missing:
+            raise ValueError(f"no character sheet for: {', '.join(missing)}")
+        refs += [str(project / sheets[c]) for c in inputs.get("characters", [])]
+        prompt = request["prompt"]
+        if refs:
+            what = "style" + (" and characters" if inputs.get("characters") else "")
+            prompt = (f"Use the attached images only as references for {what}; "
+                      f"draw a new image: {prompt}")
+        if style.get("palette_tokens"):
+            prompt += f". Palette: {style['palette_tokens']}"
+        out = {**request, "prompt": prompt}
+        if refs:
+            out["image_paths"] = refs
+            out["generation_mode"] = "edit"
+        return out
+
+    def _set_style(self, inputs: dict[str, Any]) -> ToolResult:
+        project = infer_project_dir(inputs)
+        if not project:
+            return ToolResult(success=False, error="set_style needs a project")
+        folder = project / APPROVED_DIR / "style"
+        folder.mkdir(parents=True, exist_ok=True)
+        style = self._style(project) or {"character_sheets": {}}
+
+        def pin(src: str, stem: str) -> str:
+            path = Path(src)
+            if not path.is_file():
+                raise FileNotFoundError(f"not found: {src}")
+            dest = folder / f"{_safe_name(stem)}_{file_sha256(path)[:12]}{path.suffix.lower()}"
+            if not dest.exists():
+                shutil.copyfile(path, dest)
+            return (APPROVED_DIR / "style" / dest.name).as_posix()
+
+        try:
+            if inputs.get("style_reference"):
+                style["style_reference"] = pin(inputs["style_reference"], "style")
+            for name, src in (inputs.get("character_sheets") or {}).items():
+                style.setdefault("character_sheets", {})[name] = pin(src, f"character_{name}")
+        except FileNotFoundError as exc:
+            return ToolResult(success=False, error=str(exc))
+        if inputs.get("palette_tokens"):
+            style["palette_tokens"] = inputs["palette_tokens"]
+        path = project / APPROVED_DIR / STYLE_FILE
+        path.write_text(json.dumps(style, ensure_ascii=False, indent=2), encoding="utf-8")
+        return ToolResult(success=True, data=style, artifacts=[str(path)])
+
     # -- operations ----------------------------------------------------
 
     def _request(self, inputs: dict[str, Any]) -> dict[str, Any]:
@@ -222,7 +295,10 @@ class FaImage(BaseTool):
                     model=pin.get("model"),
                 )
 
-        request = self._request(inputs)
+        try:
+            request = self._apply_style(self._request(inputs), inputs)
+        except ValueError as exc:
+            return ToolResult(success=False, error=str(exc))
         result = self.selector.execute(request)
         result.data = {
             **(result.data or {}),
@@ -238,7 +314,7 @@ class FaImage(BaseTool):
         from lib.parallel_runner import Job, run_parallel
 
         shared = {k: v for k, v in inputs.items()
-                  if k in ("mode", "aspect_ratio", "model", "resolution", "project_dir")}
+                  if k in ("mode", "aspect_ratio", "model", "resolution", "project_dir", "use_style")}
         jobs = [
             Job(key=item.get("scene_id") or str(i), provider="image",
                 fn=lambda item=item: self._generate({**shared, **item}))
@@ -322,6 +398,7 @@ class FaImage(BaseTool):
             "approve": self._approve,
             "unapprove": self._unapprove,
             "status": self._status,
+            "set_style": self._set_style,
         }.get(operation)
         if handler is None:
             return ToolResult(success=False, error=f"Unknown operation: {operation}")

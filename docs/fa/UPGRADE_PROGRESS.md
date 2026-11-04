@@ -14,7 +14,7 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 | 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | see git log | $0.2008 | `docs/fa/llm_bakeoff/` |
 | 3 | Editing style library + camera language | done | 2026-11-04 | see git log | $0 | 8 cards, snippets rendered |
 | 4 | Learn style from a reference video | done | 2026-11-04 | see git log | $0.0377 | ASL 3.75 vs 3.75 (0%) |
-| 5 | Quality gate | pending | | | | |
+| 5 | Quality gate | done | 2026-11-04 | see git log | $0.0009 | QA flags −11.5 LUFS |
 | 6 | Studio FA usability | pending | | | | |
 | 7 | Series template | waiting | | | | only after the owner approves the Samsung video |
 
@@ -113,3 +113,23 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 - Reviewer: "Edit Style Compliance Review" (`compare` operation). On the
   Samsung sample vs `full-history-in-n-minutes`: ASL 3.0 vs 3.75 (−20%),
   16 cuts/min vs 16 — pass at ±25%.
+
+### 2026-11-04 — phase 5
+
+- New: `lib/fa_render_qa.py` + `scripts/fa_render_qa.py` (reuses
+  `visual_qa` probe/review and `loudness_normalize`; blackdetect,
+  freezedetect, A/V sync, duration vs script, captions, workspace RTL,
+  text-in-images via vision_bulk), `lib/fa_editorial.py` +
+  `scripts/fa_editorial.py` (hook lab, fact-check → decision_log),
+  `fa_image` `set_style` (style reference, character sheets, palette).
+- `decision_log` schema: two new categories, `fact_check` and
+  `hook_selection` (enum extension only).
+- `composition_validator` was not wired in: it validates Remotion props
+  JSON, and the Persian renders so far are HyperFrames atelier workspaces.
+- Ran on `projects/samsung-history-fa/renders/sample_no_music.mp4`
+  (read-only; report in `docs/fa/qa/`): loudness **fail −11.5 LUFS**,
+  everything else pass, 3 stills have no text ($0.0009).
+- Local CLIP: torch CPU installed; transformers installed; the CLIP weights
+  download from huggingface.co timed out (read/handshake timeouts) on this
+  network. Tried once. Options: download through the VPN once (the model is
+  cached afterwards), or keep vision_bulk (~$0.014 per 40 frames).

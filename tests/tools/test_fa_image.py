@@ -144,3 +144,31 @@ def test_batch_runs_every_scene_and_reports_failures(tmp_path):
     assert len(r.artifacts) == 3
     assert r.cost_usd == pytest.approx(3 * 0.0336)
     assert {c["model"] for c in sel.calls} == {"gemini-3.1-flash-lite-image"}
+
+
+def test_style_reference_and_palette_reach_every_generation(tmp_path):
+    tool, sel = _tool()
+    project = tmp_path / "projects" / "demo"
+    ref = tmp_path / "ref.png"
+    ref.write_bytes(b"style")
+    sheet = tmp_path / "founder.png"
+    sheet.write_bytes(b"sheet")
+    s = tool.execute({"operation": "set_style", "project_dir": str(project), "style_reference": str(ref),
+                      "character_sheets": {"founder": str(sheet)},
+                      "palette_tokens": "navy #1b2a4a, cream #fff8ec, cobalt #1428a0"})
+    assert s.success and s.data["style_reference"].startswith("assets/approved/style/style_")
+
+    tool.execute({"scene_id": "s1", "prompt": "a 1938 shop", "characters": ["founder"],
+                  "output_path": str(project / "s1.png")})
+    call = sel.calls[-1]
+    assert call["generation_mode"] == "edit" and len(call["image_paths"]) == 2
+    assert call["prompt"].startswith("Use the attached images only as references for style and characters")
+    assert call["prompt"].endswith("Palette: navy #1b2a4a, cream #fff8ec, cobalt #1428a0")
+
+    tool.execute({"scene_id": "s2", "prompt": "plain", "use_style": False,
+                  "output_path": str(project / "s2.png")})
+    assert "image_paths" not in sel.calls[-1] and sel.calls[-1]["prompt"] == "plain"
+
+    bad = tool.execute({"scene_id": "s3", "prompt": "x", "characters": ["nobody"],
+                        "output_path": str(project / "s3.png")})
+    assert not bad.success and "nobody" in bad.error

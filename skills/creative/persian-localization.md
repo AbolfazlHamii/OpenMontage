@@ -228,6 +228,47 @@ of the spend, and 57% of tool time went to failed calls.
 - Cheap models add preambles ("for a YouTube video I wrote…") to
   translations; strip them, and ask for "output only the text".
 
+## Editorial steps (hook lab, fact-check)
+
+- **Hook lab (script stage, before the narration is written):**
+  `python scripts/fa_editorial.py hooks --project projects/<id> --topic "…" --brief facts.txt`
+  drafts 12 hooks (worker tier). Read them, put your 3 best with reasons in
+  `artifacts/hooks.json` → `shortlist`, run `log-hooks` (decision
+  `hook_selection`, `pending_owner`), show the 3 to the owner, then
+  `log-hooks --owner-pick N` with the owner's choice. Rewrite the chosen hook
+  yourself; the draft is raw material.
+- **Fact-check (historical content, after the script, before TTS):**
+  `fa_editorial.py claims` extracts claims (bulk tier) into
+  `artifacts/claims.json`. Check each against a source and set `verdict`
+  (`verified` / `corrected` / `removed` / `unverified`) and `source`; then
+  `log-claims` writes a `fact_check` decision. Do not record narration while
+  any claim is `unverified`.
+
+## Visual consistency
+
+- Once the owner approves the look, pin it: `fa_image` with
+  `operation: set_style`, `style_reference` (an approved still),
+  `character_sheets` (one per recurring person) and `palette_tokens`
+  (e.g. "navy #1b2a4a, cream #fff8ec, cobalt #1428a0"). Every later
+  generation sends the reference images and appends the palette; name the
+  people in a scene with `characters: [...]`.
+- Keep palette tokens unchanged for the whole video; change them only per era
+  by design, and log it.
+
+## Quality gate
+
+Before showing any render to the owner:
+
+```bash
+python scripts/fa_render_qa.py projects/<id>/renders/<file>.mp4 --script projects/<id>/artifacts/script.json --srt <subtitles.srt> --workspace <index.html> --images "projects/<id>/assets/images/*.png" --check-images --out projects/<id>/renders/<file>.qa.json
+```
+
+It checks −14 LUFS ±1 / true peak ≤ −1, black and frozen frames, A/V sync,
+duration vs script, caption overlaps / reading speed / RLM / safe area, RTL
+in the workspace, and text inside generated images (vision_bulk, ~$0.0003 an
+image). Paste its Persian summary to the owner. Exit 2 = fix before review.
+On the Samsung sample it flagged −11.5 LUFS (fix: `loudness_normalize`).
+
 ## Control panel
 
 `python -m studio_fa` (or `studio-fa.bat`) opens a local Persian panel on
