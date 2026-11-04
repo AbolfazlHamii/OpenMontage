@@ -192,4 +192,5 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
    page since upgrade phase 6.)
 5. Owner: confirm or change the bake-off's worker/bulk model picks
    (`docs/fa/llm_bakeoff/report.html`, Studio FA → مسیریابی متن).
-6. Nothing on `fa` since `1ed7c43` is pushed; push only when the owner asks.
+6. `fa` is pushed to `AbolfazlHamii/OpenMontage` up to `6af1f51` (2026-11-04,
+   owner's go-ahead). Push again only when the owner asks.
