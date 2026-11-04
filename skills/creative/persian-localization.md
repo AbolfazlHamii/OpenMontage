@@ -143,6 +143,10 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   Arabic-script joining. Line breaks between words only; keep ZWNJ.
 - Word-level caption highlight: HTML spans in the composition, not ASS colour
   overrides (libass shaping across overrides is unverified for Persian).
+- Learn a style from a reference with `edit_style_extractor` (cards land in
+  `styles/editing/learned/`); keep downloads and keyframes under
+  `projects/_reference/<name>/` (git-ignored). Check renders against the card
+  with its `compare` operation.
 
 ## Working from Iran
 

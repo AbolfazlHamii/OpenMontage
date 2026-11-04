@@ -13,15 +13,14 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 | 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | done | 2026-11-04 | see git log | $0 | before/after in BASELINE.md |
 | 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | see git log | $0.2008 | `docs/fa/llm_bakeoff/` |
 | 3 | Editing style library + camera language | done | 2026-11-04 | see git log | $0 | 8 cards, snippets rendered |
-| 4 | Learn style from a reference video | pending | | | < $0.05 | fix scene_detect first |
+| 4 | Learn style from a reference video | done | 2026-11-04 | see git log | $0.0377 | ASL 3.75 vs 3.75 (0%) |
 | 5 | Quality gate | pending | | | | |
 | 6 | Studio FA usability | pending | | | | |
 | 7 | Series template | waiting | | | | only after the owner approves the Samsung video |
 
 ## Blockers and open questions
 
-- Known failing test (allowed until phase 4):
-  `tests/tools/test_local_video_cache_inputs.py::test_scene_analysis_cache_tracks_requested_minimum_length`.
+- ~~Known failing scene_detect test~~ fixed in phase 4 (PySceneDetect MERGE filter).
 - Samsung sample: one AvalAI image charge ($0.0672) on a call that broke
   mid-response is still unconfirmed; the owner can check the AvalAI billing page.
 - No project-level cost ledger: phase 0 summed costs from `events.jsonl`.
@@ -90,3 +89,27 @@ Branch: `fa`. Nothing is pushed until the owner asks.
   black edges on parallax and shake; both now overscan.
 - Directors (explainer + documentary-montage, scene and edit) point at the
   chosen card in one line each.
+
+### 2026-11-04 — phase 4
+
+- scene_detect root cause: not ffmpeg 8.1. PySceneDetect 0.7.2 defaults
+  ContentDetector to FlashFilter MERGE, which merged the 1 s flash's two cuts
+  into none, and `get_scene_list()` returns [] when there is no cut. Now
+  SUPPRESS mode + `start_in_scene=True` (both guarded for older versions).
+  The old test passes.
+- New: `tools/analysis/edit_style_extractor.py` (extract + compare),
+  optional `labels` for `video_understand` classify (CLIP), routing task
+  `hook_structure`, second vision_bulk model (gemini-3.8-flash).
+- Run on `ref_0-180.mp4`: 48 shots, ASL **3.75 s** (target 3.75, 0%),
+  15.7 cuts/min, 153.7 wpm (notes: 157), cost **$0.0143**, 62 s. Card:
+  `styles/editing/learned/ceozoned-history-learned.yaml`; report and frames
+  in `projects/_reference/ceozoned-coca-cola/style_analysis/` (git-ignored).
+- Spend in this phase: $0.0221 for a first run whose vision answers were all
+  rejected (prompt did not list the JSON keys; fixed), $0.0011 debugging,
+  $0.0143 for the final run = $0.0375.
+- CLIP was not installed (no torch/transformers), so all 40 frames went to
+  vision_bulk. torch CPU installed fine; transformers + model download tried
+  once (see phase 5 notes for the result).
+- Reviewer: "Edit Style Compliance Review" (`compare` operation). On the
+  Samsung sample vs `full-history-in-n-minutes`: ASL 3.0 vs 3.75 (−20%),
+  16 cuts/min vs 16 — pass at ±25%.

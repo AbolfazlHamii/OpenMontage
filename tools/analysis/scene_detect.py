@@ -130,9 +130,19 @@ class SceneDetect(BaseTool):
         scene_manager = SceneManager()
 
         if method == "content":
+            # PySceneDetect >= 0.6.4 defaults to FlashFilter MERGE, which merges a
+            # cut closer than min_scene_len with the next one and can drop both
+            # (a 1 s flash with min 1.5 s gave zero cuts). "Minimum scene length"
+            # here means: drop cuts that come too soon, keep the later ones.
+            try:
+                from scenedetect.detector import FlashFilter
+                content_kwargs = {"filter_mode": FlashFilter.Mode.SUPPRESS}
+            except ImportError:
+                content_kwargs = {}
             detector = ContentDetector(
                 threshold=threshold or 27.0,
                 min_scene_len=int(min_scene_len * video.frame_rate),
+                **content_kwargs,
             )
         elif method == "threshold":
             detector = ThresholdDetector(
@@ -149,7 +159,12 @@ class SceneDetect(BaseTool):
 
         scene_manager.add_detector(detector)
         scene_manager.detect_scenes(video)
-        scene_list = scene_manager.get_scene_list()
+        try:
+            # Without cuts PySceneDetect returns [] by default; the whole video
+            # is still one scene.
+            scene_list = scene_manager.get_scene_list(start_in_scene=True)
+        except TypeError:
+            scene_list = scene_manager.get_scene_list()
 
         scenes = []
         for i, (scene_start, scene_end) in enumerate(scene_list):

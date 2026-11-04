@@ -100,6 +100,14 @@ class VideoUnderstand(BaseTool):
                 "default": 5,
                 "description": "Maximum number of frames to analyze from video",
             },
+            "labels": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "classify with CLIP: candidate labels used as-is as text "
+                    "prompts instead of the built-in scene categories"
+                ),
+            },
         },
     }
 
@@ -204,7 +212,9 @@ class VideoUnderstand(BaseTool):
             elif mode == "qa":
                 frame_results = self._analyze_qa(frames, model_name, query)
             elif mode == "classify":
-                frame_results = self._analyze_classify(frames, model_name)
+                frame_results = self._analyze_classify(
+                    frames, model_name, inputs.get("labels")
+                )
             else:
                 return ToolResult(success=False, error=f"Unknown mode: {mode}")
         except ImportError as e:
@@ -529,17 +539,21 @@ class VideoUnderstand(BaseTool):
         return results
 
     def _analyze_classify(
-        self, frames: list, model_name: str
+        self, frames: list, model_name: str, labels: list[str] | None = None
     ) -> list[dict[str, Any]]:
-        """Classify each frame into scene categories."""
+        """Classify each frame into scene categories (or caller-given labels)."""
         import torch
 
         model, processor, device = self._load_model(model_name)
         results = []
+        categories = labels or SCENE_CATEGORIES
 
         for i, img in enumerate(frames):
             if model_name == "clip":
-                candidate_texts = [f"a {cat} scene" for cat in SCENE_CATEGORIES]
+                candidate_texts = (
+                    list(labels) if labels
+                    else [f"a {cat} scene" for cat in SCENE_CATEGORIES]
+                )
                 clip_inputs = processor(
                     text=candidate_texts, images=img, return_tensors="pt", padding=True
                 ).to(device)
@@ -548,7 +562,7 @@ class VideoUnderstand(BaseTool):
                 probs = outputs.logits_per_image.softmax(dim=1)[0]
 
                 scored = sorted(
-                    zip(SCENE_CATEGORIES, probs.tolist()),
+                    zip(categories, probs.tolist()),
                     key=lambda x: x[1],
                     reverse=True,
                 )

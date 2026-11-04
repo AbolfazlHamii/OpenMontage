@@ -1,0 +1,125 @@
+name: ceozoned-history-learned
+title: Company history (learned from CEOzoned Coca-Cola, first 180 s)
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): Start with an unnamed mass-scale fact, then stack a paradoxical
+  origin and early-failure contrast against current dominance before naming the subject
+  and promising its full history.'
+source:
+  kind: learned
+  reference: projects\_reference\ceozoned-coca-cola\ref_0-180.mp4
+  date: '2026-11-04'
+  measured:
+    duration_seconds: 180.0
+    shots: 48
+    asl_seconds: 3.75
+    shot_length_range:
+    - 1.63
+    - 9.3
+    cuts_per_minute: 15.7
+    words_per_minute: 153.7
+    onset_sync:
+      ratio: 0.702
+      chance: 0.548
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 14.0
+    - start: 30.0
+      cuts_per_minute: 14.0
+    - start: 60.0
+      cuts_per_minute: 16.0
+    - start: 90.0
+      cuts_per_minute: 20.0
+    - start: 120.0
+      cuts_per_minute: 16.0
+    - start: 150.0
+      cuts_per_minute: 14.0
+    shot_size:
+      extreme_wide: 1
+      medium: 20
+      wide: 19
+    camera_angle:
+      top_down: 2
+      eye_level: 38
+    content:
+      illustration: 40
+    motion:
+      fast_motion: 4
+      static: 35
+      ken_burns: 1
+    text_on_screen_share: 0.62
+pacing:
+  sections:
+    hook:
+      asl_seconds: 3.35
+      cuts_per_minute: 16.7
+      duration_seconds: 18.0
+    body:
+      asl_seconds: 3.75
+      cuts_per_minute: 15.9
+      duration_seconds: 147.6
+    outro:
+      asl_seconds: 4.44
+      cuts_per_minute: 12.5
+      duration_seconds: 14.4
+  words_per_minute: 153.7
+  beat_sync_ratio: 0.702
+hook_formula:
+  duration_seconds: 18.0
+  beats:
+  - Open with a staggering everyday-scale statistic about an unnamed subject to create
+    curiosity.
+  - Reveal a paradoxical or unlikely origin that contradicts the subject’s current
+    status.
+  - Contrast early failure or obscurity with present-day dominance.
+  - Name the subject and promise its complete story.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: static
+  weight: 0.88
+  note: from frame differences inside each sampled shot
+- name: fast_motion
+  weight: 0.1
+- name: ken_burns
+  weight: 0.03
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 0.98
+- at: 0.2
+  energy: 1.0
+- at: 0.4
+  energy: 0.96
+- at: 0.6
+  energy: 0.95
+- at: 0.8
+  energy: 0.9
+- at: 1.0
+  energy: 1.0
+pattern_interrupt_seconds:
+  min: 2.7
+  max: 5.6
+color_type:
+  palette:
+  - '#7c614f'
+  - '#2f312c'
+  - '#683d33'
+  - '#ab9981'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

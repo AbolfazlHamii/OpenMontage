@@ -174,6 +174,23 @@ Run at **every stage** when a VideoAnalysisBrief exists (reference-driven produc
 - User preference not honored: **SUGGESTION**
 - Cost drift >30%: **CRITICAL**
 
+## Edit Style Compliance Review
+
+When the proposal picked an edit style card (`styles/editing/*.yaml`), check
+the render against it before calling the edit done:
+
+```python
+from tools.analysis.edit_style_extractor import EditStyleExtractor
+EditStyleExtractor().execute({"operation": "compare", "input_path": "<render.mp4>",
+    "card": "<card-name>", "edit_decisions_path": "<edit_decisions.json>",
+    "transcript_path": "<optional segments json>", "work_dir": "<scratch dir>"})
+```
+
+It compares ASL, cuts per minute, words per minute, subtitles on/off and the
+longest shot (pattern interrupt) with the card, ±25% by default. A failed
+check is a **suggestion**, not a critical finding, unless the user asked to
+match the style closely. Free: scene detection only, no API calls.
+
 ## Slideshow Risk Review
 
 Run at **scene_plan** and **edit** stages. Use `lib/slideshow_risk.py` to compute the score.

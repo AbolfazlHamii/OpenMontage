@@ -54,6 +54,7 @@ tiers:
   # Not covered by the bake-off (text only): vision quality unverified.
   vision_bulk:
     - {profile: avalai, model: gemini-3.1-flash-lite}
+    - {profile: avalai, model: gemini-3.8-flash}
   # Headless only. Not benchmarked; both are min_tier 1 in AvalAI's catalog.
   premium:
     - {profile: avalai, model: claude-opus-5-5}
@@ -72,6 +73,7 @@ tasks:
   hooks: {tier: worker, json: true}
   title_tag_variants: {tier: worker, json: true}
   json_fill: {tier: worker, json: true}
+  hook_structure: {tier: worker, json: true}
   classification: {tier: bulk, json: true}
   transcript_chunk_summary: {tier: bulk}
   json_repair: {tier: bulk, json: true}
