@@ -129,6 +129,29 @@ def test_avalai_stt_posts_to_transcriptions_and_prices_by_second(tmp_path, monke
     assert saved["text"] == "سلام دنیا"
 
 
+def test_avalai_stt_timestamps_and_reported_cost(tmp_path, monkeypatch):
+    monkeypatch.setenv("AVALAI_API_KEY", "test-key")
+    wav = tmp_path / "talk.wav"
+    _write_wav(wav, seconds=4)
+    sent = {}
+
+    def fake_post(url, headers, data, files, timeout):
+        sent.update(data)
+        return _FakeResponse(payload={"text": "hi there", "estimated_cost": {"unit": "0.0123"},
+                                      "segments": [{"id": 0, "start": 0.1, "end": 1.2, "text": " hi "},
+                                                   {"id": 1, "start": 1.5, "end": 2.0, "text": "there"}]})
+
+    monkeypatch.setattr("requests.post", fake_post)
+    result = AvalAISTT().execute({"audio_path": str(wav), "timestamps": True, "language": "en"})
+    assert result.success, result.error
+    assert sent["model"] == "whisper-1" and sent["response_format"] == "verbose_json"
+    assert sent["timestamp_granularities[]"] == "segment"
+    assert result.data["segments"] == [{"start": 0.1, "end": 1.2, "text": "hi"},
+                                       {"start": 1.5, "end": 2.0, "text": "there"}]
+    assert result.cost_usd == pytest.approx(0.0123)
+    assert result.data["cost_status"] == "reported"
+
+
 def test_avalai_stt_error_does_not_leak_key(tmp_path, monkeypatch):
     monkeypatch.setenv("AVALAI_API_KEY", "secret-key-123")
     wav = tmp_path / "clip.wav"

@@ -111,16 +111,38 @@ voice, lexicon and past edits live there.
   `max_chars ≈ segment_seconds × voice_chars_per_second` (measure cps from the
   approved sample) and rewrite rather than speeding audio past 1.08×.
 
-## Dubbing (localization-dub) — known gaps
+## Dubbing (localization-dub)
 
-- There is no stem-separation tool yet. Without one, the dub either keeps the
-  English voice under the Persian or loses the music and effects. Separate
-  vocals from accompaniment (Demucs) before mixing; mix the Persian voice over
-  the accompaniment stem with `audio_mixer` (tracks placed with offsets).
-- Get speakers from `transcriber` with `diarize: true`; map each speaker to a
-  fixed voice for the whole video.
-- Energy matters more than accuracy for entertainment dubs: give every turn
-  a `style` that matches the source moment (shouting, laughing, whispering).
+`scripts/fa_dub.py` (`lib/fa_dub.py`) runs the Persian dub stage by stage:
+prepare → translate → (review, approve) → synth or export-vo/import-vo →
+mix → qa. Notes from the first real run (2026-11-04, 2.5 min, 2 speakers):
+
+- Stems: `stem_separator` (Demucs 4.1 htdemucs, CPU, ~1.25x real time,
+  cached by content). Demucs 4.1 needs no torchaudio; weights come from
+  Hugging Face on first use (~2 min here).
+- Speakers: AvalAI cannot diarize (`gpt-4o-transcribe-diarize` returned
+  plain text, $0.046). Instead whisper-1 gives word times ($0.015 per
+  2.5 min) and Gemini listening to the audio gives who said what and each
+  voice's gender; `align_turns` puts the turns on the word times. Quick
+  hand-offs under ~0.5 s can land on the wrong speaker: read
+  `segments_en.json` before translating.
+- Voices: `voice_map.json` maps each source speaker to a `dub_pool` voice of
+  the same gender (`VOICE_GENDER`), fixed for the whole video.
+- Translation: the worker drafts in chunks of 6 lines (a whole video in one
+  call ran out of tokens on the reasoning models and came back empty).
+  Every line is final Persian, so the agent reviews all of them, then the
+  owner; `approve` records edits in the channel bible. The first draft
+  turned 1967 into «نهصد و شصت و هفت»: check every number.
+- Timing: `lib/dub_timing.py` — budget = slot × cps, atempo up to 1.08x,
+  at most 2 rewrites (worker, flagged `review_required`), then the silence
+  before the next line, else flagged for the owner.
+- Mix: each line is matched to the original voice stem's loudness, laid
+  over the accompaniment stem with `audio_mixer`, muxed with the source
+  picture, then `loudness_normalize` to −14 LUFS / −1 dBTP.
+- QA (`qa`): no line more than 200 ms into the next, round-trip per line
+  ≥ 0.90, loudness, and a warning when the brief's `rights` is `unknown`.
+- Energy matters more than accuracy for entertainment dubs: styles come from
+  `gemini_video_analyze` segments (emotion, energy) by overlap.
 
 ## Captions (right-to-left)
 

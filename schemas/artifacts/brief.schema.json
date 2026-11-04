@@ -29,6 +29,11 @@
       "items": { "type": "string" },
       "description": "Paths or URLs to source material"
     },
+    "rights": {
+      "type": "string",
+      "enum": ["own", "permission_granted", "unknown"],
+      "description": "Rights to the source media a dub or re-edit reuses. 'unknown' makes the publish stage warn."
+    },
     "angle_options": {
       "type": "array",
       "items": {

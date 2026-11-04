@@ -99,3 +99,7 @@ This stage gates on human approval (`human_approval_default: true`). After revie
 checkpoint with `status="awaiting_human"`, present the summary (the Backlot board renders
 the artifact), and **END YOUR TURN**. Do not start the next stage in the same response.
 Approval is per-gate — an earlier "go ahead" does not cover this gate.
+
+## Persian dubs
+
+For Persian, run `scripts/fa_dub.py` (stems, speakers, timing loop, voice-actor mode) and read the Dubbing section of `skills/creative/persian-localization.md` first.

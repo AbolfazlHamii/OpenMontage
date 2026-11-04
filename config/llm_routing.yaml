@@ -69,6 +69,8 @@ tasks:
   outline_draft: {tier: worker}
   scene_breakdown_draft: {tier: worker}
   translation_draft_en_fa: {tier: worker}
+  # Shorter dub line; final Persian, so the agent reviews it (fits.json review_required).
+  dub_line_shorten: {tier: worker}
   image_prompts: {tier: worker, json: true}
   hooks: {tier: worker, json: true}
   title_tag_variants: {tier: worker, json: true}

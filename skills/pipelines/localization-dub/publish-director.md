@@ -51,3 +51,7 @@ This stage gates on human approval (`human_approval_default: true`). After revie
 checkpoint with `status="awaiting_human"`, present the summary (the Backlot board renders
 the artifact), and **END YOUR TURN**. Do not start the next stage in the same response.
 Approval is per-gate — an earlier "go ahead" does not cover this gate.
+
+## Rights gate
+
+Read the brief's `rights` (`own`, `permission_granted`, `unknown`). When it is `unknown` or missing, tell the user plainly that publishing someone else's video dubbed can get the channel a copyright strike, and do not publish without their explicit go-ahead. `scripts/fa_dub.py qa` writes the same warning into `dub/qa.json`.
