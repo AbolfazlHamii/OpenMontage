@@ -24,6 +24,7 @@ from __future__ import annotations
 import base64
 import datetime
 import difflib
+import hashlib
 import json
 import os
 import re
@@ -443,7 +444,8 @@ def rewrite_with_worker(llm=None) -> Callable[[str, int, int], str]:
     llm = llm or LLMSelector()
 
     def rewrite(text: str, max_letters: int, attempt: int) -> str:
-        result = llm.execute({"task": "dub_line_shorten", "temperature": 0.3, "prompt": (
+        # Reasoning models spend tokens before answering; 2k came back empty.
+        result = llm.execute({"task": "dub_line_shorten", "temperature": 0.3, "max_tokens": 6000, "prompt": (
             "Shorten this spoken Tehrani Persian dub line so it has at most "
             f"{max_letters} letters (spaces and punctuation not counted). Keep the "
             "meaning, the facts and the tone; drop filler first. Answer with the "
@@ -454,7 +456,7 @@ def rewrite_with_worker(llm=None) -> Callable[[str, int, int], str]:
     return rewrite
 
 
-def synthesize(project: Path, *, tts=None, rewrite=None, channel=None,
+def synthesize(project: Path, *, tts=None, rewrite=None, channel=None, providers: Optional[list[str]] = None,
                allow_drafts: bool = False, duration: Callable[[Path], float] = _duration) -> dict:
     from lib.channel_bible import load_channel
     from tools.audio.tts_selector import TTSSelector
@@ -474,17 +476,23 @@ def synthesize(project: Path, *, tts=None, rewrite=None, channel=None,
 
     def synthesize_for(seg: Segment):
         row = next(r for r in rows if r["id"] == seg.id)
-        takes = iter(range(1, 10))
 
         def synth(text: str) -> tuple[str, float]:
-            out = clips / f"{seg.id}_v{next(takes)}.wav"
-            result = tts.execute({
+            request = {
                 "text": text, "language_code": "fa", "voice_id": row["voice"],
                 "style": row.get("style") or style_for(), "channel": channel.name,
                 "model_id": narrator.get("model_final", "gemini-3.8-flash-tts"),
-                "allowed_providers": narrator.get("providers", ["gemini", "avalai"]),
-                "output_path": str(out),
-            })
+            }
+            # Same line, voice and style as an earlier run: reuse the clip, so
+            # editing one line re-synthesizes only that line. Google and AvalAI
+            # serve the same Gemini voices, so the provider is not in the key.
+            digest = hashlib.sha256(json.dumps(request, sort_keys=True, ensure_ascii=False)
+                                    .encode("utf-8")).hexdigest()[:10]
+            out = clips / f"{seg.id}_{digest}.wav"
+            if out.exists():
+                return str(out), float(duration(out))
+            result = tts.execute({**request, "output_path": str(out), "allowed_providers":
+                                  providers or narrator.get("providers", ["gemini", "avalai"])})
             if not result.success:
                 raise RuntimeError(f"{seg.id}: {result.error}")
             spent["tts"] += result.cost_usd or 0.0
@@ -493,8 +501,13 @@ def synthesize(project: Path, *, tts=None, rewrite=None, channel=None,
         return synth
 
     segments = [to_segment(r) for r in rows]
+    try:
+        media_end = duration(Path(meta["source"]))
+    except Exception:  # without the length the last line simply has no tail room
+        media_end = None
     fits = fit_all(segments, synthesize_for, rewrite,
-                   lambda s: cps_for_voice(channel.voices, next(r["voice"] for r in rows if r["id"] == s.id)))
+                   lambda s: cps_for_voice(channel.voices, next(r["voice"] for r in rows if r["id"] == s.id)),
+                   media_end=media_end)
     _save_fits(project, fits, source="tts")
     meta["cost_usd"]["tts"] = round(spent["tts"], 6)
     _write(root / "meta.json", meta)

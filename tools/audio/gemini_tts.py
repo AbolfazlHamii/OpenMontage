@@ -167,7 +167,8 @@ class GeminiTTS(BaseTool):
 
             # Hold the client: a temporary one can be garbage-collected (closing
             # its HTTP session) before interactions.create sends the request.
-            client = get_genai_client()
+            # The timeout (ms) stops a stalled proxy from hanging a whole batch.
+            client = get_genai_client(http_options={"timeout": 120_000})
             result = client.interactions.create(**request)
             audio = getattr(result, "output_audio", None)
             if not audio or not getattr(audio, "data", None):

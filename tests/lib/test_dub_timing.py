@@ -79,7 +79,7 @@ def test_text_far_over_budget_is_rewritten_before_any_audio():
 
 def test_at_most_two_rewrites_then_borrow_the_gap():
     synth = _synth([6.0, 5.5, 5.0])
-    rewrite = _rewriter(["یک", "دو", "سه"])
+    rewrite = _rewriter(["سلام دن", "سلام"])
     fit = dt.fit_segment(SEG, synth, rewrite, cps=9.5, next_start=15.0)
     assert len(rewrite.calls) == 2 and len(synth.calls) == 3
     assert fit.status == "used_gap"
@@ -95,6 +95,23 @@ def test_flagged_when_nothing_fits_and_overlap_reported():
     assert fit.tempo == dt.MAX_STRETCH
     assert fit.end == pytest.approx(10 + 7 / 1.08, abs=1e-3)
     assert fit.overlap_seconds == pytest.approx(fit.end - 14.5, abs=1e-3)
+
+
+def test_pause_after_the_line_counts_before_any_rewrite():
+    # 24 letters: over the 2 s slot's budget (19) but within slot + pause (28),
+    # so the text is synthesized as written; the voice read it fast enough.
+    synth = _synth([2.1])
+    rewrite = _rewriter(["unused"])
+    seg = dt.Segment(id="s1", start=0, end=2.0, text="ا" * 24)
+    fit = dt.fit_segment(seg, synth, rewrite, cps=9.5, next_start=3.0)
+    assert rewrite.calls == [] and synth.calls == ["ا" * 24]
+    assert fit.status == "stretched"
+
+
+def test_last_line_may_run_to_the_end_of_the_video():
+    segs = [dt.Segment(id="a", start=0.0, end=1.0, text="x")]
+    fits = dt.fit_all(segs, lambda s: (lambda t: ("a.wav", 1.5)), None, lambda s: 9.5, media_end=3.0)
+    assert fits[0].status == "used_gap"
 
 
 def test_recorded_takes_have_no_rewrite():
@@ -119,3 +136,19 @@ def test_fit_all_uses_next_start_and_overlaps_check():
     found = dt.overlaps(fits)
     assert found == [{"id": "b", "next": "c", "overlap_seconds": pytest.approx(2.1 + 2.6 / 1.08 - 4.0, abs=1e-3)}]
     assert dt.overlaps(fits, tolerance=1.0) == []
+
+
+def test_empty_or_longer_rewrite_is_ignored_and_the_gap_is_used():
+    synth = _synth([5.0])
+    rewrite = _rewriter(["", "much longer text than before"])
+    fit = dt.fit_segment(SEG, synth, rewrite, cps=9.5, next_start=15.0)
+    assert fit.status == "used_gap" and fit.text == SEG.text
+    assert len(rewrite.calls) == 1      # an empty answer ends the rewrites
+
+
+def test_failing_rewriter_does_not_stop_the_line():
+    def boom(text, max_chars, attempt):
+        raise RuntimeError("worker down")
+
+    fit = dt.fit_segment(SEG, _synth([7.0]), boom, cps=9.5, next_start=14.5)
+    assert fit.status == "flagged" and fit.rewrites == 1

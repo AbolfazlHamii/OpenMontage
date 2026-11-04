@@ -135,7 +135,14 @@ mix → qa. Notes from the first real run (2026-11-04, 2.5 min, 2 speakers):
   turned 1967 into «نهصد و شصت و هفت»: check every number.
 - Timing: `lib/dub_timing.py` — budget = slot × cps, atempo up to 1.08x,
   at most 2 rewrites (worker, flagged `review_required`), then the silence
-  before the next line, else flagged for the owner.
+  before the next line, else flagged for the owner. The text is only
+  rewritten before synthesis when it cannot fit even with the pause after
+  it. An empty or longer rewrite is ignored (the reasoning workers return
+  empty text when `max_tokens` is small; the shorten call uses 6000).
+- Synthesis from Iran: `synth --providers avalai`. With Google first, one
+  `gemini_tts` call hung for minutes on a stalled proxy socket (it had no
+  timeout; now 120 s). Clips are keyed by line, voice, style and model, so
+  editing one line re-synthesizes only that line.
 - Mix: each line is matched to the original voice stem's loudness, laid
   over the accompaniment stem with `audio_mixer`, muxed with the source
   picture, then `loudness_normalize` to −14 LUFS / −1 dBTP.

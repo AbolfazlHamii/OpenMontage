@@ -43,6 +43,7 @@ def main(argv=None) -> int:
         if name == "synth":
             p.add_argument("--allow-drafts", action="store_true",
                            help="synthesize unreviewed lines (samples only)")
+            p.add_argument("--providers", help="TTS providers in order, e.g. avalai (default: voices.yaml)")
         if name == "import-vo":
             p.add_argument("--takes", required=True)
         if name == "qa":
@@ -62,7 +63,8 @@ def main(argv=None) -> int:
     elif args.cmd == "approve":
         out = {"approved": fa_dub.approve_lines(project, args.ids.split(",") if args.ids else None)}
     elif args.cmd == "synth":
-        out = fa_dub.synthesize(project, allow_drafts=args.allow_drafts)
+        out = fa_dub.synthesize(project, allow_drafts=args.allow_drafts,
+                                providers=args.providers.split(",") if args.providers else None)
     elif args.cmd == "export-vo":
         out = {"scripts": [str(p) for p in fa_dub.export_vo(project)]}
     elif args.cmd == "import-vo":

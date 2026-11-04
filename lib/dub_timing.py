@@ -93,14 +93,20 @@ def fit_segment(
 ) -> Fit:
     slot = segment.slot
     budget = char_budget(slot, cps)
+    gap = max(0.0, (next_start - segment.end)) if next_start is not None else 0.0
     text = segment.text
     tried = [text]
     rewrites = 0
 
-    # Rewrite before paying for audio when the text is clearly too long.
-    while rewrite and rewrites < max_rewrites and spoken_chars(text) > budget * MAX_STRETCH:
+    # Rewrite before paying for audio only when the text cannot fit even
+    # with the pause after it; anything closer is decided on the real audio.
+    while (rewrite and rewrites < max_rewrites
+           and spoken_chars(text) > char_budget(slot + gap, cps) * MAX_STRETCH):
         rewrites += 1
-        text = rewrite(text, budget, rewrites)
+        shorter = _shorter(rewrite, text, budget, rewrites)
+        if shorter is None:
+            break
+        text = shorter
         tried.append(text)
 
     while True:
@@ -114,10 +120,12 @@ def fit_segment(
         rewrites += 1
         # Aim at what this voice actually managed, not the nominal cps.
         measured_cps = chars_per_second(text, raw) or cps
-        text = rewrite(text, char_budget(slot, measured_cps), rewrites)
+        shorter = _shorter(rewrite, text, char_budget(slot, measured_cps), rewrites)
+        if shorter is None:
+            break
+        text = shorter
         tried.append(text)
 
-    gap = max(0.0, (next_start - segment.end)) if next_start is not None else 0.0
     room = slot + gap
     if gap and raw <= room * MAX_STRETCH:
         return _fit(segment, text, path, raw, tempo_for(raw, room), "used_gap", rewrites, tried)
@@ -125,6 +133,18 @@ def fit_segment(
     fit = _fit(segment, text, path, raw, MAX_STRETCH, "flagged", rewrites, tried)
     fit.overlap_seconds = round(fit.end - (next_start if next_start is not None else segment.end), 3)
     return fit
+
+
+def _shorter(rewrite, text: str, budget: int, attempt: int) -> Optional[str]:
+    """A rewrite that is actually shorter, or None (empty answer, longer
+    answer, or the rewriter failed): then the loop moves on to the gap."""
+    try:
+        new = (rewrite(text, budget, attempt) or "").strip()
+    except Exception:
+        return None
+    if not new or spoken_chars(new) >= spoken_chars(text):
+        return None
+    return new
 
 
 def _fit(segment, text, path, raw, tempo, status, rewrites, tried) -> Fit:
@@ -148,11 +168,13 @@ def _fit(segment, text, path, raw, tempo, status, rewrites, tried) -> Fit:
 
 
 def fit_all(segments: list[Segment], synthesize_for: Callable[[Segment], Callable[[str], tuple[str, float]]],
-            rewrite: Optional[Callable[[str, int, int], str]], cps_for: Callable[[Segment], float]) -> list[Fit]:
+            rewrite: Optional[Callable[[str, int, int], str]], cps_for: Callable[[Segment], float],
+            media_end: Optional[float] = None) -> list[Fit]:
+    """Fit every line in order; the last one may run to `media_end`."""
     ordered = sorted(segments, key=lambda s: s.start)
     fits = []
     for i, seg in enumerate(ordered):
-        next_start = ordered[i + 1].start if i + 1 < len(ordered) else None
+        next_start = ordered[i + 1].start if i + 1 < len(ordered) else media_end
         fits.append(fit_segment(seg, synthesize_for(seg), rewrite, cps_for(seg), next_start))
     return fits
 
