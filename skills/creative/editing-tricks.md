@@ -183,15 +183,15 @@ Paid generation only enters where noted.
 - **What:** short sound design under transitions and impacts.
 - **When:** whoosh on whip-pans/slides; riser 1–2 s into a reveal; hit on smash cuts, punch-ins, numbers landing.
 - **Retention:** high; sound sells motion more than pixels do.
-- **How:** library SFX (CC0/royalty-free, licence noted) as `<audio>` clips at the cut time, −12 to −18 dB under narration peaks; ducking handled by mix levels. Never cover a stressed word with a hit.
-- **Cost:** free with a library; paid SFX generation only if the library lacks one.
+- **How:** library SFX (CC0/royalty-free, licence noted) as `<audio>` clips at the cut time, −12 to −18 dB under narration peaks; ducking handled by mix levels. Never cover a stressed word with a hit. Missing sounds (a riser of exact length, a paper swish, a fire-crackle bed): `lib/sfx_synth.py` renders them procedurally — own work, no licence, same seed = same file; `render()` returns `peak_s`, the moment to put on the cut.
+- **Cost:** free (library or `sfx_synth`); paid SFX generation only if neither fits.
 
 ### 23. Beat-sync cutting
 - **What:** cuts and punch-ins on music beats.
 - **When:** montages, intros, shorts.
 - **Retention:** high; rhythm feels intentional.
-- **How:** `audio_energy` / beat detection gives beat times; snap cut times to the nearest beat within ±80 ms; keep narration-driven cuts where speech wins.
-- **Cost:** low.
+- **How:** `beat_detect` (`operation: analyze`) gives BPM, beats and downbeats of the bed (local, free; on click tracks beats land within 11 ms). `snap` moves each cut to the nearest beat within the tolerance *and inside its speech pause* (`windows`), so speech still wins; `align` picks the music offset (`data-media-start`) that puts a downbeat on the punch line. Fast songs (≥ 150 BPM) may come back at half tempo; the beats are then every other real beat, still on the grid.
+- **Cost:** none.
 
 ### 24. Silence drop
 - **What:** music and ambience cut to silence for a beat before a key line.

@@ -76,6 +76,8 @@ tasks:
   title_tag_variants: {tier: worker, json: true}
   json_fill: {tier: worker, json: true}
   hook_structure: {tier: worker, json: true}
+  # Draft open loops for scripts/fa_script_lint.py --llm; the agent reviews them.
+  script_loop_review: {tier: worker, json: true}
   classification: {tier: bulk, json: true}
   transcript_chunk_summary: {tier: bulk}
   json_repair: {tier: bulk, json: true}

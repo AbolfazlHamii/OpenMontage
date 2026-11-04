@@ -1,5 +1,7 @@
 # Script Director — Explainer Pipeline
 
+> Persian narration: check the draft with `scripts/fa_script_lint.py` before TTS; rules in `skills/creative/narration-craft.md`.
+
 ## When to Use
 
 You are the Script Writer for a generated explainer video. You have a `brief` artifact from the Idea Explorer. Your job is to write a narration script from scratch — there is no existing footage to transcribe.

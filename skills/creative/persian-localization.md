@@ -197,6 +197,9 @@ mix → qa. Notes from the first real run (2026-11-04, 2.5 min, 2 speakers):
   Arabic-script joining. Line breaks between words only; keep ZWNJ.
 - Word-level caption highlight: HTML spans in the composition, not ASS colour
   overrides (libass shaping across overrides is unverified for Persian).
+- Beat-synced cuts: `beat_detect` (analyze / snap inside speech pauses /
+  align a downbeat to the punch line). Missing SFX: `lib/sfx_synth.py`
+  (procedural, licence-free).
 - Learn a style from a reference with `edit_style_extractor` (cards land in
   `styles/editing/learned/`); keep downloads and keyframes under
   `projects/_reference/<name>/` (git-ignored). Check renders against the card
@@ -288,6 +291,15 @@ of the spend, and 57% of tool time went to failed calls.
   on 2026-11-04, same as images; the router falls through to AvalAI.
 - Cheap models add preambles ("for a YouTube video I wrote…") to
   translations; strip them, and ask for "output only the text".
+
+## Script retention lint
+
+Before any narration is synthesised, run
+`python scripts/fa_script_lint.py <draft.txt|script.json> --target <s> --voice narrator`
+and follow `skills/creative/narration-craft.md` (hook by 3 s, first open loop
+by 10 s, a «ولی»/question/number every ≤ 8 s, sentences ≤ 7 s, spoken
+register, numbers as words, a real ending). It times the text with the
+narrator's measured pace from `channels/fa-main/voices.yaml`.
 
 ## Editorial steps (hook lab, fact-check)
 
