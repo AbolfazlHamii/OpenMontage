@@ -55,10 +55,9 @@ Last updated: 2026-11-04
   `fa_smoke/avalai_image_test.png`).
 - This session's environment carries `HTTPS_PROXY=http://127.0.0.1:10808`
   (not set in Windows user/machine variables). Python clients use it.
-- Full suite: `pytest tests` ≈ 7 min, 2289 passed. One known failure that
-  predates `fa` work (fails on fc2747d too):
-  `test_local_video_cache_inputs.py::test_scene_analysis_cache_tracks_requested_minimum_length`
-  (scene_detect finds 0 scenes with this ffmpeg 8.1 / PySceneDetect).
+- Full suite: `pytest tests` ≈ 7 min, 2388 passed, 0 failed (2026-11-04); `make test-fast` ≈ 35 s. The old
+  scene_detect failure was fixed in upgrade phase 4 (PySceneDetect 0.7's
+  MERGE flash filter, not ffmpeg).
 
 ## Phase status
 
@@ -70,8 +69,26 @@ Last updated: 2026-11-04
 
 Tooling upgrade (separate brief, `UPGRADE_PROMPT.md` v2 in the parent
 folder): progress in `docs/fa/UPGRADE_PROGRESS.md`, measured starting point
-in `docs/fa/BASELINE.md`. Phases 0–2 done 2026-11-04 (baseline, quick
-wins, LLM router + bake-off); see the progress file for the rest.
+in `docs/fa/BASELINE.md`. Phases 0–6 done 2026-11-04; phase 7 (series
+template) waits for the owner's approval of the Samsung video.
+
+New since the upgrade (details in the progress file and in
+`skills/creative/persian-localization.md`):
+
+| Piece | Where |
+|---|---|
+| Loudness to −14 LUFS / −1 dBTP | `tools/audio/loudness_normalize.py` |
+| Preview profiles | `lib/media_profiles.py` (`preview_720`, `preview_540`) |
+| Parallel runs per provider | `lib/parallel_runner.py` |
+| Draft/final stills, approved pins, style refs | `tools/graphics/fa_image.py` |
+| Cost estimate + price table | `scripts/fa_estimate.py`, `config/fa_pricing.yaml`, `scripts/fa_pricing_update.py` |
+| Fast tests | `make test-fast`, `test-fast.bat`, `tests/slow_tests.txt` |
+| LLM router (worker/bulk/vision, CLI) | `tools/text/`, `config/llm_routing.yaml`, `skills/meta/delegation-protocol.md` |
+| Bake-off | `scripts/llm_bakeoff.py`, `docs/fa/llm_bakeoff/` |
+| Camera language, editing tricks, edit style cards | `skills/creative/camera-language.md`, `editing-tricks.md`, `styles/editing/` |
+| Style learning + compliance check | `tools/analysis/edit_style_extractor.py` |
+| Render QA, hook lab, fact-check | `scripts/fa_render_qa.py`, `scripts/fa_editorial.py` |
+| Studio FA production pages | `studio_fa/production.py`, `studio_fa/ui/production.js` |
 
 ## Current production: first transcreation
 

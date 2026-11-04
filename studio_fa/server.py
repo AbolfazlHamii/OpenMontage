@@ -38,6 +38,8 @@ EDITABLE_ENV = {
     "AVALAI_API_KEY": "secret",
     "OPENAI_API_KEY": "secret",
     "ELEVENLABS_API_KEY": "secret",
+    "MOONSHOT_API_KEY": "secret",
+    "OPENROUTER_API_KEY": "secret",
     "OPENAI_BASE_URL": "plain",
     "SUBTITLE_FONTS_DIR": "plain",
 }
@@ -450,6 +452,11 @@ def create_app() -> FastAPI:
     async def tests_run() -> dict:
         return await asyncio.to_thread(_run_tests)
 
+    from studio_fa.production import build_router, install_error_handler
+
+    app.include_router(build_router(panel))
+    install_error_handler(app)
+
     @app.get("/media/{kind}/{file_path:path}")
     async def media(kind: str, file_path: str) -> FileResponse:
         if kind not in ("tts", "frames"):
@@ -470,7 +477,7 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def index() -> HTMLResponse:
         html = (UI_DIR / "index.html").read_text(encoding="utf-8")
-        for asset in ("app.css", "app.js"):
+        for asset in ("app.css", "app.js", "production.js"):
             version = int((UI_DIR / asset).stat().st_mtime)
             html = html.replace(f"/ui/{asset}", f"/ui/{asset}?v={version}")
         return HTMLResponse(html, headers={"Cache-Control": "no-cache"})

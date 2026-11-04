@@ -150,6 +150,11 @@ starting Studio FA / Backlot. Not counted above.
 | Test run | 418 s serial, full suite | 31 s `make test-fast` (1914 tests, 12 workers); full suite in parallel 310 s | 1 | this laptop, 2026-11-04 |
 | Cost estimate vs actual | no estimator | $0.2049 estimated vs $0.2049 metered in the project (0%); vs $0.2721 incl. the tool-test image outside the project: −24.7% | 1 | `scripts/fa_estimate.py --plan docs/fa/examples/samsung_sample_plan.json` |
 
+| Bulk text work (5 real tasks) | written by the agent | $0.0032 with deepseek-v4.1-flash, quality 4.4/5 | 2 | `docs/fa/llm_bakeoff/RECOMMENDATION.md` |
+| Learn an edit style from a 180 s reference | by hand (REFERENCE_NOTES.md) | 62 s, $0.0143, ASL 3.75 s (0% off) | 4 | `edit_style_extractor` run, phase 4 |
+| Render QA | by eye + manual ffmpeg | one command, 9 checks, Persian summary; flags −11.5 LUFS | 5 | `docs/fa/qa/samsung_sample_no_music.qa.json` |
+| Known failing test | 1 (scene_detect) | 0 | 4 | PySceneDetect MERGE filter fixed |
+
 Notes on phase 1 numbers:
 
 - Test collection alone took 72 s: `test_agent_skill_pointers.py` calls

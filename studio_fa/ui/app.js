@@ -60,6 +60,7 @@ function showTab(name) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.id === `tab-${name}`));
   history.replaceState(null, "", `#${name}`);
   if (name === "projects") loadProjects();
+  document.dispatchEvent(new CustomEvent("tab", { detail: name }));
 }
 
 document.querySelectorAll("#nav button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -283,10 +284,13 @@ async function loadProjects() {
             ${p.active_stage ? ` · مرحله: ${esc(p.active_stage.name || p.active_stage)}` : ""}
             · ${fa(p.scene_count)} صحنه · ${fa(p.render_count)} رندر</div>
         </div>
+        <button class="btn ghost small" data-timeline="${esc(p.project_id)}">مراحل</button>
         <button class="btn ghost small" data-project="${esc(p.project_id)}">باز کردن در Backlot</button>
       </div>`).join("");
     list.querySelectorAll("[data-project]").forEach((b) =>
       b.addEventListener("click", () => openBacklot(b.dataset.project)));
+    list.querySelectorAll("[data-timeline]").forEach((b) =>
+      b.addEventListener("click", () => window.openTimeline(b.dataset.timeline)));
   } catch (e) {
     list.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   }
@@ -325,7 +329,8 @@ $("#tts-text").value = SAMPLE_TEXT;
 $("#subs-lines").value = SAMPLE_SUBS;
 updateCount();
 const startTab = location.hash.slice(1);
-showTab(["home", "voice", "subs", "projects", "keys", "tests"].includes(startTab) ? startTab : "home");
+showTab(["home", "new", "voice", "subs", "projects", "costs", "health", "styles", "routing", "keys", "tests"]
+  .includes(startTab) ? startTab : "home");
 loadStatus();
 loadVoices();
 loadHistory();

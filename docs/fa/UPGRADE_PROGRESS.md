@@ -10,15 +10,24 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 | Phase | Title | Status | Date | Commit | Paid spend | Notes |
 |---|---|---|---|---|---|---|
 | 0 | Baseline + progress file | done | 2026-11-04 | 9dc881f | $0 | `docs/fa/BASELINE.md` |
-| 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | done | 2026-11-04 | see git log | $0 | before/after in BASELINE.md |
-| 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | see git log | $0.2008 | `docs/fa/llm_bakeoff/` |
-| 3 | Editing style library + camera language | done | 2026-11-04 | see git log | $0 | 8 cards, snippets rendered |
-| 4 | Learn style from a reference video | done | 2026-11-04 | see git log | $0.0377 | ASL 3.75 vs 3.75 (0%) |
-| 5 | Quality gate | done | 2026-11-04 | see git log | $0.0009 | QA flags −11.5 LUFS |
-| 6 | Studio FA usability | pending | | | | |
-| 7 | Series template | waiting | | | | only after the owner approves the Samsung video |
+| 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | done | 2026-11-04 | 3aa51d3 | $0 | before/after in BASELINE.md |
+| 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | 35645fc | $0.2008 | `docs/fa/llm_bakeoff/` |
+| 3 | Editing style library + camera language | done | 2026-11-04 | 057f766 | $0 | 8 cards, snippets rendered |
+| 4 | Learn style from a reference video | done | 2026-11-04 | f221e07 | $0.0375 | ASL 3.75 vs 3.75 (0%) |
+| 5 | Quality gate | done | 2026-11-04 | cccb269 | $0.0009 | QA flags −11.5 LUFS |
+| 6 | Studio FA usability | done | 2026-11-04 | see git log | $0 | 9 screenshots in docs/fa/screens/ |
+| 7 | Series template | **waiting** (منتظر) | 2026-11-04 | – | $0 | Samsung video not approved yet; skipped as the brief says |
+
+Paid spend across phases 0–7: **$0.2393** (phase 2 $0.2008 incl. one $0.0001
+test call, phase 4 $0.0375, phase 5 $0.0009, phase 6 $0). No single call over
+$0.05.
 
 ## Blockers and open questions
+
+- **Owner decides:** worker/bulk models (bake-off recommendation applied in
+  `config/llm_routing.yaml`; report `docs/fa/llm_bakeoff/report.html`).
+- Local CLIP weights could not be downloaded from huggingface.co on this
+  network (timeouts); download once over the VPN to make frame labels free.
 
 - ~~Known failing scene_detect test~~ fixed in phase 4 (PySceneDetect MERGE filter).
 - Samsung sample: one AvalAI image charge ($0.0672) on a call that broke
@@ -133,3 +142,29 @@ Branch: `fa`. Nothing is pushed until the owner asks.
   download from huggingface.co timed out (read/handshake timeouts) on this
   network. Tried once. Options: download through the VPN once (the model is
   cached afterwards), or keep vision_bulk (~$0.014 per 40 frames).
+
+### 2026-11-04 — phase 6
+
+- New: `studio_fa/production.py` (router under `/api/fa`, wired with two
+  lines in `server.py`), `studio_fa/ui/production.js`, new tabs in
+  `index.html`, styles in `app.css`. Write endpoints sit behind
+  `_require_panel`; keys are only entered through the existing `/api/env`
+  (now also MOONSHOT_API_KEY / OPENROUTER_API_KEY); errors are one Persian
+  sentence with a fix, redacted; unexpected errors are caught by a Persian
+  500 handler.
+- `openai_compat_llm`: a `local` profile (Ollama) is available only when its
+  port answers.
+- Checked in the browser against a scratch projects folder (copy of the
+  Samsung metadata; the real project untouched): wizard → estimate ($2.04 for
+  90 s final with one draft round, refused at $1, created at $3) → project;
+  timeline approve wrote decision `d1`; Samsung timeline shows locked. Found
+  and fixed: the brief failed validation after the project folder was
+  already created (now validated first; `key_points` non-empty).
+- Screenshots (dark theme, 1440 px): `docs/fa/screens/{home,new,projects,
+  timeline,costs,health,styles,routing,keys}.png`.
+- Tests: `tests/tools/test_studio_fa.py` 24 passed (12 new).
+
+### 2026-11-04 — phase 7
+
+- Skipped: the owner has not approved the Samsung video yet (still at the
+  sample review). Run this phase after approval.

@@ -157,7 +157,21 @@ class OpenAICompatLLM(BaseTool):
         key_env = cfg.get("key_env")
         if key_env and not os.environ.get(key_env):
             return False, f"{key_env} not set"
+        if cfg.get("local") and not self._local_up(cfg["base_url"]):
+            return False, "local server not running"
         return True, "ok"
+
+    @staticmethod
+    def _local_up(base_url: str) -> bool:
+        import socket
+        from urllib.parse import urlparse
+
+        url = urlparse(base_url)
+        try:
+            with socket.create_connection((url.hostname, url.port or 80), timeout=0.3):
+                return True
+        except OSError:
+            return False
 
     def get_status(self) -> ToolStatus:
         profiles = self.routing.get("profiles", {})

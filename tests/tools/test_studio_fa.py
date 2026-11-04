@@ -136,3 +136,181 @@ def test_status_lists_persian_order(client):
 
     names = [p["name"] for p in client.get("/api/status").json()["providers"]]
     assert names == PERSIAN_TTS_PRIORITY
+
+
+# ---- production pages (studio_fa/production.py) ---------------------------------
+
+import json as _json
+import shutil as _shutil
+import time as _time
+
+from studio_fa import production
+
+WIZARD = {"project_id": "demo-history", "topic": "کل تاریخ سونی در ۹۰ ثانیه", "format": "landscape",
+          "duration_seconds": 90, "edit_style": "full-history-in-n-minutes", "voice": "Kore",
+          "voice_style": "", "budget_usd": 3, "draft_rounds": 1}
+
+
+@pytest.fixture
+def projects(monkeypatch, tmp_path):
+    from lib import paths
+
+    root = tmp_path / "projects"
+    root.mkdir()
+    monkeypatch.setattr(paths, "PROJECTS_DIR", root)
+    return root
+
+
+def test_production_writes_need_the_panel_header(client, projects):
+    for path, body in [("/api/fa/projects", WIZARD), ("/api/fa/estimate", WIZARD),
+                       ("/api/fa/llm-routing", {"tier": "bulk", "entries": [{"profile": "avalai", "model": "m"}]}),
+                       ("/api/fa/styles/learn", {"name": "x-style", "url": "https://e.x/v"}),
+                       ("/api/fa/health/ping", {})]:
+        assert client.post(path, json=body).status_code == 403, path
+
+
+def test_wizard_estimates_then_creates_a_valid_project(client, projects):
+    est = client.post("/api/fa/estimate", json=WIZARD, headers=PANEL).json()
+    assert est["final"]["total_usd"] > est["draft"]["total_usd"] > 0
+    assert est["within_budget"]
+    res = client.post("/api/fa/projects", json=WIZARD, headers=PANEL)
+    assert res.status_code == 200, res.text
+    brief = _json.loads((projects / "demo-history/artifacts/brief.json").read_text(encoding="utf-8"))
+    assert brief["metadata"]["edit_style"] == "full-history-in-n-minutes"
+    assert (projects / "demo-history/project.json").exists()
+    assert (projects / "demo-history/artifacts/estimate.json").exists()
+    again = client.post("/api/fa/projects", json=WIZARD, headers=PANEL)
+    assert again.status_code == 409 and "شناسه" in again.json()["detail"]
+
+
+def test_wizard_refuses_over_budget_and_leaves_nothing(client, projects):
+    res = client.post("/api/fa/projects", json={**WIZARD, "budget_usd": 0.1}, headers=PANEL)
+    assert res.status_code == 400 and "بودجه" in res.json()["detail"]
+    assert not (projects / "demo-history").exists()
+    bad = client.post("/api/fa/projects", json={**WIZARD, "project_id": "Bad Id"}, headers=PANEL)
+    assert bad.status_code == 400
+
+
+def test_timeline_review_writes_decision_log(client, projects):
+    client.post("/api/fa/projects", json=WIZARD, headers=PANEL)
+    t = client.get("/api/fa/projects/demo-history/timeline").json()
+    assert [s["name"] for s in t["stages"]][:3] == ["research", "proposal", "script"]
+    r = client.post("/api/fa/projects/demo-history/review",
+                    json={"stage": "proposal", "action": "approve", "note": "خوبه"}, headers=PANEL)
+    assert r.status_code == 200, r.text
+    log = _json.loads((projects / "demo-history/decision_log.json").read_text(encoding="utf-8"))
+    d = log["decisions"][-1]
+    assert d["selected"] == "approve" and d["subject"] == "Checkpoint review: proposal" and d["user_approved"]
+    stage = next(s for s in r.json()["timeline"]["stages"] if s["name"] == "proposal")
+    assert stage["review"] == "approve"
+    assert client.post("/api/fa/projects/demo-history/review",
+                       json={"stage": "nope", "action": "approve"}, headers=PANEL).status_code == 400
+
+
+def test_protected_project_is_read_only(client, projects):
+    p = projects / "samsung-history-fa"
+    p.mkdir()
+    (p / "project.json").write_text(_json.dumps({"pipeline_type": "animated-explainer"}), encoding="utf-8")
+    assert client.get("/api/fa/projects/samsung-history-fa/timeline").json()["protected"]
+    r = client.post("/api/fa/projects/samsung-history-fa/review",
+                    json={"stage": "proposal", "action": "approve"}, headers=PANEL)
+    assert r.status_code == 403 and not (p / "decision_log.json").exists()
+
+
+def test_costs_count_each_call_once(client, projects):
+    p = projects / "demo"
+    p.mkdir()
+    events = [
+        {"ts": "2026-11-04T15:56:40", "tool": "avalai_gemini_image", "depth": "2", "event": "finish", "cost_usd": "0.0672"},
+        {"ts": "2026-11-04T15:56:40", "tool": "image_selector", "depth": "1", "event": "finish", "cost_usd": "0.0672"},
+        {"ts": "2026-11-04T15:56:40", "tool": "image_selector", "event": "finish", "cost_usd": "0.0672"},
+        {"ts": "2026-11-04T14:20:42", "tool": "avalai_gemini_tts", "depth": "1", "event": "finish", "cost_usd": "0.0015"},
+    ]
+    (p / "events.jsonl").write_text("\n".join(_json.dumps(e) for e in events), encoding="utf-8")
+    (p / "cost_log.json").write_text(_json.dumps({"entries": [
+        {"tool": "openai_compat_llm", "actual_usd": 0.0001, "timestamp": "2026-12-01T00:00:00"}]}), encoding="utf-8")
+    c = client.get("/api/fa/costs").json()
+    assert c["projects"][0]["total_usd"] == pytest.approx(0.0688)
+    assert c["months"] == {"2026-11": pytest.approx(0.0687), "2026-12": pytest.approx(0.0001)}
+
+
+def test_health_lists_profiles_without_keys(client, monkeypatch):
+    monkeypatch.setenv("AVALAI_API_KEY", "aa-secretkey123456")
+    h = client.get("/api/fa/health").json()
+    names = {p["name"] for p in h["llm_profiles"]}
+    assert {"avalai", "gemini", "moonshot"} <= names
+    assert "aa-secretkey123456" not in _json.dumps(h)
+    monkeypatch.setattr(production, "_ping_profile",
+                        lambda cfg, name: {"reachable": True, "latency_ms": 120, "http": 200, "error": None})
+    pinged = client.post("/api/fa/health/ping", json={}, headers=PANEL).json()
+    avalai = next(p for p in pinged["llm_profiles"] if p["name"] == "avalai")
+    assert avalai["latency_ms"] == 120 and pinged["pinged"]
+
+
+def test_styles_gallery_and_learn_flow(client, projects, monkeypatch):
+    cards = client.get("/api/fa/styles").json()
+    assert any(c["name"] == "full-history-in-n-minutes" for c in cards)
+    est = client.post("/api/fa/styles/learn/estimate",
+                      json={"name": "ref-style", "url": "https://e.x/v", "duration_seconds": 180}, headers=PANEL).json()
+    assert 0 < est["total_usd"] < 0.05
+    assert client.post("/api/fa/styles/learn", json={"name": "Bad", "url": "https://e.x"},
+                       headers=PANEL).status_code == 400
+    assert client.post("/api/fa/styles/learn", json={"name": "ref-style", "url": "ftp://e.x"},
+                       headers=PANEL).status_code == 400
+
+    from tools.analysis import edit_style_extractor
+
+    seen = {}
+
+    def fake_execute(self, inputs):
+        seen.update(inputs)
+        return ToolResult(success=True, data={"asl_seconds": 3.7, "cost_usd": 0.01})
+
+    monkeypatch.setattr(edit_style_extractor.EditStyleExtractor, "execute", fake_execute)
+    job = client.post("/api/fa/styles/learn", json={"name": "ref-style", "url": "https://e.x/v"},
+                      headers=PANEL).json()
+    for _ in range(100):
+        state = client.get(f"/api/fa/jobs/{job['id']}").json()
+        if state["status"] != "running":
+            break
+        _time.sleep(0.05)
+    assert state["status"] == "done" and state["result"]["asl_seconds"] == 3.7
+    assert seen["url"] == "https://e.x/v" and "_reference" in seen["work_dir"]
+
+
+def test_llm_routing_page_writes_only_the_tier(client, monkeypatch, tmp_path):
+    from tools.text import openai_compat_llm
+
+    routing = tmp_path / "llm_routing.yaml"
+    _shutil.copy(openai_compat_llm.ROUTING_PATH, routing)
+    monkeypatch.setattr(openai_compat_llm, "ROUTING_PATH", routing)
+    before = routing.read_text(encoding="utf-8")
+    r = client.post("/api/fa/llm-routing", headers=PANEL, json={
+        "tier": "worker", "entries": [{"profile": "avalai", "model": "claude-haiku-5-5"}]})
+    assert r.status_code == 200, r.text
+    assert r.json()["tiers"]["worker"] == [{"profile": "avalai", "model": "claude-haiku-5-5"}]
+    after = routing.read_text(encoding="utf-8")
+    assert after.split("\ntiers:")[0] == before.split("\ntiers:")[0]  # header comments kept
+    assert after.split("\nescalation:")[1] == before.split("\nescalation:")[1]  # tasks kept
+    assert client.post("/api/fa/llm-routing", headers=PANEL, json={
+        "tier": "worker", "entries": [{"profile": "nope", "model": "x1"}]}).status_code == 400
+    assert client.post("/api/fa/llm-routing", headers=PANEL, json={
+        "tier": "worker", "entries": [{"profile": "avalai", "model": "bad model!"}]}).status_code == 400
+    assert client.get("/api/fa/llm-routing").json()["profiles"]["avalai"]["key_env"] == "AVALAI_API_KEY"
+
+
+def test_errors_are_persian_and_redacted():
+    assert "۴۰۳" in production.explain("PermissionDeniedError: Error code: 403")
+    msg = production.explain("bad Bearer aa-TOPSECRETKEY12345 header")
+    assert "TOPSECRETKEY" not in msg
+    assert "کلید" in production.explain("AVALAI_API_KEY not set")
+
+
+def test_unexpected_errors_reach_the_page_in_persian(monkeypatch):
+    def boom(_):
+        raise RuntimeError("disk exploded")
+
+    monkeypatch.setattr(production, "_timeline", boom)
+    res = TestClient(server.create_app(), base_url="http://127.0.0.1", raise_server_exceptions=False).get(
+        "/api/fa/projects/x-y-z/timeline")
+    assert res.status_code == 500 and "خطای پیش‌بینی‌نشده" in res.json()["detail"]

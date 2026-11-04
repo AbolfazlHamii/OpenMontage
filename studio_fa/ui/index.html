@@ -18,9 +18,14 @@
     </div>
     <nav id="nav">
       <button data-tab="home" class="active">داشبورد</button>
+      <button data-tab="new">ویدیوی جدید</button>
       <button data-tab="voice">استودیو صدا</button>
       <button data-tab="subs">زیرنویس</button>
       <button data-tab="projects">پروژه‌ها</button>
+      <button data-tab="costs">هزینه‌ها</button>
+      <button data-tab="health">سلامت سرویس‌ها</button>
+      <button data-tab="styles">سبک‌های تدوین</button>
+      <button data-tab="routing">مسیریابی متن (LLM)</button>
       <button data-tab="keys">کلیدها و تنظیمات</button>
       <button data-tab="tests">تست‌ها</button>
     </nav>
@@ -161,6 +166,135 @@
       </div>
     </section>
 
+    <!-- New video wizard -->
+    <section id="tab-new" class="tab">
+      <header class="page-head">
+        <h1>ویدیوی جدید</h1>
+        <p>پنج قدم؛ قبل از ساخت، تخمین هزینه نشان داده می‌شود. ساخت پروژه هیچ هزینه‌ای ندارد.</p>
+      </header>
+      <ol class="stepper" id="wiz-steps">
+        <li class="active">موضوع</li><li>فرمت و طول</li><li>سبک تدوین</li><li>صدا</li><li>بودجه</li>
+      </ol>
+      <form class="card" id="wiz-form">
+        <div class="wiz-step" data-step="0">
+          <label>موضوع ویدیو
+            <input id="wiz-topic" type="text" maxlength="300" placeholder="مثلاً: کل تاریخ سونی در ۹۰ ثانیه">
+          </label>
+          <label>شناسه‌ی پروژه (انگلیسی)
+            <input id="wiz-id" type="text" maxlength="60" dir="ltr" placeholder="sony-history-fa">
+          </label>
+        </div>
+        <div class="wiz-step hidden" data-step="1">
+          <div class="fields">
+            <label>فرمت
+              <select id="wiz-format"><option value="landscape">افقی ۱۶:۹ (یوتیوب)</option><option value="vertical">عمودی ۹:۱۶ (شورتس)</option></select>
+            </label>
+            <label>طول (ثانیه)
+              <input id="wiz-duration" type="number" min="15" max="1200" value="90">
+            </label>
+          </div>
+        </div>
+        <div class="wiz-step hidden" data-step="2">
+          <p class="hint">یک کارت را انتخاب کنید (پیش‌نمایش: ریتم کات، هوک و پالت).</p>
+          <div class="gallery" id="wiz-styles"></div>
+        </div>
+        <div class="wiz-step hidden" data-step="3">
+          <div class="fields">
+            <label>صدا <select id="wiz-voice"></select></label>
+          </div>
+          <label>لحن
+            <input id="wiz-voice-style" type="text" maxlength="300" value="پرانرژی و هیجان‌زده مثل یوتیوبر قصه‌گو، لهجه‌ی تهرانی محاوره">
+          </label>
+        </div>
+        <div class="wiz-step hidden" data-step="4">
+          <div class="fields">
+            <label>بودجه (دلار)
+              <input id="wiz-budget" type="number" min="0" max="50" step="0.1" value="1">
+            </label>
+            <label>دورهای پیش‌نویس تصویر
+              <input id="wiz-rounds" type="number" min="0" max="5" value="1">
+            </label>
+          </div>
+          <div id="wiz-estimate" class="estimate"></div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="wiz-back">قبلی</button>
+          <button class="btn" type="button" id="wiz-next">بعدی</button>
+          <button class="btn hidden" type="submit" id="wiz-create">ساخت پروژه</button>
+          <span class="status" id="wiz-status"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Timeline -->
+    <section id="tab-timeline" class="tab">
+      <header class="page-head">
+        <h1 id="tl-title">مراحل پروژه</h1>
+        <p>وضعیت هر مرحله از روی checkpointها. تأیید یا رد در decision_log ثبت می‌شود و ایجنت در اجرای بعدی می‌خواندش.</p>
+      </header>
+      <div class="card"><ol class="timeline" id="tl-list"></ol></div>
+    </section>
+
+    <!-- Costs -->
+    <section id="tab-costs" class="tab">
+      <header class="page-head">
+        <h1>هزینه‌ها</h1>
+        <p id="costs-note">هزینه‌ی واقعی هر پروژه و هر ماه.</p>
+      </header>
+      <div class="grid">
+        <div class="card span-2"><h2>پروژه‌ها</h2><div id="costs-projects"></div></div>
+        <div class="card"><h2>ماه‌ها</h2><div id="costs-months"></div></div>
+        <div class="card"><h2>ابزارها</h2><div id="costs-tools"></div></div>
+      </div>
+    </section>
+
+    <!-- Health -->
+    <section id="tab-health" class="tab">
+      <header class="page-head">
+        <h1>سلامت سرویس‌ها</h1>
+        <p>صدا، تصویر و پروفایل‌های متن. «آزمایش اتصال» فقط فهرست مدل‌ها را می‌گیرد و هزینه ندارد.</p>
+      </header>
+      <div class="card">
+        <div class="actions">
+          <button class="btn" id="health-ping">آزمایش اتصال</button>
+          <span class="status" id="health-status"></span>
+        </div>
+        <div class="grid" id="health-grid"></div>
+      </div>
+    </section>
+
+    <!-- Styles -->
+    <section id="tab-styles" class="tab">
+      <header class="page-head">
+        <h1>سبک‌های تدوین</h1>
+        <p>کارت‌های سبک: ریتم کات، هوک، حرکت دوربین و زیرنویس. مکمل سبک بصری‌اند، نه جایگزینش.</p>
+      </header>
+      <div class="gallery" id="styles-gallery"></div>
+      <form class="card" id="learn-form">
+        <h2>یادگرفتن سبک از لینک</h2>
+        <div class="fields">
+          <label>لینک ویدیو <input id="learn-url" type="url" dir="ltr" placeholder="https://www.youtube.com/watch?v=…"></label>
+          <label>نام کارت (انگلیسی) <input id="learn-name" type="text" dir="ltr" placeholder="my-reference-style"></label>
+          <label>طول تقریبی (ثانیه) <input id="learn-duration" type="number" min="10" max="7200" value="180"></label>
+        </div>
+        <div id="learn-estimate" class="estimate"></div>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="learn-est">تخمین هزینه</button>
+          <button class="btn" type="submit" id="learn-go">شروع یادگیری</button>
+          <span class="status" id="learn-status"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- LLM routing -->
+    <section id="tab-routing" class="tab">
+      <header class="page-head">
+        <h1>مسیریابی متن (LLM)</h1>
+        <p>مدل هر سطح. متن نهایی فارسی همیشه از بازبینی ایجنت می‌گذرد. کلیدها فقط از «کلیدها و تنظیمات».</p>
+      </header>
+      <div class="grid" id="routing-grid"></div>
+    </section>
+
     <!-- Keys -->
     <section id="tab-keys" class="tab">
       <header class="page-head">
@@ -188,5 +322,6 @@
 </div>
 <div class="toast hidden" id="toast"></div>
 <script src="/ui/app.js"></script>
+<script src="/ui/production.js"></script>
 </body>
 </html>

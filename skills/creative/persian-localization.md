@@ -277,6 +277,18 @@ voice auditions through `tts_selector` with duration, cps, cost and
 fallback, RTL subtitle frames, the Persian tests, and each project opened in
 Backlot. Auditions are kept in `.studio_fa/tts_history.jsonl`.
 
+Production pages (`studio_fa/production.py`): new-video wizard (topic →
+format/length → edit style card → voice → budget, with `fa_estimate` shown
+before anything is created; it writes `project.json`, `artifacts/brief.json`
+and `artifacts/estimate.json`), stage timeline with approve/reject that
+appends to `decision_log` (subject `Checkpoint review: <stage>` — read these
+before continuing a gated stage), cost dashboard (per project and month, from
+`events.jsonl` + `cost_log.json`), provider health (TTS, image, LLM profiles;
+the ping only lists models, free), style gallery + "learn from a link"
+(cost estimate first, refuses over $0.50), and LLM routing per tier (writes
+`config/llm_routing.yaml`). `samsung-history-fa` is read-only in the panel.
+Screenshots: `docs/fa/screens/`.
+
 ## Review
 
 Before presenting a Persian render, extract frames where captions contain
