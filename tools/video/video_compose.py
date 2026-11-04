@@ -38,6 +38,7 @@ import secrets
 import shutil
 import subprocess
 import time
+import os
 from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import unquote, urlsplit
@@ -156,6 +157,14 @@ class VideoCompose(BaseTool):
                     "outline_width": {"type": "number", "default": 2},
                     "margin_v": {"type": "integer", "default": 40},
                     "alignment": {"type": "integer", "default": 2},
+                    "fonts_dir": {
+                        "type": "string",
+                        "description": (
+                            "Folder with extra font files for libass (fontsdir). "
+                            "Defaults to SUBTITLE_FONTS_DIR. Needed on Windows for "
+                            "per-user fonts such as Vazirmatn."
+                        ),
+                    },
                 },
             },
             "overlays": {
@@ -658,9 +667,7 @@ class VideoCompose(BaseTool):
 
             if subtitle_path and Path(subtitle_path).exists():
                 style = inputs.get("subtitle_style", {})
-                ass_style = self._build_subtitle_style(style)
-                sub_escaped = str(Path(subtitle_path).resolve()).replace("\\", "/").replace(":", "\\:")
-                vfilters.append(f"subtitles='{sub_escaped}':force_style='{ass_style}'")
+                vfilters.append(self._subtitles_filter(subtitle_path, style))
 
             cmd = ["ffmpeg", "-y", "-i", str(final_input)]
 
@@ -2722,15 +2729,13 @@ class VideoCompose(BaseTool):
             return ToolResult(success=False, error=f"Subtitle file not found: {subtitle_path}")
 
         style = inputs.get("subtitle_style", {})
-        ass_style = self._build_subtitle_style(style)
-        sub_escaped = str(subtitle_path.resolve()).replace("\\", "/").replace(":", "\\:")
         codec = inputs.get("codec", "libx264")
         crf = inputs.get("crf", 23)
 
         cmd = [
             "ffmpeg", "-y",
             "-i", str(input_path),
-            "-vf", f"subtitles='{sub_escaped}':force_style='{ass_style}'",
+            "-vf", self._subtitles_filter(subtitle_path, style),
             "-c:v", codec, "-crf", str(crf),
             "-c:a", "copy",
             str(output_path),
@@ -2911,6 +2916,25 @@ class VideoCompose(BaseTool):
                     resolved[k] = v
 
         return resolved
+
+    @classmethod
+    def _subtitles_filter(cls, subtitle_path: str | Path, style: dict) -> str:
+        """ffmpeg subtitles filter for a subtitle file and style dict.
+
+        fonts_dir (or SUBTITLE_FONTS_DIR) is passed to libass as fontsdir. On
+        Windows its fontconfig only scans C:\\Windows\\Fonts, so a font
+        installed for the current user (e.g. Vazirmatn) is otherwise replaced
+        by Arial without any error.
+        """
+
+        def _escape(path: str | Path) -> str:
+            return str(Path(path).resolve()).replace("\\", "/").replace(":", "\\:")
+
+        flt = f"subtitles='{_escape(subtitle_path)}'"
+        fonts_dir = style.get("fonts_dir") or os.environ.get("SUBTITLE_FONTS_DIR")
+        if fonts_dir:
+            flt += f":fontsdir='{_escape(fonts_dir)}'"
+        return flt + f":force_style='{cls._build_subtitle_style(style)}'"
 
     @staticmethod
     def _build_subtitle_style(style: dict) -> str:

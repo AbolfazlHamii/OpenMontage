@@ -7,7 +7,8 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
 ## Voice
 
 - `tts_selector` detects Persian text (or `language_code: "fa"`) and routes it
-  through `PERSIAN_TTS_PRIORITY`: gemini_tts → elevenlabs_tts (eleven_v3) →
+  through `PERSIAN_TTS_PRIORITY`: gemini_tts → avalai_gemini_tts →
+  elevenlabs_tts (eleven_v3) →
   openai_tts → azure_tts (fa-IR voices) → piper_tts (fa_IR voice). Providers
   outside that list are never used for Persian, because the generic scorer
   does not know which providers speak it. If none is configured the call
@@ -25,6 +26,20 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   - Output is WAV (24 kHz mono); `audio_duration_seconds` is returned.
   - The Gemini API is not offered in every country (Iran is not on Google's
     list); run productions from a machine in a supported region.
+- **AvalAI (`avalai_gemini_tts`, second in the order):** the same Gemini 3.8
+  TTS models, voices and `style`, through AvalAI (`AVALAI_API_KEY`), usable
+  from Iran. AvalAI serves them on native `generateContent`, not on the
+  Interactions API that `gemini_tts` uses, and does not expose the voice
+  library (`list_voices`); pick voice names from the Gemini voice list.
+  Cost is computed from `usageMetadata` (AvalAI promo price until
+  2026-12-31, then double).
+- **Fall-through:** for Persian with `preferred_provider: "auto"`, a provider
+  that fails at call time (Google refusing the region, out of credit) is
+  skipped and the next one in the order is tried; `fallback_from` in the
+  result lists what failed. A different provider can mean a different
+  voice: for a whole narration pass `allowed_providers: ["gemini", "avalai"]`
+  so it never drifts to another voice family mid-video, and check
+  `fallback_from` before mixing clips.
 - ElevenLabs: only `eleven_v3` speaks Persian; `language_code: "fa"` selects
   it. v3 takes at most 5,000 characters per call.
 - OpenAI `gpt-4o-mini-tts` (also through `OPENAI_BASE_URL` gateways such as
@@ -70,6 +85,20 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   and switches to RTL by word majority.
 - Never ask an image or video model to draw Persian text; render titles and
   thumbnail text with HTML (HyperFrames/Remotion) so Chromium shapes it.
+
+## Working from Iran
+
+- Google's Gemini docs and API answer 403 from Iranian IPs and from many
+  VPN exits too. Use AvalAI (above), or run on a VPS in a supported region.
+- Downloads (pip, npm, GitHub release assets) often stop halfway with no
+  error, leaving a truncated file. Check sizes/zip integrity, and retry
+  through a proxy with resume (`curl -C -`).
+- Windows: `fc-list` does not exist. Install Vazirmatn per user
+  (`%LOCALAPPDATA%\Microsoft\Windows\Fonts` + the HKCU Fonts registry key)
+  and set `SUBTITLE_FONTS_DIR` to that folder: ffmpeg's libass only scans
+  `C:\Windows\Fonts`, and silently burns Arial instead (with a missing-glyph
+  box in words like «دلار»). Confirm with
+  `python scripts/fa_smoke_test.py subtitles` and look at the frame.
 
 ## Review
 

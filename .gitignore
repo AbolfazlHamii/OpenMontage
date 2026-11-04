@@ -104,3 +104,7 @@ venv/
 
 # Local Wan / diffusers GPU environment
 .venv-wan/
+
+# Persian smoke-test and gateway-check outputs
+fa_smoke/
+gateway_check/

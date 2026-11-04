@@ -32,6 +32,7 @@ _PERSIAN_LETTERS = re.compile(r"[پچژگکی]")
 
 PERSIAN_TTS_PRIORITY = [
     "gemini_tts",      # Gemini 3.8 Flash TTS lists Iranian Persian; style control
+    "avalai_gemini_tts",  # same Gemini voices via AvalAI when Google is unreachable
     "elevenlabs_tts",  # only with eleven_v3 (language_code=fa selects it)
     "openai_tts",      # gpt-4o-mini-tts reads Persian; no Persian-native voice
     "azure_tts",       # fa-IR neural voices
@@ -274,28 +275,54 @@ class TTSSelector(BaseTool):
 
         # Normal generation — use scored selection
         language = resolve_tts_language(inputs)
-        tool, score = self._select_best_tool(inputs, candidates, task_context)
-        if tool is None:
-            if language == "fa":
-                return ToolResult(
-                    success=False,
-                    error=(
-                        "No Persian-capable TTS provider is available. Configure one of: "
-                        + ", ".join(PERSIAN_TTS_PRIORITY)
-                        + " (e.g. GOOGLE_API_KEY for gemini_tts)."
-                    ),
-                )
-            return ToolResult(success=False, error="No TTS provider available.")
+        # Persian falls through PERSIAN_TTS_PRIORITY when a provider fails at
+        # call time (e.g. Gemini refusing the caller's region), so AvalAI can
+        # stand in for Google. Other languages keep single-shot behavior.
+        fall_through = language == "fa" and inputs.get("preferred_provider", "auto") == "auto"
+        failures: list[dict[str, str]] = []
+        while True:
+            tool, score = self._select_best_tool(
+                inputs,
+                [c for c in candidates if c.name not in {f["tool"] for f in failures}],
+                task_context,
+            )
+            if tool is None:
+                if failures:
+                    return ToolResult(
+                        success=False,
+                        error="All Persian TTS providers failed: " + "; ".join(
+                            f"{f['tool']}: {f['error']}" for f in failures
+                        ),
+                    )
+                if language == "fa":
+                    return ToolResult(
+                        success=False,
+                        error=(
+                            "No Persian-capable TTS provider is available. Configure one of: "
+                            + ", ".join(PERSIAN_TTS_PRIORITY)
+                            + " (e.g. GOOGLE_API_KEY for gemini_tts, AVALAI_API_KEY "
+                            "for avalai_gemini_tts)."
+                        ),
+                    )
+                return ToolResult(success=False, error="No TTS provider available.")
 
-        try:
-            adapted = self._adapt_inputs(tool, inputs)
-        except (ValueError, TypeError) as exc:
-            return ToolResult(success=False, error=str(exc))
-        if language == "fa":
-            for key, value in PERSIAN_TOOL_DEFAULTS.get(tool.name, {}).items():
-                adapted.setdefault(key, value)
-        result = tool.execute(adapted)
+            try:
+                adapted = self._adapt_inputs(tool, inputs)
+            except (ValueError, TypeError) as exc:
+                return ToolResult(success=False, error=str(exc))
+            if language == "fa":
+                for key, value in PERSIAN_TOOL_DEFAULTS.get(tool.name, {}).items():
+                    adapted.setdefault(key, value)
+            result = tool.execute(adapted)
+            if result.success or not fall_through:
+                break
+            failures.append({"tool": tool.name, "error": str(result.error)})
+
         if result.success:
+            if failures:
+                # A different provider may mean a different voice; let the
+                # director notice before it mixes clips from two providers.
+                result.data["fallback_from"] = failures
             if language:
                 result.data.setdefault("language", language)
             # Pipelines check narration length against the edit (explainer
