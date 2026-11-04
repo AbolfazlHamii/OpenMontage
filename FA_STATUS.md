@@ -6,7 +6,7 @@ brief (phases 0–5) is `BUILD_PROMPT.md` (kept outside the repo, in the
 owner's Downloads). The owner's cross-project hub has the same status in
 Persian: `D:\project\MaN\projects-hub\projects\openmontage-fa.md`.
 
-Last updated: 2026-11-04 (build phases 1–3, 5)
+Last updated: 2026-11-04 (build phases 1–3, 5; research tools)
 
 ## Rules from the brief
 
@@ -108,6 +108,9 @@ New since the upgrade (details in the progress file and in
 | Style learning + compliance check | `tools/analysis/edit_style_extractor.py` |
 | Render QA, hook lab, fact-check | `scripts/fa_render_qa.py`, `scripts/fa_editorial.py` |
 | Studio FA production pages | `studio_fa/production.py`, `studio_fa/ui/production.js` |
+| Script retention lint | `scripts/fa_script_lint.py`, `lib/fa_script_lint.py`, `skills/creative/narration-craft.md` |
+| Beat grid / snap / align | `tools/audio/beat_detect.py` |
+| Procedural SFX (licence-free) | `lib/sfx_synth.py` |
 
 ## Current production: first transcreation
 
@@ -174,12 +177,19 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
 
 ## Next steps
 
-1. Research sessions started 2026-11-04 (animation craft, editing craft,
-   narration/hooks/retention, YouTube packaging) each add a skill and
-   tools; add their rows to `skills/INDEX.md` once they report.
+1. Research sessions (2026-11-04, on another Claude account) stopped
+   before writing their reports; no findings were saved anywhere. They left
+   three uncommitted tools, now finished and tested (commit `195d15e`):
+   the script retention lint + `narration-craft` skill (narration/hooks),
+   `beat_detect` and `sfx_synth` (editing). Animation craft is largely
+   covered by `camera-language.md`; **YouTube packaging (titles, thumbnails,
+   topic choice) has no skill yet** — rerun that research if wanted.
 2. Owner picks the pipeline for the full video from the two samples.
 3. Owner: pick the narrator voice (audition page) and approve the full
    90 s budget; then script stage for the full video.
-4. Optional: show image providers in Studio FA's health panel (it only
-   covers TTS today); `fit_all` could let the last line run to the end of
-   the video instead of flagging it.
+4. Optional: `fit_all` could let the last dub line run to the end of the
+   video instead of flagging it. (Image providers are in Studio FA's health
+   page since upgrade phase 6.)
+5. Owner: confirm or change the bake-off's worker/bulk model picks
+   (`docs/fa/llm_bakeoff/report.html`, Studio FA → مسیریابی متن).
+6. Nothing on `fa` since `1ed7c43` is pushed; push only when the owner asks.
