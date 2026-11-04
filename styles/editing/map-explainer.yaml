@@ -1,0 +1,102 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: map-explainer
+title: Explainer with maps
+description: 'Geography-led explainer: zooms between world, country and city maps, animated routes and
+  pins, cutaways to illustrated stills.'
+source:
+  kind: authored
+  reference: general map-explainer technique
+best_for:
+- geopolitics
+- trade routes
+- '''where it happened'' histories'
+- migration and war timelines
+formats:
+- landscape
+pairs_with_playbooks:
+- minimalist-diagram
+- clean-professional
+pacing:
+  sections:
+    hook:
+      asl_seconds: 3.5
+      cuts_per_minute: 17
+      duration_seconds: 15
+    body:
+      asl_seconds: 5.5
+      cuts_per_minute: 11
+    outro:
+      asl_seconds: 6
+      cuts_per_minute: 10
+      duration_seconds: 12
+  words_per_minute: 145
+hook_formula:
+  duration_seconds: 15
+  beats:
+  - zoom from space to the place
+  - one surprising fact about it
+  - the question the video answers
+transitions:
+- name: map_zoom
+  weight: 0.35
+- name: hard_cut
+  weight: 0.4
+- name: mask_reveal
+  weight: 0.15
+- name: light_leak
+  weight: 0.1
+camera_moves:
+- name: map_zoom
+  weight: 0.35
+- name: ken_burns_push
+  weight: 0.25
+- name: static
+  weight: 0.2
+- name: parallax
+  weight: 0.2
+subtitles:
+  style: plain
+  words_per_card:
+  - 4
+  - 8
+  position: bottom
+  numerals: persian
+sfx_palette:
+- name: whoosh
+  weight: 0.4
+- name: pin_drop
+  weight: 0.3
+- name: paper_rustle
+  weight: 0.15
+- name: riser
+  weight: 0.15
+music_energy_curve:
+- at: 0
+  energy: 0.5
+- at: 0.5
+  energy: 0.6
+- at: 0.9
+  energy: 0.7
+- at: 1
+  energy: 0.4
+pattern_interrupt_seconds:
+  min: 5
+  max: 8
+color_type:
+  palette:
+  - '#e9e4d8'
+  - '#2f4858'
+  - '#d1495b'
+  - '#edae49'
+  fonts:
+  - Vazirmatn
+  grade: muted, desaturated land, one accent for the subject
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Place names on maps as HTML labels in Persian; use attributed public-domain or OSM-derived base maps.
+do_not:
+- let an image model draw maps with labels
+- use a map projection without stating it when distances matter

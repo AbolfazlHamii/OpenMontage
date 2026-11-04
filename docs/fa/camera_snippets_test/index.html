@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>camera snippets test</title>
+    <script src="assets/js/gsap.min.js"></script>
+    <style>
+      body { margin: 0; background: #000; }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .cam, .layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 50% 50%; }
+      .cam img, .layer img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .fg { position: absolute; left: 660px; top: 300px; width: 600px; height: 600px; }
+      .slice { mask-mode: luminance; -webkit-mask-size: cover; mask-size: cover; }
+      .label { position: absolute; left: 40px; top: 30px; font: 700 44px sans-serif; color: #fff; text-shadow: 0 2px 6px #000; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="camera-snippets" data-width="1920" data-height="1080" data-duration="16">
+      <section id="s-kb" class="clip scene" data-start="0" data-duration="2" data-track-index="0">
+        <div id="kb" class="cam"><img src="assets/img/bg.png" /></div><div class="label">ken burns</div>
+      </section>
+      <section id="s-px" class="clip scene" data-start="2" data-duration="2" data-track-index="0">
+        <div id="px-bg" class="layer"><img src="assets/img/bg.png" /></div>
+        <img id="px-fg" class="fg" src="assets/img/fg.png" /><div class="label">parallax</div>
+      </section>
+      <section id="s-25d" class="clip scene" data-start="4" data-duration="2" data-track-index="0">
+        <div id="d0" class="layer"><img src="assets/img/bg.png" /></div>
+        <div id="d1" class="layer slice" style="mask-image:url(assets/img/depth_96.png);-webkit-mask-image:url(assets/img/depth_96.png)"><img src="assets/img/bg.png" /></div>
+        <div id="d2" class="layer slice" style="mask-image:url(assets/img/depth_160.png);-webkit-mask-image:url(assets/img/depth_160.png)"><img src="assets/img/bg.png" /></div>
+        <div id="d3" class="layer slice" style="mask-image:url(assets/img/depth_208.png);-webkit-mask-image:url(assets/img/depth_208.png)"><img src="assets/img/bg.png" /></div>
+        <div class="label">2.5D depth slices</div>
+      </section>
+      <section id="s-punch" class="clip scene" data-start="6" data-duration="2" data-track-index="0">
+        <div id="punch" class="cam"><img src="assets/img/bg.png" /></div><div class="label">punch-in</div>
+      </section>
+      <section id="s-shake" class="clip scene" data-start="8" data-duration="2" data-track-index="0">
+        <div id="shake" class="cam"><img src="assets/img/bg.png" /></div><div class="label">shake</div>
+      </section>
+      <section id="s-rack" class="clip scene" data-start="10" data-duration="2" data-track-index="0">
+        <div id="rack-bg" class="layer"><img src="assets/img/bg.png" /></div>
+        <img id="rack-fg" class="fg" src="assets/img/fg.png" /><div class="label">rack focus</div>
+      </section>
+      <section id="s-dz" class="clip scene" data-start="12" data-duration="2" data-track-index="0">
+        <div id="dz-bg" class="layer"><img src="assets/img/bg.png" /></div>
+        <img id="dz-fg" class="fg" src="assets/img/fg.png" /><div class="label">dolly zoom</div>
+      </section>
+      <section id="s-whip" class="clip scene" data-start="14" data-duration="2" data-track-index="0">
+        <div id="whip" class="cam"><img src="assets/img/bg.png" /></div><div class="label">whip pan</div>
+      </section>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const W = 1920, H = 1080;
+      const tl = gsap.timeline({ paused: true });
+
+      // ---- snippets: copied verbatim into skills/creative/camera-language.md (Part B)
+
+      function frame(px, py, s, tx = 0.5, ty = 0.5) {
+        const lim = (s - 1) / 2;
+        const clamp = (v) => Math.max(-lim, Math.min(lim, v));
+        return { scale: s, x: clamp(tx - 0.5 - s * (px - 0.5)) * W, y: clamp(ty - 0.5 - s * (py - 0.5)) * H };
+      }
+
+      function kenBurns(el, t, dur, from, to, ease = "sine.inOut") {
+        tl.set(el, frame(from.px, from.py, from.s), t);
+        tl.to(el, { ...frame(to.px, to.py, to.s), duration: dur, ease }, t);
+      }
+
+      function parallax(layers, t, dur, dx, ease = "none") {
+        // layers: [{el, depth}] depth 0 = far (barely moves), 1 = near
+        for (const { el, depth } of layers) {
+          const shift = dx * depth;
+          // centered start, overscaled just enough that the shift never shows an edge
+          tl.set(el, { x: shift / 2, scale: 1 + (shift + 8) / W }, t);
+          tl.to(el, { x: -shift / 2, duration: dur, ease }, t);
+        }
+      }
+
+      function punchIn(el, t, amount = 0.08, settle = 0.35) {
+        tl.to(el, { scale: `+=${amount}`, duration: 0.08, ease: "power4.out" }, t);
+        tl.to(el, { scale: `-=${amount * 0.4}`, duration: settle, ease: "sine.out" }, t + 0.08);
+      }
+
+      function shake(el, t, dur, amp = 14, hz = 24, seed = 7) {
+        let s = seed;
+        const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647) * 2 - 1;
+        const steps = Math.round(dur * hz);
+        tl.set(el, { scale: 1 + (4 * amp) / H }, t); // overscan so edges never show
+        for (let i = 0; i < steps; i++) {
+          const k = 1 - i / steps; // decay
+          tl.to(el, { x: rand() * amp * k, y: rand() * amp * k, rotation: rand() * 0.6 * k,
+                      duration: 1 / hz, ease: "none" }, t + i / hz);
+        }
+        tl.to(el, { x: 0, y: 0, rotation: 0, scale: 1, duration: 0.05 }, t + dur);
+      }
+
+      function rackFocus(fromEl, toEl, t, dur = 0.6, blur = 10) {
+        tl.set(fromEl, { filter: "blur(0px)" }, t);
+        tl.set(toEl, { filter: `blur(${blur}px)` }, t);
+        tl.to(fromEl, { filter: `blur(${blur}px)`, duration: dur, ease: "sine.inOut" }, t);
+        tl.to(toEl, { filter: "blur(0px)", duration: dur, ease: "sine.inOut" }, t);
+      }
+
+      function dollyZoom(subjectEl, bgEl, t, dur, bgScale = 1.35) {
+        // subject size holds while the background "zooms": background scales up,
+        // subject scales down by a little to sell the push-pull.
+        tl.set(bgEl, { scale: 1 }, t);
+        tl.set(subjectEl, { scale: 1 }, t);
+        tl.to(bgEl, { scale: bgScale, duration: dur, ease: "power1.inOut" }, t);
+        tl.to(subjectEl, { scale: 0.96, duration: dur, ease: "power1.inOut" }, t);
+      }
+
+      function whipPan(outEl, t, dur = 0.25, dir = -1) {
+        tl.to(outEl, { x: dir * W * 0.6, filter: "blur(18px)", duration: dur, ease: "power3.in" }, t);
+      }
+
+      // ---- test timeline
+
+      kenBurns("#kb", 0, 2, { px: 0.3, py: 0.4, s: 1.1 }, { px: 0.6, py: 0.5, s: 1.3 });
+      parallax([{ el: "#px-bg", depth: 0.2 }, { el: "#px-fg", depth: 1 }], 2, 2, 260);
+      parallax([{ el: "#d0", depth: 0.1 }, { el: "#d1", depth: 0.4 }, { el: "#d2", depth: 0.7 }, { el: "#d3", depth: 1 }], 4, 2, 200);
+      tl.set("#punch", { scale: 1.05 }, 6);
+      punchIn("#punch", 6.8);
+      shake("#shake", 8.3, 0.8);
+      tl.set("#rack-fg", { filter: "blur(0px)" }, 10);
+      rackFocus("#rack-fg", "#rack-bg", 10.5, 0.6);
+      dollyZoom("#dz-fg", "#dz-bg", 12, 2);
+      whipPan("#whip", 15.6, 0.3);
+
+      window.__timelines["camera-snippets"] = tl;
+    </script>
+  </body>
+</html>

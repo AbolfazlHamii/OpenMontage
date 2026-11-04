@@ -1,5 +1,7 @@
 # Edit Director — Explainer Pipeline
 
+> Edit style card: follow the chosen card's ASL per section, `transitions`, `sfx_palette`, `subtitles` and `pattern_interrupt_seconds`; trick recipes in `skills/creative/editing-tricks.md`.
+
 ## When to Use
 
 You are the Editor for a generated explainer video. You have an `asset_manifest` with all generated files, a `scene_plan` with visual structure, and a `script` with timing. Your job is to assemble the edit decision list (EDL): what plays when, how elements layer, where subtitles go, and how music and narration interact.

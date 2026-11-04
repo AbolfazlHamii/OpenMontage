@@ -1,0 +1,130 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: full-history-in-n-minutes
+title: The whole history of X in N minutes
+description: Strict chronology told over still cartoon art with slow pans and pushes, one protagonist
+  per era, a visual gag per sentence and fast cuts. Technique studied from a long-form company-history
+  channel; no assets copied.
+source:
+  kind: authored
+  reference: 'projects/_reference/ceozoned-coca-cola/REFERENCE_NOTES.md (CEOzoned, ''The ENTIRE History
+    of Coca-Cola in 11 Minutes''; first 180 s analysed: 48 shots)'
+  measured:
+    asl_seconds: 3.75
+    shot_range_seconds:
+    - 1.6
+    - 9.3
+    cuts_per_minute: 16
+    words_per_minute: 157
+    static_image_shots: 45
+    motion_clip_shots: 3
+best_for:
+- company and brand histories
+- biographies
+- '''how X became Y'' timelines'
+formats:
+- landscape
+- vertical
+pairs_with_playbooks:
+- flat-motion-graphics
+- clean-professional
+pacing:
+  sections:
+    hook:
+      asl_seconds: 2.8
+      cuts_per_minute: 21.4
+      duration_seconds: 17
+    body:
+      asl_seconds: 3.75
+      cuts_per_minute: 16
+    outro:
+      asl_seconds: 4.5
+      cuts_per_minute: 13.3
+      duration_seconds: 10
+  words_per_minute: 157
+  beat_sync_ratio: 0.3
+hook_formula:
+  duration_seconds: 17
+  beats:
+  - big present-day number (scale of X today)
+  - paradox of origin (absurd or humble beginning, 2-3 facts)
+  - 'title line: ''this is the entire history of X'''
+  example_fa: روزی دو میلیارد نفر … ولی اولش یه داروی شکست‌خورده بود. این کل تاریخ … ـه.
+transitions:
+- name: hard_cut
+  weight: 0.75
+- name: match_cut
+  weight: 0.08
+- name: whip_pan
+  weight: 0.07
+- name: flash_frame
+  weight: 0.05
+- name: split_screen
+  weight: 0.05
+camera_moves:
+- name: ken_burns_push
+  weight: 0.45
+- name: ken_burns_pan
+  weight: 0.3
+- name: static
+  weight: 0.1
+- name: punch_in
+  weight: 0.1
+- name: shake
+  weight: 0.05
+subtitles:
+  style: pill
+  words_per_card:
+  - 3
+  - 6
+  position: bottom
+  font: Vazirmatn 800
+  highlight_color: '#ffd23f'
+  numerals: persian
+sfx_palette:
+- name: whoosh
+  weight: 0.35
+- name: pop
+  weight: 0.25
+- name: hit
+  weight: 0.15
+- name: cash_register
+  weight: 0.1
+- name: record_scratch
+  weight: 0.1
+- name: crowd_reaction
+  weight: 0.05
+music_energy_curve:
+- at: 0
+  energy: 0.7
+  note: upbeat from the first frame
+- at: 0.15
+  energy: 0.55
+- at: 0.6
+  energy: 0.6
+- at: 0.85
+  energy: 0.8
+  note: modern era peak
+- at: 1
+  energy: 0.5
+pattern_interrupt_seconds:
+  min: 3
+  max: 6
+color_type:
+  palette:
+  - '#f3e6cf'
+  - '#6b4a2b'
+  - '#c8102e'
+  - '#1b1b1b'
+  fonts:
+  - Vazirmatn
+  grade: warm sepia per old era, cleaner and saturated for modern era
+  texture: light paper grain
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Era stamp (city, year) as an HTML pill at every era change, Persian digits.
+do_not:
+- copy the reference's characters, art or jokes
+- ask the image model for any text or logos

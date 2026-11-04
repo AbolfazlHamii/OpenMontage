@@ -1,0 +1,96 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: news-brief
+title: News brief
+description: 'Fast factual update: headline card, three facts with sources on screen, map or chart, short
+  conclusion.'
+source:
+  kind: authored
+  reference: TV news package conventions
+best_for:
+- weekly news
+- tech news
+- explainers of a current event
+formats:
+- landscape
+- vertical
+pairs_with_playbooks:
+- clean-professional
+pacing:
+  sections:
+    hook:
+      asl_seconds: 3
+      cuts_per_minute: 20
+      duration_seconds: 8
+    body:
+      asl_seconds: 4
+      cuts_per_minute: 15
+    outro:
+      asl_seconds: 4
+      cuts_per_minute: 15
+      duration_seconds: 8
+  words_per_minute: 160
+hook_formula:
+  duration_seconds: 8
+  beats:
+  - headline as a lower third over the strongest image
+  - the single most important number
+transitions:
+- name: hard_cut
+  weight: 0.6
+- name: wipe
+  weight: 0.2
+- name: split_screen
+  weight: 0.1
+- name: map_zoom
+  weight: 0.1
+camera_moves:
+- name: static
+  weight: 0.4
+- name: ken_burns_push
+  weight: 0.35
+- name: ken_burns_pan
+  weight: 0.25
+subtitles:
+  style: pill
+  words_per_card:
+  - 4
+  - 8
+  position: bottom
+  numerals: persian
+sfx_palette:
+- name: news_sting
+  weight: 0.3
+- name: whoosh
+  weight: 0.4
+- name: tick
+  weight: 0.3
+music_energy_curve:
+- at: 0
+  energy: 0.6
+- at: 0.1
+  energy: 0.35
+- at: 0.95
+  energy: 0.35
+- at: 1
+  energy: 0.6
+pattern_interrupt_seconds:
+  min: 4
+  max: 7
+color_type:
+  palette:
+  - '#0b1d3a'
+  - '#ffffff'
+  - '#e63946'
+  fonts:
+  - Vazirmatn
+  grade: clean, neutral
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- 'Source line (منبع: …) on screen for every factual claim; dates in the Persian calendar with the Gregorian
+  in brackets when relevant.'
+do_not:
+- opinion in the narration
+- unsourced numbers

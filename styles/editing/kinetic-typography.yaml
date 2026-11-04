@@ -1,0 +1,105 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: kinetic-typography
+title: Kinetic typography
+description: 'Text-led video: the narration''s key words animate on screen in sync, with graphic shapes
+  and minimal imagery.'
+source:
+  kind: authored
+  reference: general kinetic-type technique
+best_for:
+- quotes
+- manifestos
+- list videos
+- shorts with strong scripts and few visuals
+formats:
+- vertical
+- landscape
+- square
+pairs_with_playbooks:
+- flat-motion-graphics
+- premium-minimalist
+pacing:
+  sections:
+    hook:
+      asl_seconds: 1.2
+      cuts_per_minute: 50
+      duration_seconds: 5
+    body:
+      asl_seconds: 1.8
+      cuts_per_minute: 33
+    outro:
+      asl_seconds: 2.5
+      cuts_per_minute: 24
+      duration_seconds: 6
+  words_per_minute: 170
+  beat_sync_ratio: 0.6
+hook_formula:
+  duration_seconds: 5
+  beats:
+  - one huge word or number fills the frame
+  - a twist word replaces it
+transitions:
+- name: hard_cut
+  weight: 0.4
+- name: kinetic_type
+  weight: 0.35
+- name: mask_reveal
+  weight: 0.15
+- name: glitch
+  weight: 0.1
+camera_moves:
+- name: punch_in
+  weight: 0.4
+- name: static
+  weight: 0.3
+- name: whip_pan
+  weight: 0.15
+- name: shake
+  weight: 0.15
+subtitles:
+  style: kinetic
+  words_per_card:
+  - 1
+  - 3
+  position: center
+  font: Vazirmatn 900
+  highlight_color: '#ff5a36'
+  numerals: persian
+sfx_palette:
+- name: hit
+  weight: 0.35
+- name: whoosh
+  weight: 0.3
+- name: click
+  weight: 0.2
+- name: riser
+  weight: 0.15
+music_energy_curve:
+- at: 0
+  energy: 0.8
+- at: 0.5
+  energy: 0.7
+- at: 0.9
+  energy: 0.9
+- at: 1
+  energy: 0.6
+pattern_interrupt_seconds:
+  min: 1.5
+  max: 3
+color_type:
+  palette:
+  - '#111111'
+  - '#f5f0e6'
+  - '#ff5a36'
+  fonts:
+  - Vazirmatn
+  grade: flat, high contrast
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Line breaks between words, never inside one; check ZWNJ (نیم‌فاصله) survives in HTML.
+do_not:
+- animate letter by letter in Persian
+- use more than two type weights

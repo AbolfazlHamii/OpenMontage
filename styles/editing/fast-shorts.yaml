@@ -1,0 +1,104 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: fast-shorts
+title: Fast shorts
+description: 'Vertical 30-60 s: hook in the first second, word-highlight captions, cuts every 1-2 s, loop
+  ending.'
+source:
+  kind: authored
+  reference: short-form retention practice
+best_for:
+- YouTube Shorts
+- Reels
+- cut-downs of long videos
+formats:
+- vertical
+pairs_with_playbooks:
+- flat-motion-graphics
+pacing:
+  sections:
+    hook:
+      asl_seconds: 1.0
+      cuts_per_minute: 60
+      duration_seconds: 3
+    body:
+      asl_seconds: 1.6
+      cuts_per_minute: 37.5
+    outro:
+      asl_seconds: 1.8
+      cuts_per_minute: 33
+      duration_seconds: 4
+  words_per_minute: 185
+  beat_sync_ratio: 0.5
+hook_formula:
+  duration_seconds: 3
+  beats:
+  - visual shock or the payoff frame first
+  - one-line claim on screen
+  - no logo or intro
+transitions:
+- name: hard_cut
+  weight: 0.55
+- name: jump_cut
+  weight: 0.2
+- name: whip_pan
+  weight: 0.1
+- name: glitch
+  weight: 0.08
+- name: flash_frame
+  weight: 0.07
+camera_moves:
+- name: punch_in
+  weight: 0.4
+- name: ken_burns_push
+  weight: 0.3
+- name: shake
+  weight: 0.15
+- name: static
+  weight: 0.15
+subtitles:
+  style: word_highlight
+  words_per_card:
+  - 2
+  - 4
+  position: center
+  font: Vazirmatn 900
+  highlight_color: '#ffd23f'
+  numerals: persian
+sfx_palette:
+- name: whoosh
+  weight: 0.3
+- name: hit
+  weight: 0.3
+- name: pop
+  weight: 0.25
+- name: riser
+  weight: 0.15
+music_energy_curve:
+- at: 0
+  energy: 0.9
+- at: 0.5
+  energy: 0.8
+- at: 1
+  energy: 0.9
+  note: loops back into the start
+pattern_interrupt_seconds:
+  min: 1.5
+  max: 3
+color_type:
+  palette:
+  - '#0d0d0d'
+  - '#ffffff'
+  - '#ffd23f'
+  - '#1428a0'
+  fonts:
+  - Vazirmatn
+  grade: punchy, high saturation
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Keep captions inside the 9:16 safe zone (top 12%, bottom 20% are UI).
+do_not:
+- intro cards or channel logos at the start
+- captions longer than two lines

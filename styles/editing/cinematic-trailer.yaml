@@ -1,0 +1,113 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: cinematic-trailer
+title: Cinematic trailer
+description: 'Three-act trailer rhythm: slow atmospheric open, accelerating middle on risers, rapid-fire
+  climax, title card and sting.'
+source:
+  kind: authored
+  reference: trailer editing conventions
+best_for:
+- teasers
+- channel trailers
+- launches
+- series openers
+formats:
+- landscape
+- vertical
+pairs_with_playbooks:
+- premium-minimalist
+pacing:
+  sections:
+    hook:
+      asl_seconds: 4
+      cuts_per_minute: 15
+      duration_seconds: 12
+    body:
+      asl_seconds: 1.8
+      cuts_per_minute: 33
+    outro:
+      asl_seconds: 0.8
+      cuts_per_minute: 75
+      duration_seconds: 8
+  words_per_minute: 110
+  beat_sync_ratio: 0.8
+hook_formula:
+  duration_seconds: 12
+  beats:
+  - silence or drone over a wide establishing image
+  - one whispered line
+  - first hit
+transitions:
+- name: hard_cut
+  weight: 0.45
+- name: dip_to_black
+  weight: 0.2
+- name: flash_frame
+  weight: 0.15
+- name: smash_cut
+  weight: 0.1
+- name: light_leak
+  weight: 0.1
+camera_moves:
+- name: ken_burns_push
+  weight: 0.3
+- name: dolly_zoom
+  weight: 0.1
+- name: parallax
+  weight: 0.25
+- name: shake
+  weight: 0.15
+- name: rack_focus
+  weight: 0.2
+subtitles:
+  style: none
+  words_per_card:
+  - 2
+  - 5
+  position: center
+  font: Vazirmatn 900
+  numerals: persian
+sfx_palette:
+- name: riser
+  weight: 0.3
+- name: hit
+  weight: 0.3
+- name: boom
+  weight: 0.2
+- name: whoosh
+  weight: 0.1
+- name: silence_drop
+  weight: 0.1
+music_energy_curve:
+- at: 0
+  energy: 0.2
+- at: 0.4
+  energy: 0.5
+- at: 0.8
+  energy: 1.0
+- at: 0.9
+  energy: 0.0
+  note: silence drop before title
+- at: 1
+  energy: 0.6
+pattern_interrupt_seconds:
+  min: 1
+  max: 4
+color_type:
+  palette:
+  - '#05070a'
+  - '#c9d1d9'
+  - '#e4572e'
+  fonts:
+  - Vazirmatn
+  grade: teal-orange, crushed blacks
+  texture: film grain 0.1, letterbox 2.39:1
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Title cards centred; full-screen Persian text one line at a time.
+do_not:
+- narration over the climax
+- more than three title cards

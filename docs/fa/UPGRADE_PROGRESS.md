@@ -12,7 +12,7 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 | 0 | Baseline + progress file | done | 2026-11-04 | 9dc881f | $0 | `docs/fa/BASELINE.md` |
 | 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | done | 2026-11-04 | see git log | $0 | before/after in BASELINE.md |
 | 2 | Two-tier brain (LLM router, bake-off) | done (owner picks models) | 2026-11-04 | see git log | $0.2008 | `docs/fa/llm_bakeoff/` |
-| 3 | Editing style library + camera language | pending | | | $0 | |
+| 3 | Editing style library + camera language | done | 2026-11-04 | see git log | $0 | 8 cards, snippets rendered |
 | 4 | Learn style from a reference video | pending | | | < $0.05 | fix scene_detect first |
 | 5 | Quality gate | pending | | | | |
 | 6 | Studio FA usability | pending | | | | |
@@ -76,3 +76,17 @@ Branch: `fa`. Nothing is pushed until the owner asks.
   applied to `config/llm_routing.yaml`; **the owner makes the final pick.**
 - Google's OpenAI endpoint: 403 for all calls from this network.
 - Kimi K3.1 Pro highspeed is $4.6/$23 on AvalAI, not $4/$20 as in the brief.
+
+### 2026-11-04 — phase 3
+
+- New: `skills/creative/camera-language.md` (A: prompting, B: 8 GSAP
+  snippets), `skills/creative/editing-tricks.md` (32 tricks),
+  `schemas/styles/edit_style.schema.json`, `styles/edit_style_loader.py`,
+  8 cards in `styles/editing/`, `styles/editing/learned/`.
+- `shot_language` gained optional `camera_angle` and `lens` (schema enum +
+  `shot_prompt_builder`), old plans unchanged (tested).
+- Snippets rendered in a HyperFrames test workspace
+  (`docs/fa/camera_snippets_test/`, lint 0 errors). The first render showed
+  black edges on parallax and shake; both now overscan.
+- Directors (explainer + documentary-montage, scene and edit) point at the
+  chosen card in one line each.

@@ -46,7 +46,9 @@
                 "enum": ["high_key", "low_key", "natural", "golden_hour", "blue_hour", "tungsten_warm", "neon", "silhouette", "rim_lit", "volumetric", "overcast_soft"]
               },
               "depth_of_field": { "type": "string", "enum": ["shallow", "medium", "deep"] },
-              "color_temperature": { "type": "string", "enum": ["cool", "neutral", "warm", "mixed"] }
+              "color_temperature": { "type": "string", "enum": ["cool", "neutral", "warm", "mixed"] },
+              "camera_angle": { "type": "string", "enum": ["eye_level", "low", "high", "dutch", "birds_eye", "worms_eye", "top_down", "pov", "over_the_shoulder"] },
+              "lens": { "type": "string", "enum": ["ultra_wide", "wide", "normal", "telephoto", "macro", "fisheye", "anamorphic", "tilt_shift"] }
             },
             "additionalProperties": false
           },

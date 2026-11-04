@@ -131,6 +131,19 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   `fromTo` applies its start state at build time (a fire flash tinted the
   whole video orange). Use `tl.set()` at the start time plus `tl.to()`.
 
+## Motion and editing (RTL)
+
+- Pick an edit style card (`styles/editing/*.yaml`) at proposal, next to the
+  visual playbook; `full-history-in-n-minutes` is the channel's default for
+  "کل تاریخ X" videos. Recipes: `skills/creative/editing-tricks.md`,
+  `skills/creative/camera-language.md`.
+- Motion that means "forward in time" goes right→left; "before" sits on the
+  right in split screens.
+- Animate whole Persian words, never single letters: per-letter spans break
+  Arabic-script joining. Line breaks between words only; keep ZWNJ.
+- Word-level caption highlight: HTML spans in the composition, not ASS colour
+  overrides (libass shaping across overrides is unverified for Persian).
+
 ## Working from Iran
 
 - Google's Gemini docs and API answer 403 from Iranian IPs and from many

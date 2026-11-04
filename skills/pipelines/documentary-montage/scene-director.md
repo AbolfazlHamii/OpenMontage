@@ -1,5 +1,7 @@
 # Scene Director - Documentary Montage Pipeline
 
+> Edit style card: if one was chosen (`styles/editing/*.yaml`), size slot durations from its ASL per section; shot vocabulary in `skills/creative/camera-language.md`.
+
 ## When To Use
 
 The brief exists. You now have to turn a thematic question into a

@@ -1,0 +1,91 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: calm-tutorial
+title: Calm tutorial
+description: 'Patient step-by-step explanation: long holds, numbered steps, highlights and callouts, no
+  hype.'
+source:
+  kind: authored
+  reference: instructional video practice
+best_for:
+- how-to
+- software walkthroughs
+- education for beginners
+formats:
+- landscape
+pairs_with_playbooks:
+- clean-professional
+- minimalist-diagram
+pacing:
+  sections:
+    hook:
+      asl_seconds: 5
+      cuts_per_minute: 12
+      duration_seconds: 15
+    body:
+      asl_seconds: 8
+      cuts_per_minute: 7.5
+    outro:
+      asl_seconds: 8
+      cuts_per_minute: 7.5
+      duration_seconds: 15
+  words_per_minute: 125
+hook_formula:
+  duration_seconds: 15
+  beats:
+  - show the finished result
+  - say what the viewer will be able to do
+  - list the steps
+transitions:
+- name: hard_cut
+  weight: 0.6
+- name: cross_dissolve
+  weight: 0.25
+- name: mask_reveal
+  weight: 0.15
+camera_moves:
+- name: static
+  weight: 0.5
+- name: ken_burns_push
+  weight: 0.3
+- name: punch_in
+  weight: 0.2
+subtitles:
+  style: plain
+  words_per_card:
+  - 5
+  - 10
+  position: bottom
+  numerals: persian
+sfx_palette:
+- name: click
+  weight: 0.5
+- name: soft_pop
+  weight: 0.3
+- name: chime
+  weight: 0.2
+music_energy_curve:
+- at: 0
+  energy: 0.3
+- at: 1
+  energy: 0.3
+pattern_interrupt_seconds:
+  min: 8
+  max: 15
+color_type:
+  palette:
+  - '#ffffff'
+  - '#1f2937'
+  - '#2563eb'
+  fonts:
+  - Vazirmatn
+  grade: neutral
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+- Step numbers in Persian digits; UI screenshots stay LTR inside an RTL frame, with arrows pointing in
+  the UI's own direction.
+do_not:
+- shake, glitch, risers
+- music louder than −28 LUFS under speech

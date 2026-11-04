@@ -1,5 +1,7 @@
 # Edit Director - Documentary Montage Pipeline
 
+> Edit style card: follow the chosen card's ASL, `transitions`, `music_energy_curve` and `pattern_interrupt_seconds`; trick recipes in `skills/creative/editing-tricks.md`.
+
 ## When To Use
 
 Every slot has a clip. You now have to turn a pile of clips into a

@@ -1,8 +1,8 @@
 """Shot prompt builder — converts structured shot language into provider-optimized prompts.
 
 Uses a 5-layer framework based on professional cinematography prompting research:
-  Layer 1: Camera (lens, depth of field)
-  Layer 2: Movement (shot size, camera movement)
+  Layer 1: Camera (lens type, focal length, depth of field)
+  Layer 2: Movement (shot size, camera angle, camera movement)
   Layer 3: Subject (description + texture keywords)
   Layer 4: Lighting (lighting key, color temperature)
   Layer 5: Style (adapted from playbook, not verbatim)
@@ -71,6 +71,29 @@ _DOF_PHRASES = {
     "deep": "deep focus with everything sharp",
 }
 
+_ANGLE_PHRASES = {
+    "eye_level": "eye-level camera angle",
+    "low": "low-angle shot looking up at the subject",
+    "high": "high-angle shot looking down on the subject",
+    "dutch": "dutch angle with a tilted horizon",
+    "birds_eye": "bird's-eye view from high above",
+    "worms_eye": "worm's-eye view from ground level",
+    "top_down": "top-down overhead view",
+    "pov": "first-person point-of-view shot",
+    "over_the_shoulder": "over-the-shoulder angle",
+}
+
+_LENS_PHRASES = {
+    "ultra_wide": "ultra-wide lens with exaggerated perspective",
+    "wide": "wide-angle lens",
+    "normal": "normal lens with natural perspective",
+    "telephoto": "telephoto lens with compressed background",
+    "macro": "macro lens revealing fine detail",
+    "fisheye": "fisheye lens with curved distortion",
+    "anamorphic": "anamorphic lens with oval bokeh and horizontal flares",
+    "tilt_shift": "tilt-shift lens with miniature-like focus band",
+}
+
 _COLOR_TEMP_PHRASES = {
     "cool": "cool blue-toned color palette",
     "neutral": "neutral balanced colors",
@@ -99,6 +122,8 @@ def build_shot_prompt(
 
     # Layer 1: Camera — lens and depth of field
     camera_parts = []
+    if sl.get("lens"):
+        camera_parts.append(_LENS_PHRASES.get(sl["lens"], sl["lens"]))
     if sl.get("lens_mm"):
         camera_parts.append(f"{sl['lens_mm']}mm lens")
     if sl.get("depth_of_field"):
@@ -110,6 +135,8 @@ def build_shot_prompt(
     movement_parts = []
     if sl.get("shot_size"):
         movement_parts.append(_SHOT_SIZE_PHRASES.get(sl["shot_size"], sl["shot_size"]))
+    if sl.get("camera_angle"):
+        movement_parts.append(_ANGLE_PHRASES.get(sl["camera_angle"], sl["camera_angle"]))
     if sl.get("camera_movement") and sl["camera_movement"] != "static":
         movement_parts.append(_MOVEMENT_PHRASES.get(sl["camera_movement"], sl["camera_movement"]))
     if movement_parts:

@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "edit_style.schema.json",
+  "title": "Edit Style Card",
+  "description": "How a video is cut: pacing per section, hook formula, transitions, camera moves, captions, sound and RTL notes. Complements a visual playbook (styles/*.yaml); it does not replace it. Describes technique only.",
+  "type": "object",
+  "required": [
+    "name", "title", "description", "source", "pacing", "hook_formula", "transitions",
+    "camera_moves", "subtitles", "sfx_palette", "music_energy_curve",
+    "pattern_interrupt_seconds", "color_type", "rtl_notes"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "weighted": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "weight"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "weight": {"type": "number", "minimum": 0, "maximum": 1},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "section_pacing": {
+      "type": "object",
+      "required": ["asl_seconds", "cuts_per_minute"],
+      "additionalProperties": false,
+      "properties": {
+        "asl_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "cuts_per_minute": {"type": "number", "minimum": 0},
+        "duration_seconds": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "properties": {
+    "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "title": {"type": "string"},
+    "description": {"type": "string"},
+    "source": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": "string", "enum": ["authored", "learned"]},
+        "reference": {"type": "string", "description": "What the technique was studied from (no assets copied)."},
+        "measured": {"type": "object", "description": "Raw measurements for learned cards."},
+        "date": {"type": "string"}
+      }
+    },
+    "best_for": {"type": "array", "items": {"type": "string"}},
+    "formats": {"type": "array", "items": {"type": "string", "enum": ["landscape", "vertical", "square"]}},
+    "pairs_with_playbooks": {"type": "array", "items": {"type": "string"}},
+    "pacing": {
+      "type": "object",
+      "required": ["sections", "words_per_minute"],
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "object",
+          "required": ["hook", "body", "outro"],
+          "additionalProperties": false,
+          "properties": {
+            "hook": {"$ref": "#/definitions/section_pacing"},
+            "body": {"$ref": "#/definitions/section_pacing"},
+            "outro": {"$ref": "#/definitions/section_pacing"}
+          }
+        },
+        "words_per_minute": {"type": "number", "minimum": 0},
+        "beat_sync_ratio": {"type": "number", "minimum": 0, "maximum": 1,
+                            "description": "Share of cuts within ±80 ms of a music beat."}
+      }
+    },
+    "hook_formula": {
+      "type": "object",
+      "required": ["duration_seconds", "beats"],
+      "additionalProperties": false,
+      "properties": {
+        "duration_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "beats": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "example_fa": {"type": "string"}
+      }
+    },
+    "transitions": {"$ref": "#/definitions/weighted"},
+    "camera_moves": {"$ref": "#/definitions/weighted"},
+    "subtitles": {
+      "type": "object",
+      "required": ["style", "words_per_card", "position"],
+      "additionalProperties": false,
+      "properties": {
+        "style": {"type": "string", "enum": ["none", "pill", "plain", "word_highlight", "kinetic"]},
+        "words_per_card": {"type": "array", "items": {"type": "integer", "minimum": 1}, "minItems": 2, "maxItems": 2},
+        "position": {"type": "string", "enum": ["bottom", "center", "top", "lower_third"]},
+        "font": {"type": "string"},
+        "highlight_color": {"type": "string"},
+        "numerals": {"type": "string", "enum": ["persian", "latin"]}
+      }
+    },
+    "sfx_palette": {"$ref": "#/definitions/weighted"},
+    "music_energy_curve": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["at", "energy"],
+        "additionalProperties": false,
+        "properties": {
+          "at": {"type": "number", "minimum": 0, "maximum": 1},
+          "energy": {"type": "number", "minimum": 0, "maximum": 1},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "pattern_interrupt_seconds": {
+      "type": "object",
+      "required": ["min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "min": {"type": "number", "exclusiveMinimum": 0},
+        "max": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "color_type": {
+      "type": "object",
+      "required": ["palette", "fonts"],
+      "additionalProperties": false,
+      "properties": {
+        "palette": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"}},
+        "fonts": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "grade": {"type": "string"},
+        "texture": {"type": "string"}
+      }
+    },
+    "rtl_notes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "do_not": {"type": "array", "items": {"type": "string"}}
+  }
+}

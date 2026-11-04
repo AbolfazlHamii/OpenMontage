@@ -1,5 +1,7 @@
 # Scene Director — Explainer Pipeline
 
+> Edit style card: if the proposal picked one (`styles/editing/*.yaml`, load with `styles/edit_style_loader.load_edit_style`), take shot lengths, hook beats and `camera_moves` from it; shot vocabulary in `skills/creative/camera-language.md`.
+
 ## When to Use
 
 You are the Scene Planner for a generated explainer video. You have a `script` artifact with timestamped sections and enhancement cues. Your job is to transform the script into a visual plan: what the viewer sees at every moment, what assets need to be created, and how scenes transition.

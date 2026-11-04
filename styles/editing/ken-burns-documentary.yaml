@@ -1,0 +1,97 @@
+# Edit style card — schemas/styles/edit_style.schema.json. Technique only; no assets copied.
+name: ken-burns-documentary
+title: Ken Burns documentary
+description: 'Slow, respectful documentary on archival or illustrated stills: long holds, gentle pushes,
+  music-led emotion, few effects.'
+source:
+  kind: authored
+  reference: classic still-photo documentary technique
+best_for:
+- serious history
+- biographies
+- memorial pieces
+- long-form YouTube
+formats:
+- landscape
+pairs_with_playbooks:
+- premium-minimalist
+- clean-professional
+pacing:
+  sections:
+    hook:
+      asl_seconds: 5
+      cuts_per_minute: 12
+      duration_seconds: 25
+    body:
+      asl_seconds: 7
+      cuts_per_minute: 8.6
+    outro:
+      asl_seconds: 8
+      cuts_per_minute: 7.5
+      duration_seconds: 20
+  words_per_minute: 135
+hook_formula:
+  duration_seconds: 25
+  beats:
+  - a single evocative image held in silence
+  - a line that states the stakes
+  - title over a slow push
+transitions:
+- name: cross_dissolve
+  weight: 0.45
+- name: hard_cut
+  weight: 0.4
+- name: dip_to_black
+  weight: 0.15
+camera_moves:
+- name: ken_burns_push
+  weight: 0.45
+- name: ken_burns_pan
+  weight: 0.35
+- name: rack_focus
+  weight: 0.1
+- name: static
+  weight: 0.1
+subtitles:
+  style: plain
+  words_per_card:
+  - 5
+  - 10
+  position: bottom
+  numerals: persian
+sfx_palette:
+- name: room_tone
+  weight: 0.4
+- name: ambience
+  weight: 0.4
+- name: soft_hit
+  weight: 0.2
+music_energy_curve:
+- at: 0
+  energy: 0.2
+- at: 0.4
+  energy: 0.4
+- at: 0.75
+  energy: 0.7
+- at: 1
+  energy: 0.3
+pattern_interrupt_seconds:
+  min: 7
+  max: 12
+color_type:
+  palette:
+  - '#1c1c1c'
+  - '#d8cbb3'
+  - '#8c6d46'
+  fonts:
+  - Vazirmatn
+  grade: desaturated, gentle vignette
+  texture: film grain 0.08
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into
+  generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
+- Animate whole Persian words, never single letters (breaks joining).
+do_not:
+- shake, glitch or whooshes
+- push faster than 10% scale per 5 s
