@@ -9,7 +9,7 @@ Branch: `fa`. Nothing is pushed until the owner asks.
 
 | Phase | Title | Status | Date | Commit | Paid spend | Notes |
 |---|---|---|---|---|---|---|
-| 0 | Baseline + progress file | done | 2026-11-04 | see git log | $0 | `docs/fa/BASELINE.md` |
+| 0 | Baseline + progress file | done | 2026-11-04 | 9dc881f | $0 | `docs/fa/BASELINE.md` |
 | 1 | Quick wins (loudness, preview profiles, parallel runner, draft/final images, cost estimate, fast tests) | next | | | budget $0 | |
 | 2 | Two-tier brain (LLM router, bake-off) | pending | | | bake-off < $0.50 with approval | |
 | 3 | Editing style library + camera language | pending | | | $0 | |
