@@ -68,6 +68,11 @@ Last updated: 2026-11-04
 - Phase 2–3, 5: not started.
 - Phase 4 (first transcreation): **in progress — waiting at the proposal gate.**
 
+Tooling upgrade (separate brief, `UPGRADE_PROMPT.md` v2 in the parent
+folder): progress in `docs/fa/UPGRADE_PROGRESS.md`, measured starting point
+in `docs/fa/BASELINE.md`. Phase 0 (baseline) done 2026-11-04; phase 1
+(quick wins) is next.
+
 ## Current production: first transcreation
 
 Project: `projects/samsung-history-fa/` (git-ignored), "کل تاریخ سامسونگ در ۹۰ ثانیه".
