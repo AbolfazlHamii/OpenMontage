@@ -16,6 +16,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
 import uuid
 from pathlib import Path
 from typing import Literal, Optional
@@ -326,17 +327,46 @@ def _projects() -> list[dict]:
     return [{k: p.get(k) for k in keep} for p in list_projects()]
 
 
+def _backlot_alive(port: int) -> bool:
+    # Never through HTTP(S)_PROXY: a stalled VPN client would make a running
+    # board look dead.
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    try:
+        with opener.open(f"http://127.0.0.1:{port}/api/health", timeout=1.5) as resp:
+            return resp.status == 200
+    except OSError:
+        return False
+
+
 def _open_backlot(project_id: Optional[str]) -> dict:
-    cmd = [sys.executable, "-m", "backlot", "open"]
-    if project_id:
-        if any(c in project_id for c in "/\\:") or project_id in (".", ".."):
-            raise HTTPException(status_code=400, detail="invalid project id")
-        cmd.append(project_id)
-    run = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True, timeout=40)
-    url = next((w for w in run.stdout.split() if w.startswith("http://")), None)
-    if run.returncode != 0 or not url:
-        raise HTTPException(status_code=502, detail=(run.stdout + run.stderr).strip() or "backlot did not start")
-    return {"url": url}
+    if project_id and (any(c in project_id for c in "/\\:") or project_id in (".", "..")):
+        raise HTTPException(status_code=400, detail="invalid project id")
+    from backlot import DEFAULT_PORT
+
+    port = int(os.environ.get("BACKLOT_PORT", DEFAULT_PORT))
+    if not _backlot_alive(port):
+        # Start only the server: the page opens the URL itself, and
+        # `backlot open` would open a second tab.
+        flags = 0
+        if os.name == "nt":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        try:
+            subprocess.Popen(
+                [sys.executable, "-m", "backlot", "serve", "--port", str(port)],
+                cwd=REPO_ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, creationflags=flags, start_new_session=os.name != "nt",
+            )
+        except OSError as exc:
+            raise HTTPException(status_code=502, detail=f"could not start Backlot: {exc}")
+        deadline = time.time() + 15
+        while not _backlot_alive(port):
+            if time.time() > deadline:
+                raise HTTPException(
+                    status_code=502, detail=f"Backlot did not answer on port {port} within 15 s"
+                )
+            time.sleep(0.4)
+    url = f"http://127.0.0.1:{port}/"
+    return {"url": f"{url}p/{project_id}" if project_id else url}
 
 
 def _run_tests() -> dict:

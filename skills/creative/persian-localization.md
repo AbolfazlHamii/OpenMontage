@@ -65,8 +65,23 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   its docs say 2.5 was shut down on 2026-10-02 while the catalog still lists
   it. Up to 14 local reference images (`image_path`/`image_paths`,
   `generation_mode: "edit"`); no image URLs, no masks, no Imagen.
-- AvalAI has no Lyria: music has to come from Pixabay/the music library, or
-  from Google on a machine Google serves.
+- AvalAI has no music model at all (no Lyria, no Suno; checked against its
+  live catalog and docs). From Iran, `pixabay_music` fails too: pixabay.com
+  times out directly and answers 403 through common VPN exits. Music has to
+  come from a file the owner supplies (`music_library/` or the project's
+  `assets/music/`), another VPN exit, or a machine Google serves (Lyria).
+  Mind the licence: Suno's free tier is non-commercial, so a monetized
+  channel needs a paid plan for Suno tracks.
+- Mixkit works through the VPN (direct gets 403): its free music licence
+  allows YouTube videos with no attribution, but forbids registering the
+  track with Content ID or remixing it into a music-only track. Each
+  `/free-stock-music/tag/<mood>/` page carries a JSON-LD track list
+  (name, genre, artist, duration, MP3 URL, licence). Incompetech and Free
+  Music Archive are reachable too (CC licences, attribution usually
+  required). YouTube Studio's Audio Library needs the owner's own sign-in.
+- Music bed level under Persian narration: `data-volume` ≈ 0.18 put a
+  Mixkit film-score track ~14 dB under the voice; lift it on the punch
+  line and fade it before the end.
 
 ## Writing the script for TTS
 
@@ -104,11 +119,32 @@ routing, text written for TTS, dubbing gaps and right-to-left captions.
   and switches to RTL by word majority.
 - Never ask an image or video model to draw Persian text; render titles and
   thumbnail text with HTML (HyperFrames/Remotion) so Chromium shapes it.
+- HyperFrames: Vazirmatn is not in its bundled font set and the render
+  browser has no installed fonts. Copy the TTFs into the workspace and
+  declare them with `@font-face` (see
+  `projects/samsung-history-fa/hyperframes-sample/index.html`).
+- HyperFrames captions: hide a finished caption group with opacity only.
+  A sample whose groups were killed with `tl.set(el, {visibility:
+  "hidden"})` plus build-time `tl.seek()` self-checks rendered no captions
+  at all, although the same page was correct in a normal browser.
+- HyperFrames + GSAP: never `fromTo()` a flash or overlay that starts late;
+  `fromTo` applies its start state at build time (a fire flash tinted the
+  whole video orange). Use `tl.set()` at the start time plus `tl.to()`.
 
 ## Working from Iran
 
 - Google's Gemini docs and API answer 403 from Iranian IPs and from many
   VPN exits too. Use AvalAI (above), or run on a VPS in a supported region.
+- AvalAI is an Iranian service: reach it directly, not through the VPN.
+  When `HTTPS_PROXY` points at a local VPN client (v2rayN `127.0.0.1:10808`)
+  and that client stalls, AvalAI calls die mid-response (`IncompleteRead`,
+  `SSL: UNEXPECTED_EOF`) while `curl --noproxy "*"` answers in a second.
+  Add `api.avalai.ir` to `NO_PROXY` for the run. A broken mid-response call
+  may still be billed; check the AvalAI dashboard.
+- `hyperframes render` downloads `chrome-headless-shell` from Google
+  storage, which answers 403 from Iran. Point it at the installed Chrome:
+  `HYPERFRAMES_BROWSER_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`
+  (lint, check and snapshot already work without it).
 - Downloads (pip, npm, GitHub release assets) often stop halfway with no
   error, leaving a truncated file. Check sizes/zip integrity, and retry
   through a proxy with resume (`curl -C -`).

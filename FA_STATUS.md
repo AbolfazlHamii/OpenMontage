@@ -30,7 +30,7 @@ Last updated: 2026-11-04
 | Image mirror routing | `tools/graphics/image_selector.py` (`MIRROR_ORDER`) | Pinned Gemini image model → `google_imagen` first, same request on `avalai_gemini_image` if it fails; reports `fallback_from` |
 | Short fallback errors | `tools/provider_routing.py` (`short_error`) | HTML error pages and escaped SDK payloads reduced to one line in `fallback_from` (TTS and images) |
 | RTL subtitles | `tools/subtitle/subtitle_gen.py`, `tools/video/video_compose.py` | RLM per line + ASS `Encoding=-1`; `SUBTITLE_FONTS_DIR` / `fonts_dir` for per-user fonts on Windows |
-| Control panel | `studio_fa/`, `studio-fa.bat` | `python -m studio_fa` → http://127.0.0.1:4760/ |
+| Control panel | `studio_fa/`, `studio-fa.bat` | `python -m studio_fa` → http://127.0.0.1:4760/. "Open in Backlot" returns the board URL when Backlot is up, else starts only `backlot serve` (the page opens the tab) |
 | Smoke test | `scripts/fa_smoke_test.py` | `subtitles` (free) and `tts` (paid, < $0.01) |
 | Gateway check | `scripts/check_gateway.py` | OpenAI-compatible gateways |
 | Tests | `tests/tools/test_persian_localization.py`, `test_avalai_gemini_tts.py`, `test_avalai_gemini_image.py`, `test_subtitle_fonts_dir.py`, `test_studio_fa.py` | all mocked |
@@ -94,8 +94,35 @@ image tool always available, Google preferred when reachable — done
 (2026-11-04), see the mirror routing above. Lyria is still blocked (AvalAI
 has no Lyria), so the Lyria music variant needs the VPN or a VPS.
 
+Sample stills done (2026-11-04), waiting for the owner's look approval:
+`assets/sample/s1a_hook_phone.png`, `s1b_fish_shop_1938.png`,
+`s2_gumi_bonfire_1995.png` (16:9 1K, gemini-3.1-flash-image via AvalAI
+after Google 403). Prompts (pre / critique / post) and costs:
+`assets/sample/images.json`. Decisions d6–d8 in the decision log: image
+provider change, visual identity (custom, time-coded palette, cobalt
+accent; approved by the owner), accuracy notes (generic shop and founder,
+no chairman at the bonfire). The hook still has lighter linework than the
+other two.
+
+Sample render done (2026-11-04), waiting for the owner's review:
+`renders/sample_no_music.mp4` (15.0 s, 1080p30, narration complete,
+−11.5 LUFS, 7 RTL caption groups, era stamps; review in
+`renders/sample_review.json`). Atelier workspace:
+`hyperframes-sample/index.html`, rendered with `hyperframes_compose`
+`render_existing` and `HYPERFRAMES_BROWSER_PATH` set to the installed
+Chrome (Google 403 on chrome-headless-shell). Pixabay and Lyria are
+blocked from here and AvalAI has no music model (decision d9; the owner
+had asked for Suno via AvalAI, it does not exist there). Music variants
+from Mixkit instead (decision d10, licence copy in
+`assets/music/LICENSE.md`): `renders/sample_music_a_fun_and_games.mp4`
+(bed ~14 dB under the voice) and `renders/sample_music_b_secret_garden.mp4`
+(~20 dB under, quieter section). **Owner picked A** (decision d11); the
+workspace's `assets/audio/music.mp3` is `music_a.mp3` again.
+
 Spent on this production so far: ~$0.0035 (sample narration) + $0.0672
-(tool test image, not one of the three sample stills). Sample budget $0.50.
+(tool test image) + $0.2016 (three stills) = ~$0.27, plus possibly one
+$0.0672 charge from a call that broke mid-response through the VPN proxy
+(unconfirmed). Sample budget $0.50.
 
 Sample script:
 1. «احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟»
@@ -106,12 +133,8 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
 
 ## Next steps
 
-1. Sample images through the pipeline (read the asset director skill
-   first): 3 stills — hook phone, 1938 Daegu dried-fish shop, 1995 Gumi
-   bonfire; no text in images — via `image_selector` with
-   `model: "gemini-3.1-flash-image"`, 16:9 (~$0.20). Then a Pixabay track,
-   HyperFrames composition with Vazirmatn RTL captions, character-animation
-   sample. Lyria variant only if Google becomes reachable.
+1. Character-animation sample (approved plan: a 10 s sample of both
+   pipelines), then the owner picks the pipeline for the full video.
 2. Present samples + actual cost; then script stage for the full 90 s.
 3. Phase 1 voice audition before the final narration.
 4. Optional: show image providers in Studio FA's health panel (it only

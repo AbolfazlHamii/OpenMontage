@@ -96,6 +96,41 @@ def test_media_cannot_escape_state_dir(client):
     assert client.get("/media/other/x.wav").status_code == 404
 
 
+def test_backlot_already_running_returns_url_without_spawning(client, monkeypatch):
+    monkeypatch.setattr(server, "_backlot_alive", lambda port: True)
+    monkeypatch.setattr(server.subprocess, "Popen", lambda *a, **k: pytest.fail("spawned"))
+    res = client.post("/api/backlot/open", headers=PANEL, json={"project_id": "samsung-history-fa"})
+    assert res.status_code == 200, res.text
+    assert res.json()["url"].endswith(":4750/p/samsung-history-fa")
+
+
+def test_backlot_down_starts_only_the_server(client, monkeypatch):
+    spawned = []
+    monkeypatch.setattr(server, "_backlot_alive", lambda port: bool(spawned))
+    monkeypatch.setattr(server.subprocess, "Popen", lambda cmd, **kw: spawned.append((cmd, kw["cwd"])))
+    res = client.post("/api/backlot/open", headers=PANEL, json={})
+    assert res.status_code == 200, res.text
+    cmd, cwd = spawned[0]
+    assert cmd[1:4] == ["-m", "backlot", "serve"] and cwd == server.REPO_ROOT
+    assert res.json()["url"] == "http://127.0.0.1:4750/"
+
+
+def test_backlot_that_never_answers_is_a_clear_error(client, monkeypatch):
+    clock = iter(range(0, 100, 5))
+    monkeypatch.setattr(server, "_backlot_alive", lambda port: False)
+    monkeypatch.setattr(server.subprocess, "Popen", lambda *a, **k: None)
+    monkeypatch.setattr(server.time, "time", lambda: next(clock))
+    monkeypatch.setattr(server.time, "sleep", lambda s: None)
+    res = client.post("/api/backlot/open", headers=PANEL, json={})
+    assert res.status_code == 502
+    assert "4750" in res.json()["detail"]
+
+
+def test_backlot_rejects_path_like_project_ids(client):
+    res = client.post("/api/backlot/open", headers=PANEL, json={"project_id": "..\\x"})
+    assert res.status_code == 400
+
+
 def test_status_lists_persian_order(client):
     from tools.audio.tts_selector import PERSIAN_TTS_PRIORITY
 
