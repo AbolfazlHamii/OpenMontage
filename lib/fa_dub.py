@@ -457,7 +457,11 @@ def rewrite_with_worker(llm=None) -> Callable[[str, int, int], str]:
 
 
 def synthesize(project: Path, *, tts=None, rewrite=None, channel=None, providers: Optional[list[str]] = None,
-               allow_drafts: bool = False, duration: Callable[[Path], float] = _duration) -> dict:
+               allow_drafts: bool = False, rewrites: bool = True,
+               duration: Callable[[Path], float] = _duration) -> dict:
+    """Synthesize and fit every approved line. rewrites=False skips the
+    worker rewrites (a premium pass after the agent shortened lines itself):
+    long lines then borrow the next pause or get flagged."""
     from lib.channel_bible import load_channel
     from tools.audio.tts_selector import TTSSelector
 
@@ -470,7 +474,10 @@ def synthesize(project: Path, *, tts=None, rewrite=None, channel=None, providers
         raise RuntimeError(f"{len(pending)} lines are not approved yet: {', '.join(pending[:8])}")
     narrator = channel.voice_for("narrator")
     tts = tts or TTSSelector()
-    rewrite = rewrite if rewrite is not None else rewrite_with_worker()
+    if not rewrites:
+        rewrite = None
+    elif rewrite is None:
+        rewrite = rewrite_with_worker()
     clips = root / "clips"
     spent = {"tts": 0.0}
 
@@ -658,15 +665,22 @@ def qa(project: Path, *, render: Optional[Path] = None, stt=None, loudness=None,
         stt = stt or AvalAISTT()
         for fit in fits:
             clip = root / "mix" / "placed" / f"{fit.id}.wav"
-            heard = stt.execute({"audio_path": str(clip if clip.exists() else fit.audio_path),
-                                 "language": "fa", "output_path": str(root / "qa_stt" / f"{fit.id}.json")})
-            if not heard.success:
-                lows.append({"id": fit.id, "error": heard.error})
-                continue
-            cost += heard.cost_usd or 0.0
-            score = round_trip(heard.data["text"], fit.text)["best"]
+            audio = clip if clip.exists() else Path(fit.audio_path)
+            saved = root / "qa_stt" / f"{fit.id}.json"
+            # A transcript newer than the clip is still valid: an interrupted
+            # QA run resumes without paying for those lines again.
+            if saved.exists() and audio.exists() and saved.stat().st_mtime >= audio.stat().st_mtime:
+                text = _read(saved).get("text", "")
+            else:
+                heard = stt.execute({"audio_path": str(audio), "language": "fa", "output_path": str(saved)})
+                if not heard.success:
+                    lows.append({"id": fit.id, "error": heard.error})
+                    continue
+                cost += heard.cost_usd or 0.0
+                text = heard.data["text"]
+            score = round_trip(text, fit.text)["best"]
             if score < ROUND_TRIP_FLOOR:
-                lows.append({"id": fit.id, "score": score, "heard": heard.data["text"], "text": fit.text})
+                lows.append({"id": fit.id, "score": score, "heard": text, "text": fit.text})
     report["round_trip_low"] = lows
 
     render = Path(render or Path(project) / "renders" / "dub_fa.mp4")

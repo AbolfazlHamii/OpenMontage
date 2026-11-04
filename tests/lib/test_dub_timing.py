@@ -151,4 +151,11 @@ def test_failing_rewriter_does_not_stop_the_line():
         raise RuntimeError("worker down")
 
     fit = dt.fit_segment(SEG, _synth([7.0]), boom, cps=9.5, next_start=14.5)
-    assert fit.status == "flagged" and fit.rewrites == 1
+    assert fit.status == "flagged" and fit.rewrites == 0 and not fit.review_required
+
+
+def test_a_line_may_run_up_to_200_ms_into_the_next():
+    # 3.9 s slot, 0.1 s pause: 4.4 s at 1.08x is 4.074 s placed, 74 ms past 14.0.
+    fit = dt.fit_segment(dt.Segment(id="s", start=10.0, end=13.9, text="x"), _synth([4.4]), None,
+                         cps=9.5, next_start=14.0)
+    assert fit.status == "used_gap" and 0 < fit.overlap_seconds <= dt.OVERLAP_TOLERANCE

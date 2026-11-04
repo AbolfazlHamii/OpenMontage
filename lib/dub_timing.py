@@ -96,17 +96,18 @@ def fit_segment(
     gap = max(0.0, (next_start - segment.end)) if next_start is not None else 0.0
     text = segment.text
     tried = [text]
-    rewrites = 0
+    rewrites = 0   # accepted shorter versions (these need review)
+    attempts = 0   # rewrite requests, accepted or not (capped)
 
     # Rewrite before paying for audio only when the text cannot fit even
     # with the pause after it; anything closer is decided on the real audio.
-    while (rewrite and rewrites < max_rewrites
+    while (rewrite and attempts < max_rewrites
            and spoken_chars(text) > char_budget(slot + gap, cps) * MAX_STRETCH):
-        rewrites += 1
-        shorter = _shorter(rewrite, text, budget, rewrites)
+        attempts += 1
+        shorter = _shorter(rewrite, text, budget, attempts)
         if shorter is None:
             break
-        text = shorter
+        text, rewrites = shorter, rewrites + 1
         tried.append(text)
 
     while True:
@@ -115,15 +116,15 @@ def fit_segment(
             tempo = tempo_for(raw, slot)
             status = "rewritten" if rewrites else ("stretched" if tempo > 1.0 else "ok")
             return _fit(segment, text, path, raw, tempo, status, rewrites, tried)
-        if not rewrite or rewrites >= max_rewrites:
+        if not rewrite or attempts >= max_rewrites:
             break
-        rewrites += 1
+        attempts += 1
         # Aim at what this voice actually managed, not the nominal cps.
         measured_cps = chars_per_second(text, raw) or cps
-        shorter = _shorter(rewrite, text, char_budget(slot, measured_cps), rewrites)
+        shorter = _shorter(rewrite, text, char_budget(slot, measured_cps), attempts)
         if shorter is None:
             break
-        text = shorter
+        text, rewrites = shorter, rewrites + 1
         tried.append(text)
 
     room = slot + gap
@@ -132,6 +133,9 @@ def fit_segment(
 
     fit = _fit(segment, text, path, raw, MAX_STRETCH, "flagged", rewrites, tried)
     fit.overlap_seconds = round(fit.end - (next_start if next_start is not None else segment.end), 3)
+    # Running up to OVERLAP_TOLERANCE into the next line is allowed.
+    if next_start is not None and fit.overlap_seconds <= OVERLAP_TOLERANCE:
+        fit.status = "used_gap"
     return fit
 
 
