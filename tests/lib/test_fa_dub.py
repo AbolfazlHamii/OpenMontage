@@ -326,3 +326,34 @@ def test_qa_reports_overlaps_round_trip_loudness_and_rights(project):
     assert report["rights"] == "unknown" and report["warnings"]
     assert report["pass"] is False
     assert report["cost_usd"] == pytest.approx(0.001)
+
+
+def test_qa_asks_again_on_the_raw_clip_when_the_placed_copy_scores_low(project):
+    _translated(project)
+    fa_dub.approve_lines(project)
+    root = project / "dub"
+    (root / "mix" / "placed").mkdir(parents=True)
+    raw = root / "clips" / "s002_raw.wav"
+    raw.parent.mkdir(parents=True)
+    raw.write_bytes(b"raw")
+    (root / "mix" / "placed" / "s002.wav").write_bytes(b"placed")
+    fa_dub._save_fits(project, [fa_dub.Fit(id="s002", speaker="B", text="هیچی", audio_path=str(raw),
+                                           raw_seconds=1.0, tempo=1.05, start=6.4, end=7.35,
+                                           status="stretched")], "tts")
+    calls = []
+
+    class STT:
+        def execute(self, inputs):
+            calls.append(inputs["audio_path"])
+            text = "هیچی" if inputs["audio_path"].endswith("s002_raw.wav") else "هیچ چیز دیگه"
+            out = Path(inputs["output_path"])     # like avalai_stt, which saves the transcript
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps({"text": text}, ensure_ascii=False), encoding="utf-8")
+            return ToolResult(success=True, data={"text": text}, cost_usd=0.0002)
+
+    report = fa_dub.qa(project, stt=STT(), loudness=FakeLoudness({}))
+    assert report["round_trip_low"] == []
+    assert len(calls) == 2 and calls[1].endswith("s002_raw.wav")
+    # A repeat run reuses both transcripts.
+    fa_dub.qa(project, stt=STT(), loudness=FakeLoudness({}))
+    assert len(calls) == 2
