@@ -107,7 +107,7 @@ def plan_cues(events: Sequence[dict], library: dict[str, dict], *, speech: Seque
             dropped.append({**ev, "reason": f"no '{name}' in the library"})
             continue
         item = library[name]
-        length = float(ev.get("duration") or item["duration"])
+        length = float(ev["duration"] if ev.get("duration") is not None else item["duration"])
         offset = float(ev["lead"]) if "lead" in ev else float(item.get("peak_s", 0))
         start = ev["at"] - offset
         media_start = 0.0
@@ -119,7 +119,7 @@ def plan_cues(events: Sequence[dict], library: dict[str, dict], *, speech: Seque
         if length <= 0.02:
             dropped.append({**ev, "reason": "falls outside the video"})
             continue
-        volume = float(ev.get("volume") or VOLUME.get(_family(name), 0.3))
+        volume = float(ev["volume"] if ev.get("volume") is not None else VOLUME.get(_family(name), 0.3))
         if "lead" not in ev and _inside(ev["at"], speech):
             volume *= under_speech
         candidates.append({"sfx": name, "file": item["file"], "at": round(ev["at"], 3), "start": round(start, 3),

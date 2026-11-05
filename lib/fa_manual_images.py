@@ -27,7 +27,6 @@ from __future__ import annotations
 import hashlib
 import html
 import json
-import os
 import re
 import shutil
 from dataclasses import dataclass
@@ -166,6 +165,8 @@ def write_prompt_pack(project: Path) -> dict:
     cards = []
     for scene, shot in shots(data):
         prompt = full_prompt(shot, style)
+        saved = find_image(project, shot["id"])
+        preview = f"in/{saved.name}" if saved else f"in/{shot['id']}.png"
         md += [f"## {shot['id']}  →  `in/{shot['id']}.png`", "",
                f"صحنه‌ی {scene['id']}: «{scene.get('caption') or scene.get('narration', '')}»", "",
                "```", prompt, "```", ""]
@@ -174,7 +175,7 @@ def write_prompt_pack(project: Path) -> dict:
             f'<span>ذخیره با اسم <code>in/{html.escape(shot["id"])}.png</code></span></header>'
             f'<p class="line">{html.escape(scene.get("caption") or scene.get("narration", ""))}</p>'
             f'<div class="row"><pre dir="ltr" id="p-{html.escape(shot["id"])}">{html.escape(prompt)}</pre>'
-            f'<img src="in/{html.escape(shot["id"])}.png" alt="" onerror="this.classList.add(\'missing\')"></div>'
+            f'<img src="{html.escape(preview)}" alt="" onerror="this.classList.add(\'missing\')"></div>'
             f'<button onclick="copy(\'p-{html.escape(shot["id"])}\', this)">کپی پرامپت</button></section>')
     (out / "PROMPTS.md").write_text("\n".join(md), encoding="utf-8")
     (out / "prompts.html").write_text(PROMPTS_PAGE.format(
@@ -357,12 +358,15 @@ def plan_timing(data: dict, clips: dict) -> dict:
         weights = [max(0.1, float(s.get("weight", 1))) for s in scene["shots"]]
         span = end - start
         lengths = [span * w / sum(weights) for w in weights]
-        # Very short shots read as flicker; give them a floor and take it from the longest.
-        for i, length in enumerate(lengths):
-            if length < MIN_SHOT and span >= MIN_SHOT * len(lengths):
-                longest = max(range(len(lengths)), key=lambda k: lengths[k])
-                lengths[longest] -= MIN_SHOT - length
-                lengths[i] = MIN_SHOT
+        # Very short shots read as flicker; give them a floor and take the time
+        # from the longer shots in proportion to what they have above it, so
+        # none of them drops under the floor and the scene keeps its length.
+        if span >= MIN_SHOT * len(lengths):
+            deficit = sum(MIN_SHOT - length for length in lengths if length < MIN_SHOT)
+            excess = sum(length - MIN_SHOT for length in lengths if length > MIN_SHOT)
+            if deficit and excess:
+                lengths = [MIN_SHOT if length <= MIN_SHOT
+                           else length - (length - MIN_SHOT) * deficit / excess for length in lengths]
         cursor = start
         for shot, length in zip(scene["shots"], lengths):
             all_shots.append({"id": shot["id"], "scene": scene["id"], "start": round(cursor, 3),
@@ -399,23 +403,28 @@ def camera_from_to(camera: str, focus: list[float]) -> tuple[tuple, tuple]:
     }[camera]
 
 
-def _font_dir() -> Optional[Path]:
-    configured = os.environ.get("SUBTITLE_FONTS_DIR")
-    return Path(configured) if configured else None
-
-
 def build_workspace(project: Path, clips: dict) -> dict:
+    from lib.fa_thumbnail import find_fonts
+
     data = load_shotlist(project)
     timing = plan_timing(data, clips)
     ws = root(project) / "workspace"
     for sub in ("img", "audio", "fonts", "js"):
         (ws / "assets" / sub).mkdir(parents=True, exist_ok=True)
     shutil.copyfile(GSAP, ws / "assets" / "js" / "gsap.min.js")
-    fonts = _font_dir()
-    for weight in ("ExtraBold", "Black"):
-        src = fonts / f"Vazirmatn-{weight}.ttf" if fonts else None
-        if src and src.exists():
+    # The render browser has no installed fonts: without these files every
+    # Persian caption and stamp falls back to some other font.
+    fonts = find_fonts()
+    missing_fonts = []
+    for weight, src in (("ExtraBold", fonts.bold), ("Black", fonts.black)):
+        if src and src.name == f"Vazirmatn-{weight}.ttf":
             shutil.copyfile(src, ws / "assets" / "fonts" / src.name)
+        else:
+            missing_fonts.append(f"Vazirmatn-{weight}.ttf")
+    warnings = []
+    if missing_fonts:
+        warnings.append(f"fonts not found: {', '.join(missing_fonts)} (searched {', '.join(fonts.searched)}); "
+                        "Persian text will render in a fallback font. Install Vazirmatn or set SUBTITLE_FONTS_DIR.")
 
     sections, audio_tags = [], []
     for shot in timing["shots"]:
@@ -469,7 +478,7 @@ def build_workspace(project: Path, clips: dict) -> dict:
     (ws / "index.html").write_text(page, encoding="utf-8")
     _write(root(project) / "timing.json", timing)
     return {"workspace": str(ws), "duration": timing["duration"], "shots": len(timing["shots"]),
-            "captions": len(timing["captions"])}
+            "captions": len(timing["captions"]), "warnings": warnings}
 
 
 WORKSPACE_PAGE = """<!doctype html>
@@ -588,7 +597,7 @@ def build(project: Path, *, render_video: bool = False, tts=None) -> dict:
     built = build_workspace(project, voice["clips"])
     out = {"narration_cost_usd": voice["cost_usd"], **built,
            "pace": pace_report(load_shotlist(project), voice["clips"]),
-           "warnings": [f"{r['id']}: {p}" for r in checked["shots"] for p in r["problems"]]}
+           "warnings": [f"{r['id']}: {p}" for r in checked["shots"] for p in r["problems"]] + built["warnings"]}
     if render_video:
         out.update(render(project))
     return out

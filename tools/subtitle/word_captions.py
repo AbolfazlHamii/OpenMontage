@@ -121,7 +121,7 @@ def clamp_to_speech(start: float, end: float, speech: Sequence[Sequence[float]])
     # A word belongs to the first segment that is not over yet; it cannot
     # start in the silence before it or run past its end.
     seg = next((s for s in speech if start < s[1]), speech[-1])
-    start = min(max(start, seg[0]), seg[1] - 0.05)
+    start = min(max(start, seg[0]), max(seg[0], seg[1] - 0.05))
     end = min(max(end, start + 0.05), max(seg[1], start + 0.05))
     return round(start, 3), round(end, 3)
 

@@ -151,7 +151,8 @@ def check_beat_sync(plan: dict, card: Optional[dict] = None, tolerance: float = 
     ev = {"ratio": ratio, "chance": chance, "card": want, "tolerance": tolerance}
     # Below chance the cuts ignore the music, whatever the card asks for.
     status = "pass" if ratio >= want * 0.8 and (chance is None or ratio > chance) else "warn"
-    return Check("beat_sync", status, f"{ratio:.0%} of visual changes on a beat (chance {chance:.0%}, card {want:.0%})", ev)
+    chance_text = f"{chance:.0%}" if chance is not None else "n/a"
+    return Check("beat_sync", status, f"{ratio:.0%} of visual changes on a beat (chance {chance_text}, card {want:.0%})", ev)
 
 
 def check_music_ducking(plan: dict, min_db: float = 3.0) -> Check:

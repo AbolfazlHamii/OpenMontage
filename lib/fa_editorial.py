@@ -61,12 +61,16 @@ def hooks_prompt(topic: str, brief: str = "", types: Optional[list[str]] = None)
     """types: which HOOK_TYPES to mix (default all 12, one of each; the
     original six give 2 of each)."""
     types = types or list(HOOK_TYPES)
-    each = max(1, 12 // len(types))
-    kinds = "\n".join(f"- {t}: {HOOK_TYPES[t]}" for t in types)
+    # The schema wants exactly 12; when the types do not divide 12 the first
+    # ones get one more, and each line says how many.
+    each, extra = divmod(12, len(types))
+    counts = [each + (1 if i < extra else 0) for i in range(len(types))]
+    kinds = "\n".join(f"- {t}: {HOOK_TYPES[t]}" + (f" ({n})" if extra else "") for t, n in zip(types, counts))
+    mix = f"{each} of each" if not extra else "the number in brackets of each, 12 in total"
     return (
         f"Write 12 different opening hooks (first 3 seconds, at most 18 words each) in colloquial "
         f"Tehran Persian for a YouTube video: {topic}. {brief}\n"
-        f"Mix the types ({each} of each):\n{kinds}\n"
+        f"Mix the types ({mix}):\n{kinds}\n"
         "The hook must land in the first words, not after a setup. For each hook give open_loop: "
         "the question it leaves in the viewer's head, in Persian. "
         "Only facts that are in the brief; no invented numbers. "

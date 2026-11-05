@@ -80,6 +80,8 @@ def merge_close(segments: Iterable[Sequence[float]], min_gap: float) -> list[tup
 
 def _curve(speech, duration, under, gaps, attack, release, min_gap, fade_in, events) -> np.ndarray:
     t = np.arange(0, duration + STEP / 2, STEP)
+    # A zero ramp means "instant": one curve step, not a division by zero.
+    attack, release = max(float(attack), STEP), max(float(release), STEP)
     gain = np.full(len(t), float(gaps))
     for a, b in merge_close(speech, min_gap):
         down = np.clip((t - (a - attack)) / attack, 0, 1)
@@ -91,7 +93,7 @@ def _curve(speech, duration, under, gaps, attack, release, min_gap, fade_in, eve
     for ev in events:
         kind = ev["kind"]
         if kind == "drop":
-            fade = float(ev.get("fade", 0.15))
+            fade = max(float(ev.get("fade", 0.15)), STEP)
             ramp = np.clip((ev["start"] + fade - t) / fade, 0, 1)
             inside = (t >= ev["start"]) & (t < ev["end"])
             gain = np.where(inside, gain * ramp, gain)
