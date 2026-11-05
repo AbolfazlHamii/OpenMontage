@@ -138,7 +138,9 @@ in Google Flow with ZAPI FLOW):
 - Script lint (`artifacts/narration.lint.json`): risk medium, no high
   findings after two revision passes.
 - Prompt pack: `manual_images/zapi_flow.txt` (92 lines), `prompts.html`.
-- Narration started with `fa_manual_images.narrate` (Charon via AvalAI).
+- Narration done: 40 clips in `manual_images/audio/` (Charon via AvalAI, 492 s = 8.2 min, ~$0.11).
+  The Windows system proxy (v2rayN) breaks AvalAI calls when it is down: run with
+  `NO_PROXY=*` and the HTTP(S)_PROXY variables unset; clips are cached, a rerun only voices missing scenes.
 
 Next: owner pastes `zapi_flow.txt` into ZAPI FLOW (Flow image mode, 16:9,
 serial number in file name) → `scripts/fa_manual_images.py import --project
