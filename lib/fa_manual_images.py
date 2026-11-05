@@ -115,6 +115,7 @@ def validate(data: dict) -> list[str]:
     if not scenes:
         problems.append("no scenes")
     seen: set[str] = set()
+    cast = (data.get("style") or {}).get("characters") or {}
     for scene in scenes:
         sid = scene.get("id") or "?"
         if not (scene.get("narration") or scene.get("audio")):
@@ -132,6 +133,9 @@ def validate(data: dict) -> list[str]:
                 problems.append(f"{shid}: no prompt")
             if shot.get("camera", "push_in") not in CAMERAS:
                 problems.append(f"{shid}: camera must be one of {', '.join(CAMERAS)}")
+            for name in shot.get("characters") or []:
+                if name not in cast:
+                    problems.append(f"{shid}: character {name!r} is not in style.characters")
     return problems
 
 
@@ -144,6 +148,12 @@ def shots(data: dict) -> list[tuple[dict, dict]]:
 def full_prompt(shot: dict, style: dict) -> str:
     rules = style.get("rules") or DEFAULT_RULES
     parts = [shot["prompt"].strip()]
+    # Bulk tools (ZAPI FLOW) cannot attach reference images, so a recurring
+    # character is kept consistent by repeating the same description.
+    cast = style.get("characters") or {}
+    looks = [f"{name}: {cast[name].strip()}" for name in shot.get("characters") or [] if name in cast]
+    if looks:
+        parts.append("Characters: " + " ".join(looks))
     if style.get("prompt"):
         parts.append("Style: " + style["prompt"].strip())
     parts.append(" ".join(rules))
@@ -177,14 +187,28 @@ def write_prompt_pack(project: Path) -> dict:
             f'<div class="row"><pre dir="ltr" id="p-{html.escape(shot["id"])}">{html.escape(prompt)}</pre>'
             f'<img src="{html.escape(preview)}" alt="" onerror="this.classList.add(\'missing\')"></div>'
             f'<button onclick="copy(\'p-{html.escape(shot["id"])}\', this)">کپی پرامپت</button></section>')
+    order = [shot["id"] for _, shot in shots(data)]
+    lines = [zapi_line(shot, style) for _, shot in shots(data)]
+    (out / "zapi_flow.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    _write(out / "zapi_flow_order.json", order)
+    md[2:2] = ["**راه سریع (ZAPI FLOW):** همه‌ی پرامپت‌ها یکجا توی `zapi_flow.txt` هستن، هر خط یه عکس به همین ترتیب.",
+               "توی Flow حالت تصویر و افقی ۱۶:۹ رو بذار، توی ZAPI FLOW «شماره‌ی ردیف توی اسم فایل» رو روشن کن، "
+               "بعد پوشه‌ی دانلود رو با دستور `import` بده؛ عکس‌ها خودشون با اسم درست میان توی `in/`.", ""]
     (out / "PROMPTS.md").write_text("\n".join(md), encoding="utf-8")
     (out / "prompts.html").write_text(PROMPTS_PAGE.format(
         title=html.escape(data.get("title") or Path(project).name),
         count=len(cards),
         refs="".join(f"<li><code dir='ltr'>{html.escape(r)}</code></li>" for r in refs) or "<li>ندارد</li>",
+        zapi=html.escape("\n".join(lines)),
         cards="\n".join(cards)), encoding="utf-8")
     (out / "in").mkdir(parents=True, exist_ok=True)
-    return {"prompts": len(cards), "markdown": str(out / "PROMPTS.md"), "html": str(out / "prompts.html")}
+    return {"prompts": len(cards), "markdown": str(out / "PROMPTS.md"), "html": str(out / "prompts.html"),
+            "zapi_flow": str(out / "zapi_flow.txt")}
+
+
+def zapi_line(shot: dict, style: dict) -> str:
+    """The full prompt on one line: ZAPI FLOW reads one prompt per line."""
+    return " ".join(full_prompt(shot, style).split())
 
 
 PROMPTS_PAGE = """<!doctype html>
@@ -210,6 +234,10 @@ code {{ font-size:.9em; }}
 <h1>پرامپت عکس‌ها: {title}</h1>
 <p>{count} عکس. هر پرامپت رو کپی کن، توی Nano Banana بساز، با اسمی که بالای هر کارت نوشته توی پوشه‌ی <code>in</code> کنار همین صفحه ذخیره کن. عکسی که ذخیره بشه همین‌جا پیش‌نمایشش دیده می‌شه (صفحه رو تازه کن).</p>
 <p>عکس‌های مرجع سبک برای پیوست:</p><ul>{refs}</ul>
+<section class="card"><header><b>همه یکجا برای ZAPI FLOW</b>
+<span>هر خط یه عکس، به ترتیب کارت‌های پایین. توی Flow حالت تصویر و ۱۶:۹ رو بذار و توی ZAPI FLOW «شماره‌ی ردیف توی اسم فایل» رو روشن کن.</span></header>
+<pre dir="ltr" id="zapi-all">{zapi}</pre>
+<button onclick="copy('zapi-all', this)">کپی همه‌ی پرامپت‌ها</button></section>
 {cards}
 </main>
 <script>
@@ -231,6 +259,75 @@ def find_image(project: Path, shot_id: str) -> Optional[Path]:
         if path.exists():
             return path
     return None
+
+
+def _serial(stem: str, count: int) -> Optional[int]:
+    """The row number ZAPI FLOW puts in a file name, if it looks like one."""
+    match = re.search(r"\d+", stem)
+    if match and 1 <= int(match.group()) <= count:
+        return int(match.group())
+    return None
+
+
+def import_flow(project: Path, folder: Path, *, by: str = "auto", overwrite: bool = False) -> dict:
+    """Copy images downloaded by ZAPI FLOW into in/<shot id>.<ext>.
+
+    Rows map to shots through zapi_flow_order.json (the order zapi_flow.txt was
+    written in). With "serial", the first number in each file name is the row;
+    with "time", files are taken in download order. "auto" uses serials when
+    every file has one in range, else download order. Flow can return several
+    images per prompt: the first download is used, the rest go to in/alts/.
+    """
+    if by not in ("auto", "serial", "time"):
+        raise ValueError("by must be auto, serial or time")
+    out = root(project)
+    order_path = out / "zapi_flow_order.json"
+    order = _read(order_path) if order_path.exists() else [shot["id"] for _, shot in shots(load_shotlist(project))]
+    files = sorted((p for p in Path(folder).iterdir() if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES),
+                   key=lambda p: (p.stat().st_mtime, p.name))
+    serials = {p: _serial(p.stem, len(order)) for p in files}
+    if by == "auto":
+        by = "serial" if files and all(serials.values()) else "time"
+    if by == "serial":
+        missing_serial = [p.name for p in files if not serials[p]]
+        if missing_serial:
+            raise ValueError("no row number in: " + ", ".join(missing_serial[:5]))
+        groups: dict[int, list[Path]] = {}
+        for path in files:
+            groups.setdefault(serials[path], []).append(path)
+    else:
+        groups = {row: [path] for row, path in enumerate(files, 1)}
+
+    copied, kept, alternates = [], [], 0
+    for row, paths in sorted(groups.items()):
+        if row > len(order):
+            break
+        shot_id = order[row - 1]
+        existing = find_image(project, shot_id)
+        if existing and not overwrite:
+            kept.append(shot_id)
+        else:
+            if existing:
+                existing.unlink()
+            target = out / "in" / f"{shot_id}{paths[0].suffix.lower()}"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(paths[0], target)
+            copied.append({"shot": shot_id, "from": paths[0].name})
+        for k, alt in enumerate(paths[1:], 1):
+            (out / "in" / "alts").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(alt, out / "in" / "alts" / f"{shot_id}_alt{k}{alt.suffix.lower()}")
+            alternates += 1
+    report = {
+        "by": by,
+        "files": len(files),
+        "copied": copied,
+        "kept_existing": kept,
+        "alternates": alternates,
+        "unused_files": [p.name for row, ps in sorted(groups.items()) if row > len(order) for p in ps],
+        "still_missing": [sid for sid in order if not find_image(project, sid)],
+    }
+    _write(out / "flow_import.json", report)
+    return report
 
 
 def check_images(project: Path) -> dict:

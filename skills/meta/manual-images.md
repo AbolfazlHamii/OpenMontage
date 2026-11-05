@@ -34,6 +34,20 @@ Code: `lib/fa_manual_images.py`, CLI `scripts/fa_manual_images.py`.
 4. **Owner makes the images** and saves each as `manual_images/in/<shot id>.png`
    (jpg/webp also work). Rules in every prompt: no text or logos, 16:9,
    subject in the upper two thirds.
+   **ZAPI FLOW (bulk, Google Flow).** `prompts` also writes
+   `manual_images/zapi_flow.txt` (one full prompt per line, in shot order)
+   and `zapi_flow_order.json` (row → shot id); the HTML page has a "copy all"
+   box. The owner pastes it into the ZAPI FLOW extension, sets Flow to image
+   mode and landscape 16:9, and turns on "serial number in filename". Then
+   `import --project projects/<id> --from <download folder>` copies each row
+   to `in/<shot id>.<ext>`: by the first number in the file name when every
+   file has one in range, else in download order (`--by serial|time` to
+   force). Extra outputs of the same row go to `in/alts/`; images already in
+   `in/` are kept unless `--overwrite`. Report: `manual_images/flow_import.json`.
+   ZAPI FLOW cannot attach reference images, so recurring people go in
+   `style.characters` (`{"Lenin": "bald man, pointed beard, ..."}`) and each
+   shot lists who appears (`"characters": ["Lenin"]`); the same description
+   is then written into every prompt that shows them.
 5. **Check.** `check` lists missing, unreadable, non-16:9 (cropped by the
    camera) and small (< 1280 px) images. Look at the images too: text in
    an image, wrong era, a character that changed face — ask for a redo.

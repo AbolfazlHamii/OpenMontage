@@ -192,3 +192,73 @@ def test_cli_prompts_and_status(project, capsys):
     assert json.loads(capsys.readouterr().out)["prompts"] == 3
     assert cli.main(["status", "--project", str(project)]) == 0
     assert "0/3 images" in json.loads(capsys.readouterr().out)["status"]
+
+
+# -- ZAPI FLOW -------------------------------------------------------------------
+
+def test_zapi_file_has_one_line_per_shot_in_order(project):
+    pack = mi.write_prompt_pack(project)
+    lines = Path(pack["zapi_flow"]).read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 3
+    assert lines[1].startswith("A 1938 shop with dried fish.")
+    assert all("\n" not in line and "No text" in line for line in lines)
+    assert json.loads((project / "manual_images" / "zapi_flow_order.json").read_text(encoding="utf-8")) == ["s1a", "s1b", "s2"]
+    assert "zapi-all" in (project / "manual_images" / "prompts.html").read_text(encoding="utf-8")
+
+
+def test_characters_are_written_into_each_prompt(project):
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["style"]["characters"] = {"Lenin": "bald man with a pointed beard, dark three-piece suit"}
+    data["scenes"][1]["shots"][0]["characters"] = ["Lenin"]
+    assert mi.validate(data) == []
+    prompt = mi.full_prompt(data["scenes"][1]["shots"][0], data["style"])
+    assert "Characters: Lenin: bald man with a pointed beard" in prompt
+    data["scenes"][0]["shots"][0]["characters"] = ["Stalin"]
+    assert any("'Stalin' is not in style.characters" in p for p in mi.validate(data))
+
+
+def _downloads(folder: Path, names: list[str]) -> None:
+    import os
+    import time
+
+    for k, name in enumerate(names):
+        _image(folder / name)
+        stamp = time.time() - 100 + k
+        os.utime(folder / name, (stamp, stamp))
+
+
+def test_import_by_serial_maps_rows_and_keeps_alternates(project, tmp_path):
+    mi.write_prompt_pack(project)
+    dl = tmp_path / "flow"
+    _downloads(dl, ["2_a_1938_shop.png", "1_a_hand.png", "3_bonfire.png", "3_bonfire (1).png"])
+    report = mi.import_flow(project, dl)
+    assert report["by"] == "serial"
+    assert {c["shot"]: c["from"] for c in report["copied"]} == {
+        "s1a": "1_a_hand.png", "s1b": "2_a_1938_shop.png", "s2": "3_bonfire.png"}
+    assert report["alternates"] == 1
+    assert (project / "manual_images" / "in" / "alts" / "s2_alt1.png").exists()
+    assert report["still_missing"] == []
+    assert mi.check_images(project)["ready"]
+
+
+def test_import_falls_back_to_download_order(project, tmp_path):
+    mi.write_prompt_pack(project)
+    dl = tmp_path / "flow"
+    # No serial toggle: names carry prompt words (1938 is out of range), so time order wins.
+    _downloads(dl, ["hand.png", "shop_1938.png"])
+    report = mi.import_flow(project, dl)
+    assert report["by"] == "time"
+    assert [c["shot"] for c in report["copied"]] == ["s1a", "s1b"]
+    assert report["still_missing"] == ["s2"]
+
+
+def test_import_keeps_existing_images_unless_overwrite(project, tmp_path):
+    mi.write_prompt_pack(project)
+    _image(project / "manual_images" / "in" / "s1a.jpg")
+    dl = tmp_path / "flow"
+    _downloads(dl, ["1.png", "2.png", "3.png"])
+    assert mi.import_flow(project, dl)["kept_existing"] == ["s1a"]
+    again = mi.import_flow(project, dl, overwrite=True)
+    assert "s1a" in [c["shot"] for c in again["copied"]]
+    assert not (project / "manual_images" / "in" / "s1a.jpg").exists()
+    assert (project / "manual_images" / "in" / "s1a.png").exists()

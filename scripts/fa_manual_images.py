@@ -4,6 +4,8 @@
       (the agent fills manual_images/shotlist.json from the approved script)
     python scripts/fa_manual_images.py prompts --project projects/<id>
       (the owner opens manual_images/prompts.html, makes the images, saves them in manual_images/in/)
+    python scripts/fa_manual_images.py import  --project projects/<id> --from <ZAPI FLOW download folder>
+      (or the owner pastes manual_images/zapi_flow.txt into ZAPI FLOW and this copies the results in)
     python scripts/fa_manual_images.py check   --project projects/<id>
     python scripts/fa_manual_images.py build   --project projects/<id> [--render]
     python scripts/fa_manual_images.py status  --project projects/<id>
@@ -24,11 +26,15 @@ from lib import fa_manual_images as mi  # noqa: E402
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name in ("init", "prompts", "check", "build", "status"):
+    for name in ("init", "prompts", "import", "check", "build", "status"):
         p = sub.add_parser(name)
         p.add_argument("--project", required=True)
         if name == "build":
             p.add_argument("--render", action="store_true", help="also render and normalize to -14 LUFS")
+        if name == "import":
+            p.add_argument("--from", dest="folder", required=True, help="folder ZAPI FLOW downloaded into")
+            p.add_argument("--by", choices=("auto", "serial", "time"), default="auto")
+            p.add_argument("--overwrite", action="store_true", help="replace images already in in/")
     args = parser.parse_args(argv)
 
     from lib.env_loader import load_env
@@ -39,6 +45,8 @@ def main(argv=None) -> int:
         out = {"shotlist": str(mi.init(project))}
     elif args.cmd == "prompts":
         out = mi.write_prompt_pack(project)
+    elif args.cmd == "import":
+        out = mi.import_flow(project, Path(args.folder), by=args.by, overwrite=args.overwrite)
     elif args.cmd == "check":
         out = mi.check_images(project)
     elif args.cmd == "build":
