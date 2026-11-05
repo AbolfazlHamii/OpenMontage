@@ -126,11 +126,14 @@ Persian market in `REFERENCE_NOTES.md`). The source uses AI cartoon stills,
 Project `projects/kgb-history-fa/`, manual-images mode (owner makes the stills
 in Google Flow with ZAPI FLOW):
 - Defaults chosen by the agent (owner asked to just build; may change):
-  full KGB history with an Iran thread (cold open: Kuzichkin, Tehran 1982,
-  closed at s26–s28 with the 1983 Tudeh arrests), ~8 min, narrator Charon
+  full KGB history, ~8 min, narrator Charon
   (tense documentary style, AvalAI route), channel cartoon look with Soviet
   red as the single accent.
-- `manual_images/shotlist.json`: 40 scenes, 106 shots, 12 recurring
+- Owner (2026-11-05): videos are for every audience, no Iran angle unless
+  asked (rule in `channels/fa-main/channel.md`). The Iran thread was
+  removed; the cold open is now Gordievsky in the car boot at the border
+  (second person), closed at s29–s31.
+- `manual_images/shotlist.json`: 37 scenes, 98 shots, 7.8 min, 12 recurring
   characters in `style.characters` (described, not named, for Flow).
   Owner (2026-11-05): no text on screen: `captions: false`, no stamps, no
   empty caption band in the prompts. Every shot after a scene's first has a
@@ -140,7 +143,7 @@ in Google Flow with ZAPI FLOW):
   the number of expelled diplomats and the "40 men" (unverified).
 - Script lint (`artifacts/narration.lint.json`): risk medium, no high
   findings after two revision passes.
-- Prompt pack: `manual_images/zapi_flow.txt` (106 lines), `prompts.html`.
+- Prompt pack: `manual_images/zapi_flow.txt` (98 lines), `prompts.html`.
 - Narration done: 40 clips in `manual_images/audio/` (Charon via AvalAI, 492 s = 8.2 min, ~$0.11).
   The Windows system proxy (v2rayN) breaks AvalAI calls when it is down: run with
   `NO_PROXY=*` and the HTTP(S)_PROXY variables unset; clips are cached, a rerun only voices missing scenes.
