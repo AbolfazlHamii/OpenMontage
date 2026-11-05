@@ -114,23 +114,37 @@ New since the upgrade (details in the progress file and in
 | Beat grid / snap / align | `tools/audio/beat_detect.py` |
 | Procedural SFX (licence-free) | `lib/sfx_synth.py` |
 
-## Current production: Soviet Union remake (2026-11-05)
+## Current production: KGB remake (2026-11-05)
 
-Owner asked (2026-11-05) to make the whole of ArchiveInMinutes' "The ENTIRE
-History of the Soviet Union in 16 Minutes" (https://www.youtube.com/watch?v=v-HJWqWPvJI,
-16:59, 134K views) in Persian, transcreate mode, with the stills made by the
-owner in Google Flow through the ZAPI FLOW extension (manual-images mode) to
-avoid image cost. Kit: `projects/_reference/archive-soviet-union/`
-(`fa_remake.py --target 600 --budget 0.15`). Next: present 2–3 concepts, then
-research with sources → script → shot list → `prompts` (zapi_flow.txt) →
-owner makes images → `import` → `build --render`.
+Owner switched (2026-11-05) from the Soviet Union video to ArchiveInMinutes'
+"The ENTIRE History of the KGB in 13 Minutes" (https://www.youtube.com/watch?v=VNJhu4rh6OY,
+13:51, 237K views); the Soviet Union kit stays in `projects/_reference/archive-soviet-union/`
+unused. KGB kit: `projects/_reference/archive-kgb/` ($0.028; notes incl. the
+Persian market in `REFERENCE_NOTES.md`). The source uses AI cartoon stills,
+~3.1 s shots, 166 wpm, cold open in Dresden 1989.
 
-Cost for a 10-minute still-led video (fa_estimate, 2026-11-05): with API
-images ~$12.3 (120 × gemini-3.1-flash-image 1K $8.06 + one lite draft round
-$4.03 + narration $0.16); with the owner's images ~$0.45–0.6 in total
-(narration $0.16 + retakes ~$0.05, kit analysis ~$0.10–0.15, pronunciation
-round-trip ~$0.07, word-timed captions ~$0.07, bulk LLM checks ~$0.05; music
-Mixkit and SFX procedural are free; TTS price doubles after 2026-12-31).
+Project `projects/kgb-history-fa/`, manual-images mode (owner makes the stills
+in Google Flow with ZAPI FLOW):
+- Defaults chosen by the agent (owner asked to just build; may change):
+  full KGB history with an Iran thread (cold open: Kuzichkin, Tehran 1982,
+  closed at s26–s28 with the 1983 Tudeh arrests), ~8 min, narrator Charon
+  (tense documentary style, AvalAI route), channel cartoon look with Soviet
+  red as the single accent.
+- `manual_images/shotlist.json`: 40 scenes, 92 shots, 12 recurring
+  characters in `style.characters` (described, not named, for Flow).
+  Captions are generated from the narration (digits, KGB/NKVD/FSB letters).
+- `artifacts/sources.md`: every claim with its sources; left out Moqarebi,
+  the number of expelled diplomats and the "40 men" (unverified).
+- Script lint (`artifacts/narration.lint.json`): risk medium, no high
+  findings after two revision passes.
+- Prompt pack: `manual_images/zapi_flow.txt` (92 lines), `prompts.html`.
+- Narration started with `fa_manual_images.narrate` (Charon via AvalAI).
+
+Next: owner pastes `zapi_flow.txt` into ZAPI FLOW (Flow image mode, 16:9,
+serial number in file name) → `scripts/fa_manual_images.py import --project
+projects/kgb-history-fa --from <download folder>` → `check` → look at the
+images (no text, same faces) → pick a tense music track (none chosen yet;
+Mixkit, licence copy in assets/music/) → `build --render` → render QA.
 
 ## Earlier production: first transcreation
 
