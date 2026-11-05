@@ -36,6 +36,7 @@ Last updated: 2026-11-05 (remake from a link; earlier: build phases 1–3, 5; re
 | Tests | `tests/tools/test_persian_localization.py`, `test_avalai_gemini_tts.py`, `test_avalai_gemini_image.py`, `test_subtitle_fonts_dir.py`, `test_studio_fa.py` | all mocked |
 | Test network guard | `tests/conftest.py` | Also clears `HTTP(S)_PROXY` and sets `NO_PROXY=*` for the session: a loopback proxy (v2rayN) otherwise carried requests past the socket guard |
 | Remake from a link | `tools/analysis/reference_kit.py`, `scripts/fa_remake.py`, Studio FA «از لینک بساز» | YouTube Shorts / long, Instagram (cookies.txt or file), TikTok, X → kit in `projects/_reference/<slug>/`; transcreate by default, dub only with rights; `skills/meta/remake-from-link.md` |
+| Manual images (owner makes stills) | `lib/fa_manual_images.py`, `scripts/fa_manual_images.py`, `skills/meta/manual-images.md` | Prompt pack, image check, build/render. **ZAPI FLOW**: `zapi_flow.txt` (one prompt per line) + `import --from <download folder>` (row number in file name, else download order; extras to `in/alts/`); `style.characters` repeats a person's description in each prompt |
 | Desktop shortcut | `Desktop\استودیو ویدیو فارسی.lnk` | Opens `studio-fa.bat` minimized (not in the repo) |
 
 ## Environment (owner's Windows laptop)
@@ -113,7 +114,25 @@ New since the upgrade (details in the progress file and in
 | Beat grid / snap / align | `tools/audio/beat_detect.py` |
 | Procedural SFX (licence-free) | `lib/sfx_synth.py` |
 
-## Current production: first transcreation
+## Current production: Soviet Union remake (2026-11-05)
+
+Owner asked (2026-11-05) to make the whole of ArchiveInMinutes' "The ENTIRE
+History of the Soviet Union in 16 Minutes" (https://www.youtube.com/watch?v=v-HJWqWPvJI,
+16:59, 134K views) in Persian, transcreate mode, with the stills made by the
+owner in Google Flow through the ZAPI FLOW extension (manual-images mode) to
+avoid image cost. Kit: `projects/_reference/archive-soviet-union/`
+(`fa_remake.py --target 600 --budget 0.15`). Next: present 2–3 concepts, then
+research with sources → script → shot list → `prompts` (zapi_flow.txt) →
+owner makes images → `import` → `build --render`.
+
+Cost for a 10-minute still-led video (fa_estimate, 2026-11-05): with API
+images ~$12.3 (120 × gemini-3.1-flash-image 1K $8.06 + one lite draft round
+$4.03 + narration $0.16); with the owner's images ~$0.45–0.6 in total
+(narration $0.16 + retakes ~$0.05, kit analysis ~$0.10–0.15, pronunciation
+round-trip ~$0.07, word-timed captions ~$0.07, bulk LLM checks ~$0.05; music
+Mixkit and SFX procedural are free; TTS price doubles after 2026-12-31).
+
+## Earlier production: first transcreation
 
 Project: `projects/samsung-history-fa/` (git-ignored), "کل تاریخ سامسونگ در ۹۰ ثانیه".
 Backlot: `python -m backlot open samsung-history-fa`.
@@ -197,5 +216,7 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
    page since upgrade phase 6.)
 5. Owner: confirm or change the bake-off's worker/bulk model picks
    (`docs/fa/llm_bakeoff/report.html`, Studio FA → مسیریابی متن).
-6. `fa` is pushed to `AbolfazlHamii/OpenMontage` up to `224d84c` plus this note (2026-11-05,
-   owner's go-ahead). Push again only when the owner asks.
+6. `fa` is pushed to `AbolfazlHamii/OpenMontage` up to `6ff8807` (2026-11-05,
+   owner's go-ahead; includes the fixes for eight edge cases found by the
+   code review of the edit pass, hook lab and manual-images mode). Push
+   again only when the owner asks.
