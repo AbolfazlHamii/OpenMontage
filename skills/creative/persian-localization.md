@@ -53,6 +53,8 @@ voice, lexicon and past edits live there.
 
 ## Images
 
+- The owner can make the stills by hand in Nano Banana: `skills/meta/manual-images.md`
+  (prompt pack with copy buttons, image check, narration, timing, render).
 - Pin the model: `image_selector` with `model: "gemini-3.1-flash-image"`
   (Nano Banana 2) tries `google_imagen` first and, when Google refuses the
   call (403 from Iranian IPs and many VPN exits), retries the same request

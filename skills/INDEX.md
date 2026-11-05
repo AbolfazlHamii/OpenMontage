@@ -101,6 +101,8 @@ Key capability families to look for in the output:
 | Channel Bible | `creative/channel-bible.md` | Per-channel memory for Persian productions: tone, voices, lexicon for TTS, glossary, owner edits, retros (`lib/channel_bible.py`) | — |
 | Camera Language | `creative/camera-language.md` | Shot size, angle, lens, movement; virtual camera snippets for stills (Ken Burns, parallax, 2.5D, shake, rack focus) | `gsap-core`, `remotion-best-practices` |
 | Narration Craft | `creative/narration-craft.md` | Hooks, open loops, re-hooks, rhythm and endings for Persian narration; `scripts/fa_script_lint.py` checks a draft before TTS | — |
+| Editing Craft | `creative/editing-craft.md` | The edit pass for Persian explainers: SFX on cuts and pops, music ducking, word-timed captions, edit QA (`scripts/fa_edit_pass.py`) | `ffmpeg` |
+| YouTube Packaging | `creative/youtube-packaging.md` | Titles, Persian thumbnails (HTML, A/B variants), topic scoring, description/chapters, upload checklist | — |
 | Editing Tricks | `creative/editing-tricks.md` | 32 cut/transition/text/sound tricks with retention effect and HF/RM/FF recipes; edit style cards in `styles/editing/` | `ffmpeg`, `gsap-timeline` |
 | Enhancement Strategy | `creative/enhancement-strategy.md` | Overlay placement and density | `ffmpeg` |
 | Data Visualization | `creative/data-visualization.md` | Chart type selection, animation, label placement | `d3-viz`, `remotion-best-practices` |
@@ -292,6 +294,7 @@ Cross-cutting skills that apply to all pipelines:
 |-------|------|---------|
 | Onboarding | `meta/onboarding.md` | First-interaction greeting, capability discovery, starter prompts |
 | Reviewer | `meta/reviewer.md` | Self-review protocol after every stage |
+| Manual Images | `meta/manual-images.md` | The owner makes the stills in Nano Banana from a prompt pack; the pipeline voices, times, animates and renders them (`scripts/fa_manual_images.py`) |
 | Remake From a Link | `meta/remake-from-link.md` | Persian version of a YouTube (long or Shorts) / Instagram / TikTok link: `scripts/fa_remake.py` builds the kit; transcreate by default, dub only with rights |
 | Delegation Protocol | `meta/delegation-protocol.md` | Bulk text (drafts, prompts, hooks, JSON) goes to cheap models via `llm_selector`; the agent chooses and reviews |
 | Checkpoint Protocol | `meta/checkpoint-protocol.md` | When/how to checkpoint and request human approval |
