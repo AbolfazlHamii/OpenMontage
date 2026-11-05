@@ -130,14 +130,17 @@ in Google Flow with ZAPI FLOW):
   closed at s26–s28 with the 1983 Tudeh arrests), ~8 min, narrator Charon
   (tense documentary style, AvalAI route), channel cartoon look with Soviet
   red as the single accent.
-- `manual_images/shotlist.json`: 40 scenes, 92 shots, 12 recurring
+- `manual_images/shotlist.json`: 40 scenes, 106 shots, 12 recurring
   characters in `style.characters` (described, not named, for Flow).
-  Captions are generated from the narration (digits, KGB/NKVD/FSB letters).
+  Owner (2026-11-05): no text on screen: `captions: false`, no stamps, no
+  empty caption band in the prompts. Every shot after a scene's first has a
+  `cue` (the words it appears on); `manual_images/alignment.json` lists each
+  shot with the words spoken over it (avg 4.8 s per still, max 8.7 s).
 - `artifacts/sources.md`: every claim with its sources; left out Moqarebi,
   the number of expelled diplomats and the "40 men" (unverified).
 - Script lint (`artifacts/narration.lint.json`): risk medium, no high
   findings after two revision passes.
-- Prompt pack: `manual_images/zapi_flow.txt` (92 lines), `prompts.html`.
+- Prompt pack: `manual_images/zapi_flow.txt` (106 lines), `prompts.html`.
 - Narration done: 40 clips in `manual_images/audio/` (Charon via AvalAI, 492 s = 8.2 min, ~$0.11).
   The Windows system proxy (v2rayN) breaks AvalAI calls when it is down: run with
   `NO_PROXY=*` and the HTTP(S)_PROXY variables unset; clips are cached, a rerun only voices missing scenes.
