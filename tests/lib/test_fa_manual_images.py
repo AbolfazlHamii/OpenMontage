@@ -349,3 +349,33 @@ def test_preview_window_starts_at_whole_scenes(project, monkeypatch):
     assert out["scenes"] == ["s2"]
     with pytest.raises(RuntimeError, match="no scene starts"):
         mi.preview(project, 30.0, from_seconds=20.0, tts=TTS(), duration=lambda p: 6.0)
+
+
+def test_music_sections_cross_fade_and_carry_into_a_window():
+    timing = {"duration": 30.0, "scenes": [{"id": "a", "start": 0.0}, {"id": "b", "start": 10.0}, {"id": "c", "start": 20.0}]}
+    cfg = {"sections": [{"from": "a", "path": "m1.mp3"}, {"from": "c", "path": "m2.mp3"}]}
+    tracks = mi.music_tracks(cfg, timing)
+    assert [(t["path"], t["start"], t["end"]) for t in tracks] == [("m1.mp3", 0.0, 20.0 + mi.MUSIC_XFADE), ("m2.mp3", 20.0, 30.0)]
+    # A window that opens on scene b: the section from a is still playing.
+    window = {"duration": 15.0, "scenes": [{"id": "b", "start": 0.0}, {"id": "c", "start": 8.0}]}
+    cfg_window = dict(cfg, active_at_start=cfg["sections"][0])
+    assert [(t["path"], t["start"]) for t in mi.music_tracks(cfg_window, window)] == [("m1.mp3", 0.0), ("m2.mp3", 8.0)]
+    assert mi.music_tracks({}, timing) == []
+
+
+def test_workspace_places_section_music(project, tmp_path, monkeypatch):
+    inbox = project / "manual_images" / "in"
+    for shot in ("s1a", "s1b", "s2"):
+        _image(inbox / f"{shot}.png")
+    for name in ("a.wav", "b.wav", "m1.mp3"):
+        (tmp_path / name).write_bytes(b"x")
+    monkeypatch.delenv("SUBTITLE_FONTS_DIR", raising=False)
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["music"] = {"volume": 0.15, "sections": [{"from": "s1", "path": str(tmp_path / "m1.mp3")},
+                                                  {"from": "s2", "path": "missing.mp3"}]}
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    clips = {"s1": {"path": str(tmp_path / "a.wav"), "seconds": 6.0}, "s2": {"path": str(tmp_path / "b.wav"), "seconds": 3.0}}
+    out = mi.build_workspace(project, clips)
+    page = (project / "manual_images" / "workspace" / "index.html").read_text(encoding="utf-8")
+    assert 'id="bgm-0"' in page and 'id="bgm-1"' not in page
+    assert any("missing.mp3 not found" in w for w in out["warnings"])

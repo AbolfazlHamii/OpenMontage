@@ -543,6 +543,40 @@ def camera_from_to(camera: str, focus: list[float]) -> tuple[tuple, tuple]:
     }[camera]
 
 
+MUSIC_XFADE = 1.0  # seconds two music sections overlap
+
+
+def _resolve(project: Path, path: str) -> Path:
+    src = Path(path) if Path(path).is_absolute() else Path(project) / path
+    return src if src.exists() else REPO_ROOT / path
+
+
+def music_tracks(music_cfg: dict, timing: dict) -> list[dict]:
+    """Per-section music: music.sections = [{"from": <scene id>, "path": ...}].
+
+    A section plays from its scene's start to the next section's start, plus
+    MUSIC_XFADE so neighbours cross-fade. A section whose scene is not in this
+    timing (a preview window) is dropped, except the one already playing when
+    the window opens (preview passes it as music.active_at_start): that one
+    starts at 0.
+    """
+    sections = music_cfg.get("sections") or []
+    if not sections:
+        return []
+    starts = {s["id"]: s["start"] for s in timing["scenes"]}
+    order = [s["id"] for s in timing["scenes"]]
+    placed = [dict(sec, start=starts[sec["from"]]) for sec in sections if sec["from"] in starts]
+    lead = music_cfg.get("active_at_start")  # set by preview() for a window
+    if lead and (not placed or placed[0]["from"] != order[0]):
+        placed.insert(0, dict(lead, start=0.0))
+    tracks = []
+    for i, sec in enumerate(placed):
+        nxt = placed[i + 1]["start"] if i + 1 < len(placed) else timing["duration"]
+        end = min(timing["duration"], nxt + (MUSIC_XFADE if i + 1 < len(placed) else 0))
+        tracks.append({"path": sec["path"], "start": round(sec["start"], 3), "end": round(end, 3)})
+    return tracks
+
+
 def build_workspace(project: Path, clips: dict) -> dict:
     from lib.fa_thumbnail import find_fonts
 
@@ -584,16 +618,29 @@ def build_workspace(project: Path, clips: dict) -> dict:
         audio_tags.append(
             f'<audio id="vo-{scene["id"]}" src="assets/audio/{name}" data-start="{scene["voice_start"]}" '
             f'data-duration="{scene["voice_seconds"]}" data-track-index="{10 + i}" data-volume="1"></audio>')
-    music = (data.get("music") or {}).get("path")
-    music_volume = float((data.get("music") or {}).get("volume", 0.18))
+    music_cfg = data.get("music") or {}
+    music = music_cfg.get("path")
+    music_volume = float(music_cfg.get("volume", 0.18))
     if music:
-        src = Path(music) if Path(music).is_absolute() else Path(project) / music
-        if not src.exists():
-            src = REPO_ROOT / music
+        src = _resolve(project, music)
         shutil.copyfile(src, ws / "assets" / "audio" / f"music{src.suffix.lower()}")
         audio_tags.append(
             f'<audio id="bgm" src="assets/audio/music{src.suffix.lower()}" data-start="0" '
             f'data-duration="{timing["duration"]}" data-track-index="9" data-volume="{music_volume}"></audio>')
+    tracks = music_tracks(music_cfg, timing)
+    for i, track in enumerate(tracks):
+        src = _resolve(project, track["path"])
+        if not src.exists():
+            warnings.append(f"music {track['path']} not found; that section has no music yet")
+            continue
+        name = f"music_{i}{src.suffix.lower()}"
+        shutil.copyfile(src, ws / "assets" / "audio" / name)
+        # Neighbouring sections overlap by MUSIC_XFADE; alternate tracks so they can.
+        audio_tags.append(
+            f'<audio id="bgm-{i}" src="assets/audio/{name}" data-start="{track["start"]}" '
+            f'data-duration="{round(track["end"] - track["start"], 3)}" data-track-index="{7 + i % 2}" '
+            f'data-volume="{music_volume}"></audio>')
+        track["id"] = f"bgm-{i}"
 
     stamps = "".join(f'<div id="stamp-{s["id"]}" class="stamp">{html.escape(s["stamp"])}</div>'
                      for s in timing["scenes"] if s["stamp"])
@@ -614,6 +661,7 @@ def build_workspace(project: Path, clips: dict) -> dict:
                         "end": min(s["end"], s["voice_start"] + 2.4)} for s in timing["scenes"] if s["stamp"]],
             "captions": [{"start": c["start"], "end": c["end"]} for c in timing["captions"]],
             "duration": timing["duration"], "music": bool(music), "music_volume": music_volume,
+            "music_tracks": [{"id": t["id"], "start": t["start"], "end": t["end"]} for t in tracks if "id" in t],
         }, ensure_ascii=False))
     (ws / "index.html").write_text(page, encoding="utf-8")
     _write(root(project) / "timing.json", timing)
@@ -698,6 +746,11 @@ WORKSPACE_PAGE = """<!doctype html>
         tl.fromTo("#bgm", {{ volume: 0 }}, {{ volume: PLAN.music_volume, duration: 0.5 }}, 0);
         tl.to("#bgm", {{ volume: 0, duration: 0.8, ease: "power1.in" }}, PLAN.duration - 0.8);
       }}
+      PLAN.music_tracks.forEach((m) => {{
+        const fade = Math.min(1.0, (m.end - m.start) / 3);
+        tl.fromTo("#" + m.id, {{ volume: 0 }}, {{ volume: PLAN.music_volume, duration: fade }}, m.start);
+        tl.to("#" + m.id, {{ volume: 0, duration: fade, ease: "power1.in" }}, m.end - fade);
+      }});
       window.__timelines["manual-images"] = tl;
     </script>
   </body>
@@ -754,7 +807,14 @@ def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, re
     while sub.exists():
         sub, n = base.with_name(f"{base.name}_{n}"), n + 1
     (sub / "manual_images" / "in").mkdir(parents=True)
-    _write(sub / "manual_images" / "shotlist.json", {**data, "scenes": scenes})
+    music_cfg = dict(data.get("music") or {})
+    if music_cfg.get("sections"):
+        index = {sc["id"]: i for i, sc in enumerate(data["scenes"])}
+        first = index[scenes[0]["id"]]
+        playing = [sec for sec in music_cfg["sections"] if index.get(sec["from"], len(index)) <= first]
+        if playing:
+            music_cfg["active_at_start"] = playing[-1]
+    _write(sub / "manual_images" / "shotlist.json", {**data, "scenes": scenes, "music": music_cfg})
     shutil.copytree(root(project) / "audio", sub / "manual_images" / "audio")
     borrowed = {}
     for i, sid in enumerate(order):
