@@ -187,6 +187,9 @@ in Google Flow with ZAPI FLOW):
   rows). s15x now reuses s15a (the same study). 133/143 in; the last 10 are
   in `manual_images/zapi_round4.txt`. Full render (all sections, music only
   up to m06) runs via `render_sections.sh 475.5`.
+- Round 4 (2026-11-05 ~13:45): 9 of the last 10 in (from `zapi-img/01–10`
+  and `Downloads/1/`; extras kept in `in/alts/`). 142/143; only s05y (sailors
+  storming the palace stairs) is missing, prompt in `Downloads/kgb_zapi_s05y.txt`.
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
