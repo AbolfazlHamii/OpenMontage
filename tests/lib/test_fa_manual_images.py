@@ -454,3 +454,21 @@ def test_a_shot_can_reuse_another_shots_image(project, tmp_path, monkeypatch):
     clips = {"s1": {"path": str(tmp_path / "a.wav"), "seconds": 6.0}, "s2": {"path": str(tmp_path / "b.wav"), "seconds": 3.0}}
     mi.build_workspace(project, clips)
     assert (project / "manual_images" / "workspace" / "assets" / "img" / "s2b.png").exists()
+
+
+def test_preview_handles_a_reused_image(project, monkeypatch):
+    class TTS:
+        def execute(self, inputs):
+            Path(inputs["output_path"]).parent.mkdir(parents=True, exist_ok=True)
+            Path(inputs["output_path"]).write_bytes(b"wav")
+            return ToolResult(success=True, data={}, cost_usd=0.0)
+
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["scenes"][1]["shots"].append({"id": "s2b", "image": "s1a", "camera": "pull_out"})
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.delenv("SUBTITLE_FONTS_DIR", raising=False)
+    _image(project / "manual_images" / "in" / "s1a.png")
+    _image(project / "manual_images" / "in" / "s2.png")
+    out = mi.preview(project, 30.0, from_seconds=5.0, tts=TTS(), duration=lambda p: 6.0)
+    assert out["scenes"] == ["s2"] and "s2b" not in out["borrowed"]
+    assert (Path(out["workdir"]) / "manual_images" / "in" / "s2b.png").exists()

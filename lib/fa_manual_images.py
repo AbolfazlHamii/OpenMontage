@@ -888,7 +888,9 @@ def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, re
     source = image_source(data)
     have = {sid: find_image(project, source[sid]) for sid in order}
     # Inside the window every shot gets its own file, so reuse links are dropped.
-    scenes = [{**sc, "shots": [{k: v for k, v in sh.items() if k != "image"} for sh in sc["shots"]]} for sc in scenes]
+    scenes = [{**sc, "shots": [{**{k: v for k, v in sh.items() if k != "image"},
+                                "prompt": sh.get("prompt") or f"(image of {sh['image']})"} for sh in sc["shots"]]}
+              for sc in scenes]
     if not any(have.values()):
         raise RuntimeError("no images yet for this part of the video")
 
