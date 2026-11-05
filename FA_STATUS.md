@@ -152,6 +152,14 @@ in Google Flow with ZAPI FLOW):
   often carries the next row's number, some rows were made twice), so
   images are matched to shots by looking at them; `manual_images/flow_import.json`
   logs each copy. 18/98 in after the first batch.
+- Music: 10 Suno sections, prompts in `music/SUNO_PROMPTS.md`; files go to
+  `music/m01.mp3`…`m10.mp3` and are already wired as `music.sections`
+  (cross-fade 1 s; a missing file is only a warning).
+- Sound design: `sfx` in the shot list (swish on scene changes, whoosh on
+  flash jumps, 18 cued accents, 3 crackle beds) from `projects/_sfx_library/fa-v1`.
+- Images: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
+  the US Great Seal); the seal prompts now say so. Redo list for the owner:
+  `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
 - Building as images arrive: `preview --from A --upto B --render` per scene
   (windows in `manual_images/scene_windows.txt`), loop in
   `projects/kgb-history-fa/render_scenes.sh s07 s08 ...`; renders in
