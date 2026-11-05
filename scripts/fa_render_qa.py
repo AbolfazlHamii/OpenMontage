@@ -5,6 +5,7 @@
         --srt projects/<id>/assets/subtitles.srt \
         --workspace projects/<id>/hyperframes/index.html \
         --images projects/<id>/assets/images/*.png --check-images \
+        --edit-plan projects/<id>/hyperframes/edit_pass.json --card full-history-in-n-minutes \
         --out projects/<id>/renders/qa.json
 
 Free except --check-images (vision_bulk, about $0.0004 per image). Exit code
@@ -22,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib.fa_render_qa import parse_srt, persian_summary, run_qa  # noqa: E402
+from styles.edit_style_loader import load_edit_style  # noqa: E402
 
 
 def main(argv=None) -> int:
@@ -36,6 +38,8 @@ def main(argv=None) -> int:
     parser.add_argument("--check-images", action="store_true", help="paid: ask vision_bulk about text in images")
     parser.add_argument("--freeze-max", type=float, default=6.0)
     parser.add_argument("--frames-dir", help="extract review frames here")
+    parser.add_argument("--edit-plan", help="edit_pass.json (scripts/fa_edit_pass.py) for the edit-craft checks")
+    parser.add_argument("--card", help="edit style card name for the cut-rhythm and beat checks")
     parser.add_argument("--out", help="report JSON path (default: <render>.qa.json)")
     args = parser.parse_args(argv)
 
@@ -57,6 +61,8 @@ def main(argv=None) -> int:
         images=images if args.check_images else None,
         freeze_max=args.freeze_max,
         frames_dir=Path(args.frames_dir) if args.frames_dir else None,
+        edit_plan=read_json(args.edit_plan),
+        card=load_edit_style(args.card) if args.card else None,
     )
     summary = persian_summary(report)
     report["summary_fa"] = summary

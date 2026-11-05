@@ -117,7 +117,10 @@ def crackle(duration: float = 3.0, density: float = 38.0, seed: int = 6) -> np.n
     env = np.ones(n)
     env[:fade] = np.linspace(0, 1, fade)
     env[-fade:] = np.linspace(1, 0, fade)
-    return _normalize((rumble + _highpass(sparks, 1200)) * env)
+    bed = rumble + _highpass(sparks, 1200)
+    # Soft-clip the spark peaks first: peak-normalized, the sparse sparks left
+    # the bed at -35 dBFS RMS and it vanished under the music in the mix.
+    return _normalize(np.tanh(3 * bed / np.max(np.abs(bed))) * env)
 
 
 SYNTHS = {"whoosh": whoosh, "swish": swish, "pop": pop, "hit": hit, "riser": riser, "crackle": crackle}
@@ -134,14 +137,18 @@ def write_wav(path: Path, samples: np.ndarray, rate: int = RATE) -> Path:
     return path
 
 
-def peak_time(samples: np.ndarray, rate: int = RATE, window: float = 0.01) -> float:
-    """Where the loudest 10 ms sits: the moment that should land on the cut."""
+def peak_time(samples: np.ndarray, rate: int = RATE, window: float = 0.01, within_db: float = 1.5) -> float:
+    """When the sound first reaches full strength (a 10 ms window within
+    `within_db` of the loudest): the moment that should land on the cut.
+    For a sustained boom that is its attack, not wherever the maximum
+    happens to fall in the sustain."""
     hop = max(1, int(window * rate))
     frames = len(samples) // hop
     if frames == 0:
         return 0.0
     rms = np.sqrt(np.mean(samples[: frames * hop].reshape(frames, hop).astype(np.float64) ** 2, axis=1))
-    return round((int(np.argmax(rms)) + 0.5) * hop / rate, 3)
+    first = int(np.argmax(rms >= rms.max() * 10 ** (-within_db / 20)))
+    return round((first + 0.5) * hop / rate, 3)
 
 
 def render(name: str, path: Path, **kwargs) -> dict:

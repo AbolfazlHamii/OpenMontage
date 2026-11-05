@@ -7,6 +7,8 @@ from the edit style card's `transitions`, `camera_moves`, `sfx_palette` and
 `pattern_interrupt_seconds`; this file says how to build each one. Camera
 moves on stills (Ken Burns, parallax, shake, rack focus, dolly-zoom) are in
 `skills/creative/camera-language.md` Part B.
+Placing SFX, ducking and beat-editing the music, word-timed RTL captions and
+their QA checks (one command, `scripts/fa_edit_pass.py`): `skills/creative/editing-craft.md`.
 
 Columns per trick: **what**, **when**, **retention effect**, **how**
 (HF = HyperFrames/GSAP, RM = Remotion, FF = FFmpeg), **cost**. Every trick

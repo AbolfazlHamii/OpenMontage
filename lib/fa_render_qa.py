@@ -10,6 +10,9 @@ Checks (each: pass / warn / fail / skipped, with evidence):
   RLM/RTL marking, safe area when a layout is given
 - RTL in an HTML workspace (lang/dir on the document or caption container)
 - no text in generated images (vision_bulk, paid, cents; opt-in)
+- edit craft, when an edit plan is given (lib/fa_edit_qa.py): cut rhythm vs
+  the style card, hook, SFX density and cut accents, caption on-screen time,
+  beat sync, music ducking and ending, end screen
 
 Reuses visual_qa (probe + review frames) and loudness_normalize; the
 workspace check reads composition HTML only.
@@ -233,7 +236,8 @@ def run_qa(render: Path, *, script: Optional[dict] = None, captions: Optional[li
            caption_layout: Optional[dict] = None, workspace_html: Optional[str] = None,
            images: Optional[list[Path]] = None, freeze_max: float = 6.0,
            frames_dir: Optional[Path] = None,
-           image_checker: Optional[Callable[[list[Path]], tuple[list[dict], float]]] = None) -> dict[str, Any]:
+           image_checker: Optional[Callable[[list[Path]], tuple[list[dict], float]]] = None,
+           edit_plan: Optional[dict] = None, card: Optional[dict] = None) -> dict[str, Any]:
     from tools.analysis.visual_qa import VisualQA
     from tools.audio.loudness_normalize import LoudnessNormalize
 
@@ -259,7 +263,12 @@ def run_qa(render: Path, *, script: Optional[dict] = None, captions: Optional[li
     checks.append(check_freeze(parse_freezedetect(_run_filter(render, vf="freezedetect=n=-60dB:d=2")), freeze_max))
     checks.append(check_av_sync(streams))
     checks.append(check_duration(duration, script))
-    checks += check_captions(captions or [], duration, layout=caption_layout)
+    if captions is None and edit_plan:
+        captions = edit_plan.get("caption_cues")
+    checks += check_captions(captions or [], duration, layout=caption_layout or (edit_plan or {}).get("caption_layout"))
+    if edit_plan is not None:
+        from lib.fa_edit_qa import edit_checks
+        checks += edit_checks({**edit_plan, "duration": duration}, card)
     if workspace_html is not None:
         checks.append(check_workspace_rtl(workspace_html))
     if images:
@@ -298,9 +307,12 @@ FA_STATUS = {"pass": "✅ درست", "warn": "⚠️ هشدار", "fail": "❌ �
 
 
 def persian_summary(report: dict[str, Any]) -> str:
+    from lib.fa_edit_qa import FA_NAMES as EDIT_FA_NAMES
+
     lines = [f"بررسی کیفیت: {Path(report['render']).name} — نتیجه کلی: {FA_STATUS[report['status']]}"]
     for c in report["checks"]:
-        lines.append(f"- {FA_NAMES.get(c['name'], c['name'])}: {FA_STATUS[c['status']]} ({c['detail']})")
+        name = FA_NAMES.get(c["name"]) or EDIT_FA_NAMES.get(c["name"], c["name"])
+        lines.append(f"- {name}: {FA_STATUS[c['status']]} ({c['detail']})")
     if report.get("cost_usd"):
         lines.append(f"هزینه این بررسی: ${report['cost_usd']:.4f}")
     return "\n".join(lines)

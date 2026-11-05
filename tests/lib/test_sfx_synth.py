@@ -18,6 +18,11 @@ def test_each_effect_is_deterministic_and_peak_limited(name):
     assert peak == pytest.approx(PEAK_DBFS, abs=0.2)
 
 
+def test_crackle_bed_is_dense_enough_to_hear():
+    bed = SYNTHS["crackle"](duration=3.0)
+    assert 20 * np.log10(np.sqrt(np.mean(bed ** 2))) > -26
+
+
 def test_seed_changes_noise_effects():
     assert not np.array_equal(SYNTHS["whoosh"](seed=1), SYNTHS["whoosh"](seed=9))
 
