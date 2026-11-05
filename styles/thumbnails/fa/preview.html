@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Phone-size check sheet for lib/fa_thumbnail.py: every variant at feed
+     sizes, on YouTube's light and dark backgrounds, with a duration badge and
+     the title under it. Look at it before picking a thumbnail. -->
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "VazThumb"; font-weight: 800; src: $font_bold; }
+  @font-face { font-family: "VazThumb"; font-weight: 900; src: $font_black; }
+  html, body { margin: 0; width: ${width}px; background: #e5e5e5; font-family: "VazThumb", sans-serif; }
+  .theme { padding: 22px 28px 26px; direction: rtl; }
+  .light { background: #ffffff; color: #0f0f0f; }
+  .dark { background: #0f0f0f; color: #f1f1f1; }
+  h2 { margin: 0 0 14px; font-size: 22px; font-weight: 800; }
+  .row { display: flex; gap: 26px; align-items: flex-start; margin-bottom: 18px; }
+  .label { width: 70px; flex: none; font-size: 15px; opacity: 0.7; direction: ltr; text-align: left; padding-top: 4px; }
+  .card { flex: none; }
+  .thumb { position: relative; border-radius: 10px; overflow: hidden; line-height: 0; }
+  .thumb img { width: 100%; height: auto; display: block; }
+  .badge {
+    position: absolute; right: 5%; bottom: 6%;
+    background: rgba(0, 0, 0, 0.82); color: #fff; line-height: 1;
+    font: 800 12px/1 "VazThumb", sans-serif; padding: 3px 4px 4px; border-radius: 4px; direction: ltr;
+  }
+  .title { margin-top: 8px; font-size: 14px; font-weight: 800; line-height: 1.45; direction: rtl; }
+  .id { font-size: 13px; opacity: 0.6; margin-top: 2px; direction: ltr; text-align: right; }
+</style>
+</head>
+<body>
+$sections
+<script>
+  // Report the sheet's size so Python can crop the screenshot to it.
+  document.fonts.ready.then(() => {
+    const out = document.createElement("script");
+    out.type = "application/json";
+    out.id = "om-layout";
+    out.textContent = JSON.stringify({ width: document.body.scrollWidth, height: document.body.scrollHeight });
+    document.body.appendChild(out);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!-- Variant "punch": zoomed still, 2-3 huge words top-right, kicker on a cobalt pill. -->
+<style>
+  .shade {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to left, rgba(12, 9, 6, 0.80) 0%, rgba(12, 9, 6, 0.42) 36%, rgba(12, 9, 6, 0) 60%),
+      radial-gradient(ellipse at 40% 55%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.45) 100%);
+  }
+  .block {
+    position: absolute; top: 34px; right: 52px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+    direction: rtl;
+  }
+  .headline {
+    font-weight: 900; line-height: 1.22; color: var(--ink);
+    --stroke-w: 16px;
+    text-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+  }
+  .kicker {
+    margin-top: 14px;
+    font-weight: 900; line-height: 1.3; color: var(--ink);
+    background: var(--accent);
+    padding: 2px 30px 16px; border-radius: 18px;
+    box-shadow: 0 0 0 6px var(--ink), 0 10px 26px rgba(0, 0, 0, 0.5);
+  }
+</style>
+<div class="shade"></div>
+<div class="block">
+$headline_html
+$kicker_html
+</div>

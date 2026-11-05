@@ -5,6 +5,8 @@
 Package the final character-animation deliverable with honest metadata and a
 strong character-forward thumbnail concept.
 
+Persian channel: read `skills/creative/youtube-packaging.md` first and run its publish checklist.
+
 ## Requirements
 
 - Mention the actual visual treatment: local rigged character animation,

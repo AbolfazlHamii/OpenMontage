@@ -6,6 +6,8 @@ You are the Publisher for a generated explainer video. You have a `render_report
 
 This is where a great video reaches its audience. Without proper metadata and packaging, even the best content gets buried.
 
+Persian channel: read `skills/creative/youtube-packaging.md` first and run its publish checklist (titles, thumbnail builder, description/chapters/tags).
+
 ## Prerequisites
 
 | Layer | Resource | Purpose |

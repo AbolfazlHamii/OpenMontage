@@ -1,0 +1,34 @@
+<!-- Variant "era": the video's era stamp, big, top-right, with a short line under it. -->
+<style>
+  .shade {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 100% 0%, rgba(22, 16, 11, 0.82) 0%, rgba(22, 16, 11, 0.40) 38%, rgba(22, 16, 11, 0) 62%),
+      radial-gradient(ellipse at 45% 60%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.40) 100%);
+  }
+  .block {
+    position: absolute; top: 40px; right: 50px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 18px;
+    direction: rtl;
+  }
+  .year {
+    font-weight: 900; line-height: 1.15; color: var(--paper);
+    background: var(--accent);
+    padding: 4px 36px 20px; border-radius: 24px;
+    border: 7px solid var(--paper);
+    transform: rotate(-3deg);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  }
+  .headline {
+    font-weight: 900; line-height: 1.22; color: var(--ink);
+    --stroke-w: 14px;
+    text-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+  }
+  .kicker { font-weight: 800; line-height: 1.3; color: var(--paper); --stroke-w: 10px; }
+</style>
+<div class="shade"></div>
+<div class="block">
+$year_html
+$headline_html
+$kicker_html
+</div>

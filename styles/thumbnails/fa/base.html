@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- Thumbnail skeleton for lib/fa_thumbnail.py. A variant template (punch,
+     era, question) supplies its own style and markup for the frame. Text is HTML (Vazirmatn), never part of
+     the background still. After layout the script shrinks [data-fit] text to
+     its box and writes a JSON layout report that Python reads from the DOM. -->
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "VazThumb"; font-weight: 900; src: $font_black; }
+  @font-face { font-family: "VazThumb"; font-weight: 800; src: $font_bold; }
+  :root {
+    --ink: $ink;
+    --outline: $outline;
+    --accent: $accent;
+    --paper: $paper;
+    --dark: $dark;
+    --fire: $fire;
+  }
+  html, body { margin: 0; width: ${width}px; height: ${height}px; overflow: hidden; background: var(--dark); }
+  .frame { position: relative; width: ${width}px; height: ${height}px; overflow: hidden; }
+  .bg { position: absolute; left: ${bg_left}px; top: ${bg_top}px; width: ${bg_w}px; height: ${bg_h}px; filter: $bg_filter; }
+  .fit { display: inline-block; white-space: nowrap; font-family: "VazThumb"; }
+  /* side-left: the text block and its shade move to the left edge. */
+  .side-left .block { right: auto !important; left: 52px; }
+  .side-left .shade { transform: scaleX(-1); }
+  .stroke { -webkit-text-stroke: var(--stroke-w, 14px) var(--outline); paint-order: stroke fill; }
+</style>
+</head>
+<body>
+<div class="frame side-$side" id="frame">
+  <img class="bg" src="$bg_src" alt="">
+$variant_body
+</div>
+<script>
+  const BADGE = { x: ${badge_x}, y: ${badge_y} };
+
+  function fitGroup(elements) {
+    // Shrink every element of a group by the same step until all fit their box.
+    let size = Math.min(...elements.map(el => parseFloat(el.style.fontSize)));
+    const fits = () => elements.every(el => el.getBoundingClientRect().width <= Number(el.dataset.maxW));
+    elements.forEach(el => { el.style.fontSize = size + "px"; });
+    while (!fits() && size > Number(elements[0].dataset.minPx)) {
+      size -= 2;
+      elements.forEach(el => { el.style.fontSize = size + "px"; });
+    }
+    return size;
+  }
+
+  function overlaps(r) {
+    return r.right > BADGE.x && r.bottom > BADGE.y && r.left < ${width} && r.top < ${height};
+  }
+
+  async function layout() {
+    await document.fonts.load('900 100px "VazThumb"');
+    await document.fonts.load('800 100px "VazThumb"');
+    await document.fonts.ready;
+    const groups = {};
+    document.querySelectorAll("[data-fit]").forEach(el => {
+      (groups[el.dataset.fit] = groups[el.dataset.fit] || []).push(el);
+    });
+    Object.values(groups).forEach(fitGroup);
+    if (window.afterFit) window.afterFit();
+
+    const report = { fonts_loaded: document.fonts.check('900 100px "VazThumb"'), texts: [] };
+    document.querySelectorAll("[data-role]").forEach(el => {
+      const r = el.getBoundingClientRect();
+      report.texts.push({
+        role: el.dataset.role,
+        text: el.textContent,
+        px: parseFloat(getComputedStyle(el).fontSize),
+        box: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)],
+        too_wide: el.dataset.maxW ? r.width > Number(el.dataset.maxW) + 1 : false,
+        outside: r.left < 0 || r.top < 0 || r.right > ${width} || r.bottom > ${height},
+        badge_overlap: overlaps(r),
+      });
+    });
+    const out = document.createElement("script");
+    out.type = "application/json";
+    out.id = "om-layout";
+    out.textContent = JSON.stringify(report);
+    document.body.appendChild(out);
+  }
+  layout();
+</script>
+</body>
+</html>

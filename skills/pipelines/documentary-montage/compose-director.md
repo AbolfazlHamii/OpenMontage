@@ -9,6 +9,8 @@ mix) that makes a mixed-era corpus feel like one film.
 
 The output is a single mp4 plus a `render_report` artifact.
 
+This pipeline has no publish stage: for a Persian channel upload, package the render with `skills/creative/youtube-packaging.md` (titles, thumbnails, description, checklist).
+
 ## Runtime Routing (HARD CONSTRAINT)
 
 This pipeline currently REQUIRES `render_runtime="remotion"`. The end-tag stack (ProRes 4444 overlay composited on final scenes, or concat fallback) depends on Remotion's `CinematicRenderer` composition and its alpha-preserving render path. HyperFrames end-tag parity is explicitly Wave 3 / deferred work (see `skills/core/hyperframes.md` → "What stays Remotion-only in Phase 1").
