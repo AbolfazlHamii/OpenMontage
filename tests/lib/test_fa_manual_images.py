@@ -310,3 +310,26 @@ def test_captions_can_be_switched_off():
     data = json.loads(json.dumps(SHOTLIST))
     data["captions"] = False
     assert mi.plan_timing(data, CLIPS)["captions"] == []
+
+
+def test_preview_builds_the_first_scenes_and_borrows_missing_stills(project, monkeypatch):
+    class TTS:
+        def execute(self, inputs):
+            Path(inputs["output_path"]).parent.mkdir(parents=True, exist_ok=True)
+            Path(inputs["output_path"]).write_bytes(b"wav")
+            return ToolResult(success=True, data={}, cost_usd=0.0)
+
+    monkeypatch.delenv("SUBTITLE_FONTS_DIR", raising=False)
+    _image(project / "manual_images" / "in" / "s1a.png")
+    # s1 runs ~6.6 s and s2 starts after it: a 5 s preview keeps only s1.
+    out = mi.preview(project, 5.0, tts=TTS(), duration=lambda p: 6.0)
+    assert out["scenes"] == ["s1"]
+    assert out["borrowed"] == {"s1b": "s1a"}
+    inbox = project / "manual_images" / "preview" / "manual_images" / "in"
+    assert sorted(p.name for p in inbox.iterdir()) == ["s1a.png", "s1b.png"]
+    assert (project / "manual_images" / "preview" / "manual_images" / "workspace" / "index.html").exists()
+    # the real project's inbox is untouched
+    assert not (project / "manual_images" / "in" / "s1b.png").exists()
+    with pytest.raises(RuntimeError, match="no images yet"):
+        (project / "manual_images" / "in" / "s1a.png").unlink()
+        mi.preview(project, 5.0, tts=TTS(), duration=lambda p: 6.0)

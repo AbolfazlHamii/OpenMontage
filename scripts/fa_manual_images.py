@@ -8,6 +8,8 @@
       (or the owner pastes manual_images/zapi_flow.txt into ZAPI FLOW and this copies the results in)
     python scripts/fa_manual_images.py check   --project projects/<id>
     python scripts/fa_manual_images.py build   --project projects/<id> [--render]
+    python scripts/fa_manual_images.py preview --project projects/<id> --upto 60 [--render]
+      (the part built so far while images are still coming in; missing stills borrow a neighbour)
     python scripts/fa_manual_images.py status  --project projects/<id>
 """
 
@@ -26,11 +28,13 @@ from lib import fa_manual_images as mi  # noqa: E402
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name in ("init", "prompts", "import", "check", "build", "status"):
+    for name in ("init", "prompts", "import", "check", "build", "preview", "status"):
         p = sub.add_parser(name)
         p.add_argument("--project", required=True)
-        if name == "build":
+        if name in ("build", "preview"):
             p.add_argument("--render", action="store_true", help="also render and normalize to -14 LUFS")
+        if name == "preview":
+            p.add_argument("--upto", type=float, default=60.0, help="seconds of the video to build")
         if name == "import":
             p.add_argument("--from", dest="folder", required=True, help="folder ZAPI FLOW downloaded into")
             p.add_argument("--by", choices=("auto", "serial", "time"), default="auto")
@@ -49,6 +53,8 @@ def main(argv=None) -> int:
         out = mi.import_flow(project, Path(args.folder), by=args.by, overwrite=args.overwrite)
     elif args.cmd == "check":
         out = mi.check_images(project)
+    elif args.cmd == "preview":
+        out = mi.preview(project, args.upto, render_video=args.render)
     elif args.cmd == "build":
         out = mi.build(project, render_video=args.render)
     else:

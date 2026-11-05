@@ -727,6 +727,46 @@ def render(project: Path, out: Optional[Path] = None, compose=None, loudness=Non
     return {"output": str(out)}
 
 
+def preview(project: Path, upto_seconds: float, *, render_video: bool = False, tts=None,
+            duration: Callable[[Path], float] = _duration) -> dict:
+    """Build the scenes that start before `upto_seconds` while images are still
+    coming in. A missing still borrows the nearest earlier one in the video
+    (or the next one, at the very start); the result lists which. Lives in
+    <project>/manual_images/preview/ so the real workspace is untouched."""
+    data = load_shotlist(project)
+    clips = narrate(project, tts=tts, duration=duration)["clips"]
+    timing = plan_timing(data, clips)
+    keep = {s["id"] for s in timing["scenes"] if s["start"] < upto_seconds}
+    scenes = [s for s in data["scenes"] if s["id"] in keep]
+    order = [shot["id"] for scene in scenes for shot in scene["shots"]]
+    have = {sid: find_image(project, sid) for sid in order}
+    if not any(have.values()):
+        raise RuntimeError("no images yet for this part of the video")
+
+    sub = root(project) / "preview"
+    if sub.exists():
+        shutil.rmtree(sub)
+    (sub / "manual_images" / "in").mkdir(parents=True)
+    _write(sub / "manual_images" / "shotlist.json", {**data, "scenes": scenes})
+    shutil.copytree(root(project) / "audio", sub / "manual_images" / "audio")
+    borrowed = {}
+    for i, sid in enumerate(order):
+        src = have[sid]
+        if not src:
+            earlier = [have[o] for o in order[:i] if have[o]]
+            src = earlier[-1] if earlier else next(have[o] for o in order[i + 1:] if have[o])
+            borrowed[sid] = src.stem
+        shutil.copy2(src, sub / "manual_images" / "in" / f"{sid}{src.suffix.lower()}")
+
+    built = build_workspace(sub, narrate(sub, tts=tts, duration=duration)["clips"])
+    out = {"scenes": [s["id"] for s in scenes], "seconds": built.get("duration"),
+           "borrowed": borrowed, "warnings": built["warnings"]}
+    if render_video:
+        target = Path(project) / "renders" / f"preview_{int(upto_seconds)}s.mp4"
+        out.update(render(sub, out=target))
+    return out
+
+
 def build(project: Path, *, render_video: bool = False, tts=None) -> dict:
     checked = check_images(project)
     if not checked["ready"]:
