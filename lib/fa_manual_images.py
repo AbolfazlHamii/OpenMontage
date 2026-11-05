@@ -577,6 +577,39 @@ def music_tracks(music_cfg: dict, timing: dict) -> list[dict]:
     return tracks
 
 
+def sfx_events(sfx_cfg: dict, data: dict, timing: dict) -> list[dict]:
+    """Sound-design events for sfx_placer from the shot list.
+
+    sfx = {"library": <dir>, "scene_change": <sfx or "">, "flash": <sfx>,
+           "marks": [{"scene", "cue", "sfx", "priority"?, "volume"?, "lead"?}],
+           "beds": [{"scene", "sfx", "seconds", "volume"?}]}
+    Marks land where their cue is spoken (letter share, like shot cues).
+    """
+    scenes = {s["id"]: s for s in timing["scenes"]}
+    text = {s["id"]: s.get("narration", "") for s in data["scenes"]}
+    events = []
+    for sc in timing["scenes"][1:]:
+        sound = sfx_cfg.get("flash") if sc["transition"] == "flash" else sfx_cfg.get("scene_change")
+        if sound:
+            events.append({"at": sc["start"], "sfx": sound, "kind": "cut", "priority": 3 if sc["transition"] == "flash" else 2})
+    for mark in sfx_cfg.get("marks") or []:
+        sc = scenes.get(mark["scene"])
+        narration = text.get(mark["scene"], "")
+        if not sc or mark.get("cue", "") not in narration:
+            continue
+        share = _letters(narration[:narration.find(mark["cue"])]) / max(1, _letters(narration)) if mark.get("cue") else 0
+        event = {"at": round(sc["voice_start"] + sc["voice_seconds"] * share, 3), "sfx": mark["sfx"],
+                 "kind": "mark", "priority": mark.get("priority", 4)}
+        event.update({k: mark[k] for k in ("volume", "lead") if k in mark})
+        events.append(event)
+    for bed in sfx_cfg.get("beds") or []:
+        sc = scenes.get(bed["scene"])
+        if sc:
+            events.append({"at": sc["start"], "sfx": bed["sfx"], "kind": "mark", "priority": 3,
+                           "duration": bed.get("seconds", 6), "volume": bed.get("volume", 0.25)})
+    return sorted(events, key=lambda e: e["at"])
+
+
 def build_workspace(project: Path, clips: dict) -> dict:
     from lib.fa_thumbnail import find_fonts
 
@@ -641,6 +674,26 @@ def build_workspace(project: Path, clips: dict) -> dict:
             f'data-duration="{round(track["end"] - track["start"], 3)}" data-track-index="{7 + i % 2}" '
             f'data-volume="{music_volume}"></audio>')
         track["id"] = f"bgm-{i}"
+
+    sfx_cfg = data.get("sfx") or {}
+    if sfx_cfg.get("library"):
+        from tools.audio.sfx_placer import SfxPlacer
+
+        library = _resolve(project, sfx_cfg["library"])
+        speech = [[sc["voice_start"], sc["voice_start"] + sc["voice_seconds"]] for sc in timing["scenes"]]
+        plan = SfxPlacer().execute({"operation": "plan", "library_dir": str(library),
+                                    "events": sfx_events(sfx_cfg, data, timing), "speech": speech,
+                                    "duration": timing["duration"]})
+        if plan.success:
+            (ws / "assets" / "sfx").mkdir(parents=True, exist_ok=True)
+            for name in {c["file"] for c in plan.data["cues"]} | {"LICENSE.md"}:
+                if (library / name).exists():
+                    shutil.copyfile(library / name, ws / "assets" / "sfx" / name)
+            audio_tags.append(plan.data["audio_tags"])
+            if plan.data.get("dropped"):
+                warnings.append(f"{len(plan.data['dropped'])} sound effects dropped by the density rules")
+        else:
+            warnings.append(f"sound effects skipped: {plan.error}")
 
     stamps = "".join(f'<div id="stamp-{s["id"]}" class="stamp">{html.escape(s["stamp"])}</div>'
                      for s in timing["scenes"] if s["stamp"])

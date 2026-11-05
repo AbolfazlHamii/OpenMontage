@@ -379,3 +379,46 @@ def test_workspace_places_section_music(project, tmp_path, monkeypatch):
     page = (project / "manual_images" / "workspace" / "index.html").read_text(encoding="utf-8")
     assert 'id="bgm-0"' in page and 'id="bgm-1"' not in page
     assert any("missing.mp3 not found" in w for w in out["warnings"])
+
+
+def test_sfx_events_from_scene_changes_marks_and_beds():
+    data = json.loads(json.dumps(SHOTLIST))
+    timing = mi.plan_timing(data, CLIPS)
+    cfg = {"scene_change": "swish", "flash": "whoosh",
+           "marks": [{"scene": "s1", "cue": "ماهی خشک", "sfx": "hit"}, {"scene": "s1", "cue": "نیست", "sfx": "hit"}],
+           "beds": [{"scene": "s2", "sfx": "crackle", "seconds": 4}]}
+    events = mi.sfx_events(cfg, data, timing)
+    kinds = [(e["sfx"], e["kind"]) for e in events]
+    assert ("whoosh", "cut") in kinds          # s2 is a flash transition
+    assert ("hit", "mark") in kinds and ("crackle", "mark") in kinds
+    assert sum(1 for e in events if e["sfx"] == "hit") == 1   # an unknown cue is skipped
+    s1 = timing["scenes"][0]
+    hit = next(e for e in events if e["sfx"] == "hit")
+    assert s1["voice_start"] < hit["at"] < s1["voice_start"] + s1["voice_seconds"]
+
+
+def test_workspace_adds_placed_sound_effects(project, tmp_path, monkeypatch):
+    import wave
+
+    lib = tmp_path / "sfxlib"
+    lib.mkdir()
+    for name in ("whoosh.wav", "hit.wav"):
+        with wave.open(str(lib / name), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(8000); w.writeframes(b"\x00\x00" * 4000)
+    (lib / "library.json").write_text(json.dumps({"name": "t", "files": {
+        "whoosh": {"file": "whoosh.wav", "duration": 0.5, "peak_s": 0.1, "sustain_s": 0.05},
+        "hit": {"file": "hit.wav", "duration": 0.5, "peak_s": 0.01, "sustain_s": 0.05}}}), encoding="utf-8")
+    inbox = project / "manual_images" / "in"
+    for shot in ("s1a", "s1b", "s2"):
+        _image(inbox / f"{shot}.png")
+    for name in ("a.wav", "b.wav"):
+        (tmp_path / name).write_bytes(b"x")
+    monkeypatch.delenv("SUBTITLE_FONTS_DIR", raising=False)
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["sfx"] = {"library": str(lib), "flash": "whoosh", "marks": [{"scene": "s1", "cue": "ماهی خشک", "sfx": "hit"}]}
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    clips = {"s1": {"path": str(tmp_path / "a.wav"), "seconds": 6.0}, "s2": {"path": str(tmp_path / "b.wav"), "seconds": 3.0}}
+    out = mi.build_workspace(project, clips)
+    page = (project / "manual_images" / "workspace" / "index.html").read_text(encoding="utf-8")
+    assert "assets/sfx/whoosh.wav" in page and "assets/sfx/hit.wav" in page, out["warnings"]
+    assert (project / "manual_images" / "workspace" / "assets" / "sfx" / "hit.wav").exists()
