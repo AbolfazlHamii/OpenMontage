@@ -1,0 +1,169 @@
+name: the-decline-of-nokia-what-happened-learned
+title: Learned from the-decline-of-nokia-what-happened
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The formula is audience-demand validation → subject endorsement
+  → constrained imagination prompt → unresolved reveal.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\the-decline-of-nokia-what-happened\source.mp4
+  date: '2026-11-05'
+  measured:
+    duration_seconds: 694.6
+    shots: 79
+    asl_seconds: 8.79
+    shot_length_range:
+    - 0.63
+    - 70.84
+    cuts_per_minute: 6.7
+    words_per_minute: 185.6
+    onset_sync:
+      ratio: 0.192
+      chance: 0.56
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 16.0
+    - start: 30.0
+      cuts_per_minute: 6.0
+    - start: 60.0
+      cuts_per_minute: 4.0
+    - start: 90.0
+      cuts_per_minute: 4.0
+    - start: 120.0
+      cuts_per_minute: 6.0
+    - start: 150.0
+      cuts_per_minute: 8.0
+    - start: 180.0
+      cuts_per_minute: 10.0
+    - start: 210.0
+      cuts_per_minute: 10.0
+    - start: 240.0
+      cuts_per_minute: 8.0
+    - start: 270.0
+      cuts_per_minute: 2.0
+    - start: 300.0
+      cuts_per_minute: 4.0
+    - start: 330.0
+      cuts_per_minute: 2.0
+    - start: 360.0
+      cuts_per_minute: 4.0
+    - start: 390.0
+      cuts_per_minute: 12.0
+    - start: 420.0
+      cuts_per_minute: 6.0
+    - start: 450.0
+      cuts_per_minute: 8.0
+    - start: 480.0
+      cuts_per_minute: 8.0
+    - start: 510.0
+      cuts_per_minute: 4.0
+    - start: 540.0
+      cuts_per_minute: 0.0
+    - start: 570.0
+      cuts_per_minute: 2.0
+    - start: 600.0
+      cuts_per_minute: 14.0
+    - start: 630.0
+      cuts_per_minute: 10.0
+    - start: 660.0
+      cuts_per_minute: 8.0
+    - start: 690.0
+      cuts_per_minute: 0.0
+    shot_size:
+      medium: 23
+      wide: 4
+      close_up: 9
+      extreme_wide: 1
+      extreme_close_up: 3
+    camera_angle:
+      eye_level: 30
+      high: 6
+      top_down: 4
+    content:
+      text: 7
+      illustration: 4
+      photo: 14
+      live_action: 11
+      map: 1
+      chart: 3
+    motion:
+      fast_motion: 29
+      ken_burns: 8
+      static: 3
+    text_on_screen_share: 0.72
+pacing:
+  sections:
+    hook:
+      asl_seconds: 3.31
+      cuts_per_minute: 16.0
+      duration_seconds: 30.0
+    body:
+      asl_seconds: 9.44
+      cuts_per_minute: 6.3
+      duration_seconds: 634.6
+    outro:
+      asl_seconds: 8.8
+      cuts_per_minute: 6.0
+      duration_seconds: 30.0
+  words_per_minute: 185.6
+  beat_sync_ratio: 0.192
+hook_formula:
+  duration_seconds: 30.0
+  beats:
+  - Acknowledge and validate audience demand, making viewers feel their request drove
+    the video.
+  - Endorse the subject and frame it as worth exploring.
+  - Guide viewers through a constrained mental-imagery exercise that narrows their
+    focus to a familiar reference.
+  - Open a curiosity loop by asserting that the image they formed is something specific,
+    then cutting off before revealing it.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 0.72
+  note: from frame differences inside each sampled shot
+- name: ken_burns
+  weight: 0.2
+- name: static
+  weight: 0.07
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 1.0
+- at: 0.2
+  energy: 0.85
+- at: 0.4
+  energy: 0.95
+- at: 0.6
+  energy: 0.85
+- at: 0.8
+  energy: 0.79
+- at: 1.0
+  energy: 0.82
+pattern_interrupt_seconds:
+  min: 3.4
+  max: 14.9
+color_type:
+  palette:
+  - '#112651'
+  - '#f2f2f2'
+  - '#b3b0af'
+  - '#484151'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

@@ -1,0 +1,109 @@
+name: from-the-moon-to-the-50-yard-line-learned
+title: Learned from from-the-moon-to-the-50-yard-line
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The formula is a direct-address praise hook: name the
+  subject, compliment them, congratulate their milestone, then tease a local or upcoming
+  payoff.'
+source:
+  kind: learned
+  reference: C:\Users\hp\AppData\Local\Temp\claude\D--project-videio-v\c63fe3c4-d31d-4e85-a674-c93c2ec34e2a\scratchpad\studio_projects\_reference\from-the-moon-to-the-50-yard-line\source.mp4
+  date: '2026-11-05'
+  measured:
+    duration_seconds: 38.8
+    shots: 19
+    asl_seconds: 2.04
+    shot_length_range:
+    - 0.5
+    - 6.67
+    cuts_per_minute: 27.8
+    words_per_minute: 87.0
+    onset_sync:
+      ratio: 0.611
+      chance: 0.552
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 30.0
+    - start: 30.0
+      cuts_per_minute: 20.4
+    shot_size:
+      medium: 7
+      wide: 2
+    camera_angle:
+      eye_level: 7
+      low: 2
+    content:
+      live_action: 8
+      text: 1
+    motion:
+      fast_motion: 9
+    text_on_screen_share: 0.89
+pacing:
+  sections:
+    hook:
+      asl_seconds: 1.83
+      cuts_per_minute: 30.0
+      duration_seconds: 10.0
+    body:
+      asl_seconds: 2.0
+      cuts_per_minute: 30.2
+      duration_seconds: 23.8
+    outro:
+      asl_seconds: 2.9
+      cuts_per_minute: 12.0
+      duration_seconds: 5.0
+  words_per_minute: 87.0
+  beat_sync_ratio: 0.611
+hook_formula:
+  duration_seconds: 10.0
+  beats:
+  - Directly address a specific person or group to create immediate intimacy
+  - Offer praise or admiration that frames them positively
+  - Congratulate them on a recent achievement or milestone
+  - Close with a localized or forward-looking promise that teases what comes next
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 1.0
+  note: from frame differences inside each sampled shot
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 0.6
+- at: 0.2
+  energy: 0.76
+- at: 0.4
+  energy: 1.0
+- at: 0.6
+  energy: 0.98
+- at: 0.8
+  energy: 0.86
+- at: 1.0
+  energy: 0.49
+pattern_interrupt_seconds:
+  min: 1.6
+  max: 3.4
+color_type:
+  palette:
+  - '#8f8d84'
+  - '#262a32'
+  - '#d4d2c9'
+  - '#666263'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
