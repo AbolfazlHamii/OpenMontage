@@ -422,3 +422,35 @@ def test_workspace_adds_placed_sound_effects(project, tmp_path, monkeypatch):
     page = (project / "manual_images" / "workspace" / "index.html").read_text(encoding="utf-8")
     assert "assets/sfx/whoosh.wav" in page and "assets/sfx/hit.wav" in page, out["warnings"]
     assert (project / "manual_images" / "workspace" / "assets" / "sfx" / "hit.wav").exists()
+
+
+def test_long_stills_get_punch_in_cuts():
+    shot = {"id": "x", "start": 10.0, "end": 18.0, "camera": "pan_left", "focus": [0.5, 0.45]}
+    assert len(mi.shot_moves(shot)) == 1
+    moves = mi.shot_moves(shot, max_still=3.0, punch_focus=[0.3, 0.3])
+    assert len(moves) == 3
+    assert moves[0]["from"] == mi.camera_from_to("pan_left", [0.5, 0.45])[0]
+    assert moves[1]["from"][:2] == (0.3, 0.3) and moves[1]["from"][2] > 1.3     # the punch-in
+    assert moves[2]["from"][2] < moves[1]["from"][2]                           # back out wide
+    assert moves[0]["start"] == 10.0 and moves[-1]["end"] == 18.0
+    assert all(abs((m["end"] - m["start"]) - 8 / 3) < 0.01 for m in moves)
+
+
+def test_a_shot_can_reuse_another_shots_image(project, tmp_path, monkeypatch):
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["scenes"][1]["shots"].append({"id": "s2b", "image": "s1a", "camera": "push_in"})
+    assert mi.validate(data) == []
+    bad = json.loads(json.dumps(data)); bad["scenes"][1]["shots"][1]["image"] = "nope"
+    assert any("not a shot with its own image" in p for p in mi.validate(bad))
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    pack = mi.write_prompt_pack(project)
+    assert len(Path(pack["zapi_flow"]).read_text(encoding="utf-8").splitlines()) == 3   # no prompt for s2b
+    for shot in ("s1a", "s1b", "s2"):
+        _image(project / "manual_images" / "in" / f"{shot}.png")
+    assert mi.check_images(project)["ready"] and mi.status(project).missing == []
+    for name in ("a.wav", "b.wav"):
+        (tmp_path / name).write_bytes(b"x")
+    monkeypatch.delenv("SUBTITLE_FONTS_DIR", raising=False)
+    clips = {"s1": {"path": str(tmp_path / "a.wav"), "seconds": 6.0}, "s2": {"path": str(tmp_path / "b.wav"), "seconds": 3.0}}
+    mi.build_workspace(project, clips)
+    assert (project / "manual_images" / "workspace" / "assets" / "img" / "s2b.png").exists()

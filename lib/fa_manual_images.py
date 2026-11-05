@@ -27,6 +27,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import math
 import re
 import shutil
 from dataclasses import dataclass
@@ -116,6 +117,7 @@ def validate(data: dict) -> list[str]:
         problems.append("no scenes")
     seen: set[str] = set()
     cast = (data.get("style") or {}).get("characters") or {}
+    made_ids = {sh.get("id") for sc in scenes for sh in sc.get("shots") or [] if not sh.get("image")}
     for scene in scenes:
         sid = scene.get("id") or "?"
         if not (scene.get("narration") or scene.get("audio")):
@@ -129,7 +131,10 @@ def validate(data: dict) -> list[str]:
             elif shid in seen:
                 problems.append(f"duplicate shot id {shid}")
             seen.add(shid or "")
-            if not shot.get("prompt"):
+            if shot.get("image"):
+                if shot["image"] not in made_ids:
+                    problems.append(f"{shid}: image {shot['image']!r} is not a shot with its own image")
+            elif not shot.get("prompt"):
                 problems.append(f"{shid}: no prompt")
             if shot.get("camera", "push_in") not in CAMERAS:
                 problems.append(f"{shid}: camera must be one of {', '.join(CAMERAS)}")
@@ -143,6 +148,16 @@ def validate(data: dict) -> list[str]:
 
 def shots(data: dict) -> list[tuple[dict, dict]]:
     return [(scene, shot) for scene in data["scenes"] for shot in scene["shots"]]
+
+
+def made_shots(data: dict) -> list[tuple[dict, dict]]:
+    """Shots that need an image of their own (not `image`: <another shot>)."""
+    return [(scene, shot) for scene, shot in shots(data) if not shot.get("image")]
+
+
+def image_source(data: dict) -> dict[str, str]:
+    """Shot id -> the shot id whose image it shows."""
+    return {shot["id"]: shot.get("image") or shot["id"] for _, shot in shots(data)}
 
 
 # -- prompt pack -----------------------------------------------------------------
@@ -175,7 +190,7 @@ def write_prompt_pack(project: Path) -> dict:
           "۳. عکس رو افقی (۱۶:۹) بگیر و با همون اسمی که زیرش نوشته ذخیره کن، توی پوشه‌ی `in/`.",
           "۴. اگه توی عکس نوشته یا حرف دیدی، دوباره بساز؛ متن فارسی رو خود ویدیو اضافه می‌کنه.", ""]
     cards = []
-    for scene, shot in shots(data):
+    for scene, shot in made_shots(data):
         prompt = full_prompt(shot, style)
         saved = find_image(project, shot["id"])
         preview = f"in/{saved.name}" if saved else f"in/{shot['id']}.png"
@@ -189,8 +204,8 @@ def write_prompt_pack(project: Path) -> dict:
             f'<div class="row"><pre dir="ltr" id="p-{html.escape(shot["id"])}">{html.escape(prompt)}</pre>'
             f'<img src="{html.escape(preview)}" alt="" onerror="this.classList.add(\'missing\')"></div>'
             f'<button onclick="copy(\'p-{html.escape(shot["id"])}\', this)">کپی پرامپت</button></section>')
-    order = [shot["id"] for _, shot in shots(data)]
-    lines = [zapi_line(shot, style) for _, shot in shots(data)]
+    order = [shot["id"] for _, shot in made_shots(data)]
+    lines = [zapi_line(shot, style) for _, shot in made_shots(data)]
     (out / "zapi_flow.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     _write(out / "zapi_flow_order.json", order)
     md[2:2] = ["**راه سریع (ZAPI FLOW):** همه‌ی پرامپت‌ها یکجا توی `zapi_flow.txt` هستن، هر خط یه عکس به همین ترتیب.",
@@ -284,7 +299,7 @@ def import_flow(project: Path, folder: Path, *, by: str = "auto", overwrite: boo
         raise ValueError("by must be auto, serial or time")
     out = root(project)
     order_path = out / "zapi_flow_order.json"
-    order = _read(order_path) if order_path.exists() else [shot["id"] for _, shot in shots(load_shotlist(project))]
+    order = _read(order_path) if order_path.exists() else [shot["id"] for _, shot in made_shots(load_shotlist(project))]
     files = sorted((p for p in Path(folder).iterdir() if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES),
                    key=lambda p: (p.stat().st_mtime, p.name))
     serials = {p: _serial(p.stem, len(order)) for p in files}
@@ -337,7 +352,7 @@ def check_images(project: Path) -> dict:
 
     data = load_shotlist(project)
     rows = []
-    for _, shot in shots(data):
+    for _, shot in made_shots(data):
         path = find_image(project, shot["id"])
         row: dict[str, Any] = {"id": shot["id"], "path": str(path) if path else None, "problems": []}
         if not path:
@@ -543,6 +558,26 @@ def camera_from_to(camera: str, focus: list[float]) -> tuple[tuple, tuple]:
     }[camera]
 
 
+def shot_moves(shot: dict, max_still: float = 0.0, punch_focus: Optional[list] = None) -> list[dict]:
+    """Camera moves for one still. A still on screen longer than `max_still`
+    is cut into parts that alternate its own move with a hard punch-in on the
+    detail (`punch_focus`, else its focus) and a wide drift, so a long line
+    over one image keeps the cutting rhythm without a new image."""
+    length = shot["end"] - shot["start"]
+    parts = max(1, math.ceil(length / max_still)) if max_still else 1
+    fx, fy = punch_focus or shot["focus"]
+    pattern = [camera_from_to(shot["camera"], shot["focus"]),
+               ((fx, fy, 1.34), (fx, fy, 1.42)),
+               ((max(fx - 0.05, 0.1), fy, 1.1), (min(fx + 0.05, 0.9), fy, 1.1))]
+    step = length / parts
+    moves = []
+    for k in range(parts):
+        frm, to = pattern[0] if k == 0 else pattern[1 + (k - 1) % 2]
+        moves.append({"id": shot["id"], "start": round(shot["start"] + k * step, 3),
+                      "end": round(shot["start"] + (k + 1) * step, 3), "from": frm, "to": to})
+    return moves
+
+
 MUSIC_XFADE = 1.0  # seconds two music sections overlap
 
 
@@ -634,8 +669,9 @@ def build_workspace(project: Path, clips: dict) -> dict:
                         "Persian text will render in a fallback font. Install Vazirmatn or set SUBTITLE_FONTS_DIR.")
 
     sections, audio_tags = [], []
+    source = image_source(data)
     for shot in timing["shots"]:
-        img = find_image(project, shot["id"])
+        img = find_image(project, source[shot["id"]])
         if not img:
             raise FileNotFoundError(f"image missing for {shot['id']}; run check")
         name = f"{shot['id']}{img.suffix.lower()}"
@@ -700,9 +736,10 @@ def build_workspace(project: Path, clips: dict) -> dict:
     caps = "".join(f'<div id="cg-{i}" class="cg"><span class="box">{html.escape(c["text"])}</span></div>'
                    for i, c in enumerate(timing["captions"]))
     moves = []
+    max_still = float((data.get("rhythm") or {}).get("max_still") or 0)
+    punch_at = {sh["id"]: sh.get("punch_focus") for sc in data["scenes"] for sh in sc["shots"]}
     for s in timing["shots"]:
-        start, end = camera_from_to(s["camera"], s["focus"])
-        moves.append({"id": s["id"], "start": s["start"], "end": s["end"], "from": start, "to": end})
+        moves += shot_moves(s, max_still, punch_at.get(s["id"]))
     page = WORKSPACE_PAGE.format(
         title=html.escape(data.get("title") or Path(project).name),
         duration=timing["duration"], sections="\n      ".join(sections), stamps=stamps, captions=caps,
@@ -848,7 +885,10 @@ def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, re
         raise RuntimeError(f"no scene starts between {from_seconds} and {upto_seconds} s")
     scenes = [s for s in data["scenes"] if s["id"] in keep]
     order = [shot["id"] for scene in scenes for shot in scene["shots"]]
-    have = {sid: find_image(project, sid) for sid in order}
+    source = image_source(data)
+    have = {sid: find_image(project, source[sid]) for sid in order}
+    # Inside the window every shot gets its own file, so reuse links are dropped.
+    scenes = [{**sc, "shots": [{k: v for k, v in sh.items() if k != "image"} for sh in sc["shots"]]} for sc in scenes]
     if not any(have.values()):
         raise RuntimeError("no images yet for this part of the video")
 
@@ -916,7 +956,7 @@ class Status:
 
 def status(project: Path) -> Status:
     data = load_shotlist(project)
-    ids = [shot["id"] for _, shot in shots(data)]
+    ids = [shot["id"] for _, shot in made_shots(data)]
     missing = [i for i in ids if not find_image(project, i)]
     return Status(len(ids), len(ids) - len(missing), missing)
 
