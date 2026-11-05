@@ -129,3 +129,14 @@ def test_multi_word_and_zwnj_phrases_match(text, pattern):
     import lib.fa_script_lint as fl
 
     assert getattr(fl, pattern).search(fl._fold(text))
+
+
+def test_long_outro_is_flagged_short_one_is_not(tmp_path):
+    story = ["می‌دونستی این شرکت با ماهی خشک شروع شد؟", "ولی سی سال بعد همه‌چی عوض شد.",
+             "به نظرت شرکت بعدی کدوم باشه؟"]
+    long_outro = ["اگه خوشت اومد لایک کن و کانال رو سابسکرایب کن که ویدیوهای بعدی رو از دست ندی.",
+                  "نظرت رو هم تو کامنت‌ها برامون بنویس، همه‌شون رو می‌خونیم و جواب می‌دیم."]
+    r = lint(_script(tmp_path, story + long_outro), cps=9.5)
+    assert "outro_long" in codes(r)
+    r = lint(_script(tmp_path, story + ["تو کامنت بنویس!"]), cps=9.5)
+    assert "outro_long" not in codes(r)

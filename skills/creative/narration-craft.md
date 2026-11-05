@@ -47,6 +47,7 @@ spoken Tehrani Persian, and the evidence behind each is stated honestly.
 | Register (`register_mixed`) | No bookish forms («است»، «می‌باشد»، «آن‌ها»، «را») in colloquial narration. | The channel voice is spoken Tehrani (`channels/fa-main/channel.md`); mixed register sounds like a news anchor reading a script. | D (channel decision) |
 | Digits (`digits`) | Numbers spelled out in TTS text; digits only in captions. | TTS reads digits inconsistently; the channel bible spells them out. | D (measured in the audition) |
 | Length (`too_long`, `too_short`, `section_overflow`) | Within ±5–15% of the target; each section fits its time slot. | Overruns force speed-ups or cuts later, after audio is paid for. | D |
+| Outro (`outro_long`) | Trailing subscribe/comment requests ≤ 8 s. | Every "Most replayed" curve we pulled falls to ~0 in the outro (5 of 5 videos, below). | A (curve) + D (8 s) |
 
 ## Writing patterns that pass the lint
 
@@ -62,6 +63,65 @@ spoken Tehrani Persian, and the evidence behind each is stated honestly.
   sentences beat one long one for the ear.
 - **Close the circle.** Reuse two content words of the first sentence in the last (the lint
   detects this as a `loop` ending), or tease the next episode.
+
+## What the research actually supports about "open loops"
+
+- **Curiosity is an information gap** the viewer notices (Loewenstein 1994). It is strongest
+  when the viewer can almost guess the answer: in Kang et al. (2009) curiosity peaked at
+  middling confidence, and curious people remembered surprising answers better a week or two
+  later. So ask questions the viewer can make a guess at («فکر می‌کنی چند تا باتری داشت؟»),
+  not ones about things they know nothing of. **B** (one fMRI study of 19 people; no replication found).
+- **The Zeigarnik effect** (unfinished things are remembered better), often quoted for open
+  loops, failed to replicate in a 2025 meta-analysis; the urge to *resume* an interrupted
+  task (Ovsiankina) held up. An open loop works because the viewer wants the ending, not
+  because they remember it: keep the question in front of them and remind them just before
+  the payoff. **B**
+- **Spoilers did not spoil**: readers enjoyed stories more when told the ending first
+  (Leavitt & Christenfeld 2011; a later thesis found the effect only for a separate spoiler
+  paragraph). Saying *what* happens in the hook is fine; the loop is *how* and *why*.
+  **B** (contested)
+- **Narrative transportation**: people absorbed in a story are moved by it more (Green &
+  Brock 2000, four experiments; a later meta-analysis by van Laer and colleagues). Second-person scenes
+  («تصور کن…»), concrete images and one protagonist are how Persian channels do it
+  (`channels/fa-main/tone.md`). **B** (mechanism) + **C** (practice)
+- **Progressive novelty**: pacing is how fast new information arrives (Mario Joos, former
+  MrBeast retention strategist, as quoted by Vidpros). **C**
+
+## What "Most replayed" heatmaps show (2026-11-05)
+
+YouTube's "Most replayed" curve (yt-dlp `heatmap`, 100 points per video, only for videos
+with enough views) marks moments watched or rewatched most. It is not the retention graph,
+but YouTube's own key-moments report treats spikes as rewatched/shared and dips as skipped
+(**A**). We lined the curves of 5 reference videos (Crayon Capital: Enron 1.1M, Wolf of
+Wall Street 4.3M; Company Man: Nokia 1.2M; Gooneh Var: 2 videos, 73K–107K) up with their
+transcripts (`scratchpad heat_beats.py`; transcripts under `projects/_reference/`).
+
+Peaks (rewatched):
+
+- **The answer to the title's question, said right after the question.** Gooneh Var's top
+  peak (+0.88 over its neighbourhood) is «…اونوقت چرا؟ خب به دلیل رژیم غذایی»; Nokia's
+  (+0.97) is the "why it lost to smartphones" explanation.
+- **The mechanism, with a number and a punchline.** "a pump and dump… at Stratton Oakmont
+  it was called another Tuesday" (+0.78); "$586 million in earnings weren't real… cooked the
+  books so hard they caught fire" (+0.49).
+- **A turn or a new character.** "Wait, where's the actual money?" (+0.58), "Enter Arthur
+  Andersen" (+0.57).
+- **The story's shock moment** (Gooneh Var, Roman servant, +0.87).
+- Most top peaks sit between 40% and 80% of the runtime: the payoff of the title belongs
+  mid-video, stated crisply, not saved for the last seconds.
+
+Dips (skipped):
+
+- the long setup just before an answer («اینجا یه مشکلی بود، محاسبات جور درنمیاد…»
+  dipped, the answer after it peaked): one sentence of problem, then the answer;
+- side stories (Belfort's door-to-door meat business), generic lists ("mansions,
+  Lamborghinis, Rolexes"), restating what was already said;
+- every outro: all 5 curves end near 0. Nothing important after the last beat.
+
+Rules we take from it (**D** until our own analytics confirm): one-sentence setups; the
+title's answer at 40–80% with a number and a punchline; cut side stories and lists that
+carry no stake; a new character or "wait, where's the money?" turn every few minutes;
+outro under 8 s (`outro_long`).
 
 ## Working with the lint
 
@@ -85,5 +145,15 @@ spoken Tehrani Persian, and the evidence behind each is stated honestly.
   re-engagement points) — summary: https://www.alexanderjarvis.com/memo-how-to-succeed-in-mrbeast-production/
 - Trey Parker and Matt Stone on "but / therefore" (NYU talk), summarised:
   https://perell.com/note/but-therefore-rule/
+- Kang, M. J. et al. (2009). The Wick in the Candle of Learning: Epistemic Curiosity Activates
+  Reward Circuitry and Enhances Memory. *Psychological Science* 20(8), 963–973.
+- Ghibellini, R. & Meier, B. (2025). Interruption, recall and resumption: a meta-analysis of
+  the Zeigarnik and Ovsiankina effects. *Humanities and Social Sciences Communications* 12.
+- Leavitt, J. D. & Christenfeld, N. J. S. (2011). Story Spoilers Don't Spoil Stories.
+  *Psychological Science* 22(9), 1152–1154.
+- Green, M. C. & Brock, T. C. (2000). The Role of Transportation in the Persuasiveness of
+  Public Narratives. *Journal of Personality and Social Psychology* 79(5), 701–721.
+- Mario Joos on pacing ("progressive novel information"), quoted by Vidpros:
+  https://vidpros.com/retention-editing-what-you-can-learn-from-mario-joos/
 - Channel measurements: `channels/fa-main/voices.yaml` (narrator pace), CEOzoned reference
   notes `projects/_reference/ceozoned-coca-cola/REFERENCE_NOTES.md`.

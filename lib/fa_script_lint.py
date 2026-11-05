@@ -51,6 +51,7 @@ MONOTONE_CV = 0.25
 SPECIFIC_PER_10S = 0.5
 END_SIGNAL_BEFORE = 0.85  # share of the runtime
 CTA_TOO_EARLY = 30.0
+OUTRO_MAX = 8.0  # seconds of trailing subscribe/comment requests
 
 
 def _fold(text: str) -> str:
@@ -438,6 +439,16 @@ def check_ending(ending: dict[str, Any], sentences: list[Sentence], duration: fl
         findings.append(_finding("ending_flat", "high", "پایان نه به شروع برمی‌گرده، نه سؤال یا چرخش داره؛ بیننده دلیلی برای موندن تا آخر نداره."))
     elif ending["primary"] in ("summary", "subscribe_cta"):
         findings.append(_finding("ending_weak", "medium", "پایان فقط جمع‌بندی یا درخواست سابسکرایبه؛ یه برگشت به هوک یا سرنخ قسمت بعد قوی‌تره."))
+    # "Most replayed" curves of the reference videos fall to ~0 in the outro
+    # (5 of 5, 2026-11-05): nothing said after the last story beat is heard.
+    outro = 0.0
+    for s in reversed(sentences):
+        if not (s.features["cta_subscribe"] or s.features["cta_comment"]):
+            break
+        outro += s.end - s.start
+    if outro > OUTRO_MAX:
+        findings.append(_finding("outro_long", "medium", f"درخواست‌های آخر ویدیو {outro:.0f} ثانیه‌ست؛ بیننده‌ها همین‌جا می‌رن. زیر {OUTRO_MAX:.0f} ثانیه نگهش دار.",
+                                 sentences[-1].start))
     for s in sentences:
         if s.features["end_signal"] and s.end < END_SIGNAL_BEFORE * duration:
             findings.append(_finding("end_signal_early", "medium", f"«{s.text[:30]}…» زودتر از آخر ویدیو بوی تموم شدن می‌ده؛ بیننده همین‌جا می‌ره.", s.start))
