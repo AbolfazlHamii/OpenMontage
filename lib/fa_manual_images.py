@@ -727,8 +727,8 @@ def render(project: Path, out: Optional[Path] = None, compose=None, loudness=Non
     return {"output": str(out)}
 
 
-def preview(project: Path, upto_seconds: float, *, render_video: bool = False, tts=None,
-            duration: Callable[[Path], float] = _duration) -> dict:
+def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, render_video: bool = False,
+            tts=None, duration: Callable[[Path], float] = _duration) -> dict:
     """Build the scenes that start before `upto_seconds` while images are still
     coming in. A missing still borrows the nearest earlier one in the video
     (or the next one, at the very start); the result lists which. Lives in
@@ -736,16 +736,23 @@ def preview(project: Path, upto_seconds: float, *, render_video: bool = False, t
     data = load_shotlist(project)
     clips = narrate(project, tts=tts, duration=duration)["clips"]
     timing = plan_timing(data, clips)
-    keep = {s["id"] for s in timing["scenes"] if s["start"] < upto_seconds}
+    # A scene belongs to the window it starts in, so consecutive windows never overlap.
+    keep = {s["id"] for s in timing["scenes"] if from_seconds <= s["start"] < upto_seconds}
+    if not keep:
+        raise RuntimeError(f"no scene starts between {from_seconds} and {upto_seconds} s")
     scenes = [s for s in data["scenes"] if s["id"] in keep]
     order = [shot["id"] for scene in scenes for shot in scene["shots"]]
     have = {sid: find_image(project, sid) for sid in order}
     if not any(have.values()):
         raise RuntimeError("no images yet for this part of the video")
 
-    sub = root(project) / "preview"
-    if sub.exists():
-        shutil.rmtree(sub)
+    # One folder per window: a renderer that has not let go of an older
+    # workspace (Windows keeps it locked) cannot block the next window.
+    base = root(project) / "preview" / f"{int(from_seconds)}-{int(upto_seconds)}"
+    shutil.rmtree(base, ignore_errors=True)
+    sub, n = base, 1
+    while sub.exists():
+        sub, n = base.with_name(f"{base.name}_{n}"), n + 1
     (sub / "manual_images" / "in").mkdir(parents=True)
     _write(sub / "manual_images" / "shotlist.json", {**data, "scenes": scenes})
     shutil.copytree(root(project) / "audio", sub / "manual_images" / "audio")
@@ -760,9 +767,10 @@ def preview(project: Path, upto_seconds: float, *, render_video: bool = False, t
 
     built = build_workspace(sub, narrate(sub, tts=tts, duration=duration)["clips"])
     out = {"scenes": [s["id"] for s in scenes], "seconds": built.get("duration"),
-           "borrowed": borrowed, "warnings": built["warnings"]}
+           "borrowed": borrowed, "workdir": str(sub), "warnings": built["warnings"]}
     if render_video:
-        target = Path(project) / "renders" / f"preview_{int(upto_seconds)}s.mp4"
+        name = f"preview_{int(upto_seconds)}s" if not from_seconds else f"preview_{int(from_seconds)}-{int(upto_seconds)}s"
+        target = Path(project) / "renders" / f"{name}.mp4"
         out.update(render(sub, out=target))
     return out
 

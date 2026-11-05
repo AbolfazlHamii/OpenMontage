@@ -34,7 +34,8 @@ def main(argv=None) -> int:
         if name in ("build", "preview"):
             p.add_argument("--render", action="store_true", help="also render and normalize to -14 LUFS")
         if name == "preview":
-            p.add_argument("--upto", type=float, default=60.0, help="seconds of the video to build")
+            p.add_argument("--upto", type=float, default=60.0, help="build up to this second of the video")
+            p.add_argument("--from", dest="start", type=float, default=0.0, help="start at this second (whole scenes)")
         if name == "import":
             p.add_argument("--from", dest="folder", required=True, help="folder ZAPI FLOW downloaded into")
             p.add_argument("--by", choices=("auto", "serial", "time"), default="auto")
@@ -54,7 +55,7 @@ def main(argv=None) -> int:
     elif args.cmd == "check":
         out = mi.check_images(project)
     elif args.cmd == "preview":
-        out = mi.preview(project, args.upto, render_video=args.render)
+        out = mi.preview(project, args.upto, from_seconds=args.start, render_video=args.render)
     elif args.cmd == "build":
         out = mi.build(project, render_video=args.render)
     else:

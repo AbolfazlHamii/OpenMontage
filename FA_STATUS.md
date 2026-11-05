@@ -148,6 +148,18 @@ in Google Flow with ZAPI FLOW):
   The Windows system proxy (v2rayN) breaks AvalAI calls when it is down: run with
   `NO_PROXY=*` and the HTTP(S)_PROXY variables unset; clips are cached, a rerun only voices missing scenes.
 
+- Images arriving (2026-11-05): ZAPI FLOW names are unreliable here (a file
+  often carries the next row's number, some rows were made twice), so
+  images are matched to shots by looking at them; `manual_images/flow_import.json`
+  logs each copy. 18/98 in after the first batch.
+- Building as images arrive: `preview --from A --upto B --render` per scene
+  (windows in `manual_images/scene_windows.txt`), loop in
+  `projects/kgb-history-fa/render_scenes.sh s07 s08 ...`; renders in
+  `renders/preview_<A>-<B>s.mp4`, stitched to `renders/kgb_so_far.mp4`
+  (scenes 1–5, 56 s). Render needs `npm_config_prefer_offline=true` (the
+  npx check times out on the dead proxy) and `HYPERFRAMES_BROWSER_PATH` =
+  installed Chrome; ~6 s of render per second of video.
+
 Next: owner pastes `zapi_flow.txt` into ZAPI FLOW (Flow image mode, 16:9,
 serial number in file name) → `scripts/fa_manual_images.py import --project
 projects/kgb-history-fa --from <download folder>` → `check` → look at the
