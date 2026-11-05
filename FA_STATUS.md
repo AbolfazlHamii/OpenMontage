@@ -157,7 +157,9 @@ in Google Flow with ZAPI FLOW):
   (cross-fade 1 s; a missing file is only a warning).
 - Sound design: `sfx` in the shot list (swish on scene changes, whoosh on
   flash jumps, 18 cued accents, 3 crackle beds) from `projects/_sfx_library/fa-v1`.
-- Images: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
+- Images: 53/98 in (content-matched; 2026-11-05 ~09:30). Music m01, m02 from the owner's Suno runs (Downloads/1.mp3, 2.mp3); bed sits ~19 dB under the mix (volume 0.16).
+- Render by music section, not by scene, so a track never restarts mid-section: `renders/preview_99s.mp4` = scenes 1–9 with m01+m02.
+- Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
 - Building as images arrive: `preview --from A --upto B --render` per scene
