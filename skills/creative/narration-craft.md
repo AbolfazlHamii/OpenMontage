@@ -14,7 +14,10 @@ python scripts/fa_script_lint.py projects/<id>/artifacts/script.json --voice Cha
 `--voice` takes the narrator's measured pace (letters per second) from
 `channels/fa-main/voices.yaml`, so the timeline matches the real voice: on the
 Samsung sample the lint estimated 15.1 s for two lines that Kore read in
-14.4 s. `--llm` adds a worker-tier draft of the open loops (~$0.0005); it is a
+14.4 s, but on the 85 s Samsung draft Kore with flash-lite read 8.1 letters/s
+(the estimate ran ~10% short): budget with the pace measured for the voice,
+model and style you will use. `--llm` adds a worker-tier draft of the open
+loops (under $0.01; $0.0037 with claude-haiku-5-5 on the 85 s draft); it is a
 draft for you to review, never a verdict. Exit code 0/1/2 = low/medium/high
 risk. The report is `<input>.lint.json`; paste its Persian summary to the owner.
 
@@ -123,17 +126,147 @@ title's answer at 40–80% with a number and a punchline; cut side stories and l
 carry no stake; a new character or "wait, where's the money?" turn every few minutes;
 outro under 8 s (`outro_long`).
 
+## Hooks by time window
+
+YouTube only measures the 30 s mark (**A**); the 3 s and 10 s windows are practice (**C**)
+and our lint thresholds (**D**). Facebook's "47% of the value in the first 3 seconds" is
+about *ads*, from a 2015 Facebook-commissioned Nielsen study — do not quote it for YouTube.
+
+| Window | Job | Script move |
+|---|---|---|
+| 0–3 s | Stop the scroll: the hook is in the first words, no "hi, welcome". | One hook type below; the lint wants the first «تو», number, question or «ولی» by 3 s. |
+| 3–10 s | State the gap: why this is strange, what is at stake. | The paradox's second half, or the question the video answers. |
+| 10–30 s | Keep the title's promise: show the viewer they are in the right video, then give a first small payoff. | CEOzoned says the title line at ~15 s ("This is the entire history of Coca-Cola"); our «این کل تاریخ سامسونگه». |
+
+The hook lab (`scripts/fa_editorial.py hooks`) drafts one hook of each type below, with the
+question each one leaves open (`open_loop`) and the lint's timing (`first_hook_seconds`).
+Shortlist hooks that land under 3 s and whose loop the video really answers.
+The examples are patterns; facts in a real script need sources.
+
+| Type | What it is | Example (spoken Tehrani) |
+|---|---|---|
+| `number` | A big exact number. | «هر سال دویست و چهل و یک میلیون تا گوشی با یه اسم از کارخونه میاد بیرون.» |
+| `paradox` | Two true facts that should not fit. | «بزرگ‌ترین سازنده‌ی چیپ حافظه‌ی دنیا، با فروش ماهی خشک شروع کرد.» |
+| `question` | A question the viewer can almost answer. | «فکر می‌کنی سامسونگ اولش چی می‌فروخت؟ نه گوشی، نه تلویزیون…» |
+| `shock` | The most extreme act, said flatly. | «رئیس سامسونگ صد و پنجاه هزار تا گوشیِ خودشو آتیش زد.» |
+| `story` | One person, one year, one place, mid-action. | «سال هزار و نهصد و سی و هشت، تو شهر تگو، یه مرد جوون یه مغازه‌ی کوچیک باز کرد.» |
+| `promise` | What the viewer will know by the end. | «تا آخر این ویدیو می‌فهمی یه بقالی چطوری شد غول تکنولوژی.» |
+| `you` | Puts the viewer in the scene. | «احتمالاً گوشیِ توی دستت سامسونگه…» |
+| `myth` | What people believe, then that it is wrong. | «همه فکر می‌کنن سامسونگ از اول الکترونیکی بود. ولی سی و یک سال طول کشید تا اولین تلویزیونشو بسازه.» |
+| `contrast` | Tiny start vs giant today, one breath. | «از یه مغازه‌ی ماهی خشک… تا چیپی که الان توی گوشیِ توئه.» |
+| `cold_open` | Start at the climax, then rewind. | «صد و پنجاه هزار تا گوشی وسط حیاط کارخونه داره می‌سوزه. ولی بذار از اول بگم.» |
+| `stakes` | What was about to be lost. | «یه تصمیم اشتباه دیگه، و کل شرکت از دست می‌رفت.» |
+| `mystery` | One strange detail, explained later. | «یه چیزی توی این عکس قدیمی هست که کل داستان سامسونگ رو لو می‌ده.» |
+
+## Re-hooks in the script, not only the edit
+
+A re-hook is a sentence that changes the question: a «ولی», a new number, a new person, or
+the viewer's own question said aloud («می‌گی چرا؟ خب…»). Plan them in the text; the editor's
+cuts (`styles/editing/`) then land on them. Useful moves:
+
+- **Reminder before the payoff:** «یادته گفتم با ماهی خشک شروع کرد؟ حالا ببین…» — the loop
+  works because the viewer wants the answer (Ovsiankina), so bring the question back.
+- **Escalate the stakes** each act: money → reputation → the company itself.
+- **Close one loop, open the next in the same breath** (the "therefore… but" chain).
+  For 60–90 s: one big loop (the hook's paradox) + 2–3 small ones that close within 20 s.
+  For 5–15 min: the big loop pays off at 40–80% (heatmap peaks, above), a new loop per act.
+
+## Delivery: directing Gemini TTS in Persian
+
+Gemini 3.8 TTS reads the text verbatim; delivery goes in `style`, short tags like
+`<short pause>` work inline (`skills/creative/persian-localization.md`). It has no emphasis
+markup, so emphasis is written into the text:
+
+- **Energy curve = one `style` per section.** Synthesize section by section (the token cap
+  forces it anyway) and give each section its own style. Record it in the script artifact:
+  `voice_performance.energy_curve` and `sections[].delivery_cues` (`pace`, `energy`,
+  `emphasis_words`, `pause_before_seconds`, `provider_text`).
+  - hook: «پرانرژی و کنجکاو، مثل رفیقی که یه راز می‌گه، ریتم تند، لهجه‌ی تهرانی محاوره»
+  - story: «قصه‌گو و گرم، ریتم متوسط رو به تند، صمیمی»
+  - reveal: «آروم‌تر و جدی، کلمه‌ی آخر رو محکم بگو»
+  - ending: «گرم و صمیمی، کمی آروم‌تر، با لبخند»
+- **Pause before the reveal.** `<short pause>` (≈0.4 s in the lint) before the number or the
+  twist; listeners recognised words heard after a silent pause better in a later memory test
+  (MacGregor, Corley & Donaldson 2010, **B**). Longer silences go in the edit
+  (`pause_before_seconds`), not as TTS tags.
+- **Emphasis by position.** Make the reveal its own short sentence and put it last:
+  «…و همه رو آتیش زد. <short pause> صد و پنجاه هزار تا.» An ellipsis «…» gives a
+  hesitation; «!» lifts the pitch.
+- **Pace.** Our voices read ~9–10 letters/s (~150 words/min, `voices.yaml`); the Persian
+  channel we studied speaks ~190 words/min (`channels/fa-main/tone.md`, **C**). Ask for a
+  fast style, allow up to 1.08× speed-up in the edit, and slow down on numbers and names.
+- **Check the take.** Round-trip every final clip (`lib/fa_text.round_trip`); a style that is
+  too fast starts dropping or changing words (the audition: Charon energetic 0.964).
+
+## Address, specifics and register
+
+- **«تو», not «شما».** A conversational, second-person style helped learning in Moreno &
+  Mayer's experiments (personalization principle, **B**; later reviews found smaller effects,
+  and it may fade in long lessons). The channel speaks to one friend, so singular «تو».
+- **Exact beats round.** "Sharp" numbers (241.2 million) read as more factual than round ones
+  (Schindler & Yalch 2006, ads, **B**). Say the exact number once, then a picture of it
+  («یعنی تقریباً هر ثانیه هشت تا گوشی»).
+- **Names and places** make a beat concrete: one protagonist per era, named once, then
+  «همون آقای لی».
+- **Sentence rhythm:** short-short-long; never three sentences of the same length in a row
+  (lint `rhythm_flat`). Persian is verb-final: if the subject and the verb are more than ~12
+  words apart, split the sentence.
+
+## Endings and calls to action
+
+- **Loop ending (default for the "entire history" format):** come back to the hook's image
+  and close it. CEOzoned closes Coca-Cola with the hook's paradox ("a failed medicine…") and
+  "And that is the entire history of Coca-Cola" — no ask (reference transcript).
+- **Next-episode tease:** end on the open question the next video answers; the lint lets one
+  loop stay open for it (`next_episode`).
+- **CTA placement:** never in the first 30 s (`cta_early`); a one-line comment question can
+  sit right after a payoff mid-video; the closing ask stays under 8 s (`outro_long`).
+- **End screens** can only sit in the last 5–20 s (YouTube Help, **A**): leave 5 s of picture
+  after the last line so the end-screen video does not cover a beat.
+- **Shorts cut:** every replay of a Short counts as a view since 31 March 2025 (**A**), so a
+  last line that flows into the first one is worth writing for the vertical cut.
+
+## Persian-speaking audience
+
+- **Spoken Tehrani all the way** («می‌شه»، «اون»، «رو»، «یه»); written Persian is a separate
+  register, and mixing them sounds like a news anchor (lint `register_mixed`). The channel's
+  safe and "too rude for now" slang lists are in `channels/fa-main/tone.md`.
+- **Humour:** short, about the situation or ourselves; never about ethnic groups (Turk/Rashti/Lor
+  jokes), religion, or the viewer's country's politics or sanctions. Quote a person's own
+  provocative line as theirs («به قول خودش…»), do not make it ours.
+- **Years in full.** «سال شصت و نه» sounds like the Iranian year 1369 (1990), not 1969: say
+  the full Gregorian year once («سال هزار و نهصد و شصت و نه»), then relative time («نه سال بعد»).
+- **References:** prefer things every Persian speaker knows (bazaar, «سوپری سر کوچه», Nokia
+  1100, exam stress) over US pop culture. No politics: topics.md already drops political subjects.
+- **Viewing conditions:** YouTube is filtered in Iran, so many viewers watch through VPNs on
+  mobile data; the first line must work at low resolution with the captions on.
+
+## Claims we checked (and what to do with them)
+
+| Claim you will meet | Status |
+|---|---|
+| "Humans now have an 8-second attention span, less than a goldfish" | Myth: traced to a 2015 Microsoft Canada report citing a commercial stats site; no study behind it (BBC, 2017). Never use. |
+| "47% of a video's value is in the first 3 seconds" | Facebook/Nielsen, 2015, mobile *ads*, Facebook-commissioned. Not about YouTube narration. |
+| "Keep 50% (or 60%) past 30 s and YouTube treats it as a good intro" | Third-party guides (vidIQ and others) disagree on the number; YouTube's Help page defines Intro but gives no target. Anecdotal. |
+| MrBeast guide: "the first minute is when most people click off; re-engage at ~3 and ~6 min" | Leaked 2024 document, not confirmed as authentic. Practice, **C**. |
+| "Open loops work because of the Zeigarnik effect" | Memory advantage not replicated (2025 meta-analysis); the urge to resume is real. See above. |
+
 ## Working with the lint
 
 1. Draft the script yourself (premium tier: final Persian text is never delegated —
    `skills/meta/delegation-protocol.md`). Hook options can come from the hook lab
-   (`scripts/fa_editorial.py hooks`).
+   (`scripts/fa_editorial.py hooks`: 12 types, each with its open loop and hook timing).
 2. Run the lint; fix every 🔴; fix 🟡 unless you have a reason, and write the reason in
    the script stage summary.
 3. With `--llm`, compare the drafted loops with what you intended. If the worker sees a
    loop you did not mean, the viewer may too.
 4. Run the fact-check step on the final text before TTS.
 5. Show the owner: the script, the lint summary, and what you changed.
+
+Worked example (a draft, not approved): `docs/fa/narration/samsung_90s_draft.*` — the plain
+text with loop markers, the schema-valid script artifact with per-section TTS styles,
+`metadata.loops` and a digits caption version, and the before/after reports in
+`docs/fa/narration/lint_reports.md`.
 
 ## Sources
 
@@ -157,3 +290,18 @@ outro under 8 s (`outro_long`).
   https://vidpros.com/retention-editing-what-you-can-learn-from-mario-joos/
 - Channel measurements: `channels/fa-main/voices.yaml` (narrator pace), CEOzoned reference
   notes `projects/_reference/ceozoned-coca-cola/REFERENCE_NOTES.md`.
+- MacGregor, L. J., Corley, M. & Donaldson, D. I. (2010). Listening to the sound of silence:
+  Disfluent silent pauses in speech have consequences for listeners. *Neuropsychologia*
+  48(14), 3982–3992.
+- Moreno, R. & Mayer, R. E. (2000). Engaging students in active learning: The case for
+  personalized multimedia messages. *Journal of Educational Psychology* 92, 724–733.
+- Schindler, R. M. & Yalch, R. F. (2006). It Seems Factual, But Is It? Effects of Using Sharp
+  versus Round Numbers in Advertising Claims. *Advances in Consumer Research* 33, 586–590.
+- YouTube Help — Add end screens to videos (last 5–20 s): https://support.google.com/youtube/answer/6388789
+- Shorts views count every start or replay from 31 March 2025:
+  https://techcrunch.com/2025/03/26/youtube-is-changing-how-youtube-shorts-views-are-counted
+- Facebook/Nielsen first-3-seconds figures (ads): https://www.marketingdive.com/news/facebook-offers-tips-for-converting-tv-ads-to-mobile/448510/
+- Goldfish attention-span myth: https://www.warc.com/newsandopinion/opinion/the_goldfish_myth/2806
+- Gemini speech generation (style prompts, inline tags): https://ai.google.dev/gemini-api/docs/speech-generation
+  (403 from Iran; the project's tested notes are in `skills/creative/persian-localization.md`).
+- Spoken vs written Persian (diglossia): https://sites.la.utexas.edu/persian_online_resources/language-specific-grammar/diglossia/

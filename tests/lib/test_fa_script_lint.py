@@ -140,3 +140,16 @@ def test_long_outro_is_flagged_short_one_is_not(tmp_path):
     assert "outro_long" in codes(r)
     r = lint(_script(tmp_path, story + ["تو کامنت بنویس!"]), cps=9.5)
     assert "outro_long" not in codes(r)
+
+
+def test_rehook_lands_at_its_earliest_cue(tmp_path):
+    # The year is heard ~2.6 s into a long sentence; timing it at the sentence end overstated the gap.
+    r = lint(_script(tmp_path, ["سال هزار و نهصد و هشتاد و سه، تو توکیو اعلام می‌کنه که می‌رن سراغ چیپ حافظه."]),
+             cps=9.0)
+    first = r["rehooks"]["rehook_times"][0]
+    assert first < 3.5 < r["timeline"][0]["end"]
+
+
+def test_nine_before_a_counter_is_a_number(tmp_path):
+    r = lint(_script(tmp_path, ["نه سال بعد، این شرکت اول دنیاست.", "نه، این‌طوری نبود."]), cps=9.0)
+    assert r["specificity"]["numbers"] == 1

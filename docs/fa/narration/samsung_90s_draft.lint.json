@@ -1,0 +1,362 @@
+{
+  "title": "کل تاریخ سامسونگ در ۹۰ ثانیه — پیش‌نویس (منتظر تأیید صاحب کانال)",
+  "cps": 9.0,
+  "risk": "low",
+  "hook": {
+    "first_hook_seconds": 2.0,
+    "first_hook_kind": "you",
+    "elements": {
+      "you": 2.0,
+      "paradox": 7.0,
+      "number": 11.11,
+      "question": 15.56
+    },
+    "first_sentence": "احتمالاً گوشیِ توی دستت سامسونگه… ولی این غول تکنولوژی، با فروش ماهی خشک شروع کرد!"
+  },
+  "open_loops": {
+    "loops": [
+      {
+        "id": "fish",
+        "question": "",
+        "opened_at": 7.0,
+        "closed_at": 83.02,
+        "source": "marker"
+      },
+      {
+        "id": "fire",
+        "question": "",
+        "opened_at": 49.67,
+        "closed_at": 59.73,
+        "source": "marker"
+      }
+    ],
+    "opened": 2,
+    "closed": 2,
+    "max_open_at_once": 2,
+    "questions": [
+      {
+        "at": 15.6,
+        "text": "کارش؟"
+      },
+      {
+        "at": 23.9,
+        "text": "اولین محصولش؟"
+      },
+      {
+        "at": 36.8,
+        "text": "ولی گوشی‌هاش؟"
+      },
+      {
+        "at": 39.6,
+        "text": "راه‌حل پسرش، لی کون‌هی؟"
+      },
+      {
+        "at": 61.4,
+        "text": "تو بودی آتیش می‌زدی؟"
+      },
+      {
+        "at": 62.1,
+        "text": "نتیجه‌ش؟"
+      }
+    ],
+    "first_gap_seconds": 7.0
+  },
+  "rehooks": {
+    "rehook_times": [
+      2.0,
+      3.2,
+      7.0,
+      11.1,
+      15.6,
+      19.3,
+      19.9,
+      23.9,
+      28.3,
+      32.3,
+      36.0,
+      36.8,
+      39.6,
+      45.9,
+      46.1,
+      51.0,
+      56.4,
+      59.7,
+      61.4,
+      62.1,
+      63.8,
+      70.1,
+      70.4,
+      72.5,
+      74.0,
+      80.2
+    ],
+    "max_gap_seconds": 6.3,
+    "gaps_over_warn": []
+  },
+  "rhythm": {
+    "sentences": 26,
+    "mean_seconds": 3.25,
+    "cv": 0.55,
+    "longest_seconds": 7.0,
+    "punches": 5,
+    "same_length_runs": 2,
+    "but_therefore_and_then": {
+      "but": 5,
+      "therefore": 0,
+      "and_then": 1
+    }
+  },
+  "specificity": {
+    "numbers": 10,
+    "years": 4,
+    "names": [
+      "pause",
+      "short",
+      "اپل",
+      "ایران",
+      "توکیو",
+      "سامسونگ",
+      "فرانکفورت",
+      "لی بیونگ‌چول",
+      "لی کون‌هی",
+      "منچوری",
+      "نوکیا",
+      "پکن",
+      "کره",
+      "گومی"
+    ],
+    "vague": [],
+    "specifics_per_10s": 2.82
+  },
+  "ending": {
+    "primary": "loop",
+    "types": [
+      "loop",
+      "comment_cta"
+    ],
+    "shared_with_opening": [
+      "خشک",
+      "شروع",
+      "ماهی"
+    ],
+    "last_sentence": "شرکت بعدی رو تو کامنت بگو."
+  },
+  "text": {
+    "estimated_seconds": 85.2,
+    "target_seconds": 90.0,
+    "formal_words": [],
+    "digits_in_narration": 0
+  },
+  "llm": null,
+  "findings": [],
+  "timeline": [
+    {
+      "i": 0,
+      "section": "s1",
+      "start": 0.0,
+      "end": 7.0,
+      "text": "احتمالاً گوشیِ توی دستت سامسونگه… ولی این غول تکنولوژی، با فروش ماهی خشک شروع کرد!",
+      "rehook": true
+    },
+    {
+      "i": 1,
+      "section": "s2",
+      "start": 7.0,
+      "end": 9.0,
+      "text": "این کل تاریخ سامسونگه.",
+      "rehook": false
+    },
+    {
+      "i": 2,
+      "section": "s3",
+      "start": 9.0,
+      "end": 15.1,
+      "text": "سال هزار و نهصد و سی و هشت، تو کره، لی بیونگ‌چول یه مغازه‌ی کوچیک باز می‌کنه.",
+      "rehook": true
+    },
+    {
+      "i": 3,
+      "section": "s4",
+      "start": 15.1,
+      "end": 15.6,
+      "text": "کارش؟",
+      "rehook": true
+    },
+    {
+      "i": 4,
+      "section": "s4",
+      "start": 15.6,
+      "end": 19.0,
+      "text": "فرستادن ماهی خشک و میوه به منچوری و پکن.",
+      "rehook": false
+    },
+    {
+      "i": 5,
+      "section": "s5",
+      "start": 19.0,
+      "end": 22.7,
+      "text": "ولی سی و یک سال بعد، یهو می‌پره تو الکترونیک.",
+      "rehook": true
+    },
+    {
+      "i": 6,
+      "section": "s6",
+      "start": 22.7,
+      "end": 23.9,
+      "text": "اولین محصولش؟",
+      "rehook": true
+    },
+    {
+      "i": 7,
+      "section": "s6",
+      "start": 23.9,
+      "end": 26.0,
+      "text": "یه تلویزیون سیاه‌وسفید.",
+      "rehook": false
+    },
+    {
+      "i": 8,
+      "section": "s7",
+      "start": 26.0,
+      "end": 32.1,
+      "text": "سال هزار و نهصد و هشتاد و سه، تو توکیو اعلام می‌کنه: می‌ریم سراغ چیپ حافظه.",
+      "rehook": true
+    },
+    {
+      "i": 9,
+      "section": "s8",
+      "start": 32.1,
+      "end": 35.7,
+      "text": "نه سال بعد، شده بزرگ‌ترین سازنده‌ی رم دنیا.",
+      "rehook": true
+    },
+    {
+      "i": 10,
+      "section": "s9",
+      "start": 35.7,
+      "end": 36.8,
+      "text": "ولی گوشی‌هاش؟",
+      "rehook": true
+    },
+    {
+      "i": 11,
+      "section": "s9",
+      "start": 36.8,
+      "end": 37.8,
+      "text": "پر از ایراد.",
+      "rehook": false
+    },
+    {
+      "i": 12,
+      "section": "s10",
+      "start": 37.8,
+      "end": 39.6,
+      "text": "راه‌حل پسرش، لی کون‌هی؟",
+      "rehook": true
+    },
+    {
+      "i": 13,
+      "section": "s10",
+      "start": 39.6,
+      "end": 42.6,
+      "text": "مدیرها رو تو فرانکفورت جمع می‌کنه.",
+      "rehook": false
+    },
+    {
+      "i": 14,
+      "section": "s11",
+      "start": 42.6,
+      "end": 45.9,
+      "text": "و می‌گه: همه‌چی رو عوض کنید… جز زن و بچه‌تون!",
+      "rehook": true
+    },
+    {
+      "i": 15,
+      "section": "s12",
+      "start": 45.9,
+      "end": 49.7,
+      "text": "دو سال بعدش، کاری می‌کنه که هنوزم باورش سخته.",
+      "rehook": true
+    },
+    {
+      "i": 16,
+      "section": "s13",
+      "start": 49.7,
+      "end": 54.9,
+      "text": "صد و پنجاه هزار تا گوشیِ معیوب رو تو کارخونه‌ی گومی کپه می‌کنن.",
+      "rehook": true
+    },
+    {
+      "i": 17,
+      "section": "s14",
+      "start": 55.3,
+      "end": 59.7,
+      "text": "جلوی دو هزار تا کارگر… <short pause> همه رو خرد می‌کنن و آتیش می‌زنن!",
+      "rehook": true
+    },
+    {
+      "i": 18,
+      "section": "s15",
+      "start": 59.7,
+      "end": 61.4,
+      "text": "تو بودی آتیش می‌زدی؟",
+      "rehook": true
+    },
+    {
+      "i": 19,
+      "section": "s16",
+      "start": 61.4,
+      "end": 62.1,
+      "text": "نتیجه‌ش؟",
+      "rehook": true
+    },
+    {
+      "i": 20,
+      "section": "s16",
+      "start": 62.1,
+      "end": 67.8,
+      "text": "سال دو هزار و دوازده، نوکیا رو بعد از چهارده سال از تخت پایین می‌کشه.",
+      "rehook": true
+    },
+    {
+      "i": 21,
+      "section": "s17",
+      "start": 67.8,
+      "end": 70.1,
+      "text": "می‌شه شماره‌ی یک گوشی دنیا!",
+      "rehook": true
+    },
+    {
+      "i": 22,
+      "section": "s18",
+      "start": 70.1,
+      "end": 73.6,
+      "text": "ولی از سال دو هزار و بیست و سه، تاج دست اپله.",
+      "rehook": true
+    },
+    {
+      "i": 23,
+      "section": "s19",
+      "start": 73.6,
+      "end": 77.7,
+      "text": "اما تو ایران هنوز تقریباً نصف گوشی‌ها سامسونگه.",
+      "rehook": true
+    },
+    {
+      "i": 24,
+      "section": "s20",
+      "start": 78.1,
+      "end": 83.0,
+      "text": "شاید همین که الان دستته… <short pause> همون که قصه‌ش با ماهی خشک شروع شد.",
+      "rehook": true
+    },
+    {
+      "i": 25,
+      "section": "s21",
+      "start": 83.0,
+      "end": 85.2,
+      "text": "شرکت بعدی رو تو کامنت بگو.",
+      "rehook": false
+    }
+  ]
+}

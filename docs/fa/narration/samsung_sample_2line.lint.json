@@ -1,0 +1,103 @@
+{
+  "title": "نمونه‌ی ۲ خطی سامسونگ (۲۰۲۶-۱۱-۰۴، صدای Kore)",
+  "cps": 9.0,
+  "risk": "medium",
+  "hook": {
+    "first_hook_seconds": 2.0,
+    "first_hook_kind": "you",
+    "elements": {
+      "you": 2.0,
+      "question": 7.0,
+      "paradox": 7.0,
+      "number": 9.22
+    },
+    "first_sentence": "احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟"
+  },
+  "open_loops": {
+    "loops": [],
+    "opened": 0,
+    "closed": 0,
+    "max_open_at_once": 0,
+    "questions": [
+      {
+        "at": 7.0,
+        "text": "احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟"
+      }
+    ],
+    "first_gap_seconds": 7.0
+  },
+  "rehooks": {
+    "rehook_times": [
+      2.0,
+      3.2,
+      7.0,
+      9.2,
+      15.1
+    ],
+    "max_gap_seconds": 5.9,
+    "gaps_over_warn": []
+  },
+  "rhythm": {
+    "sentences": 2,
+    "mean_seconds": 7.55,
+    "cv": 0.07,
+    "longest_seconds": 8.11,
+    "punches": 0,
+    "same_length_runs": 0,
+    "but_therefore_and_then": {
+      "but": 1,
+      "therefore": 0,
+      "and_then": 0
+    }
+  },
+  "specificity": {
+    "numbers": 2,
+    "years": 1,
+    "names": [
+      "سامسونگ"
+    ],
+    "vague": [],
+    "specifics_per_10s": 1.99
+  },
+  "ending": {
+    "primary": "twist",
+    "types": [
+      "twist"
+    ],
+    "shared_with_opening": [],
+    "last_sentence": "سال هزار و نهصد و نود و پنج، رئیس سامسونگ صد و پنجاه هزار تا گوشیِ خراب رو جلوی کارگرهاش آتیش زد!"
+  },
+  "text": {
+    "estimated_seconds": 15.1,
+    "target_seconds": 15.0,
+    "formal_words": [],
+    "digits_in_narration": 0
+  },
+  "llm": null,
+  "findings": [
+    {
+      "code": "sentence_long",
+      "severity": "medium",
+      "fa": "جمله‌ی «سال هزار و نهصد و نود و پنج، رئیس سامسون…» حدود 8 ثانیه‌ست؛ برای گوش زیادیه، بشکنش.",
+      "at_seconds": 7.0
+    }
+  ],
+  "timeline": [
+    {
+      "i": 0,
+      "section": "s1",
+      "start": 0.0,
+      "end": 7.0,
+      "text": "احتمالاً گوشیِ توی دستت سامسونگه… ولی می‌دونستی این شرکت با فروش ماهی خشک شروع شد؟",
+      "rehook": true
+    },
+    {
+      "i": 1,
+      "section": "s2",
+      "start": 7.0,
+      "end": 15.1,
+      "text": "سال هزار و نهصد و نود و پنج، رئیس سامسونگ صد و پنجاه هزار تا گوشیِ خراب رو جلوی کارگرهاش آتیش زد!",
+      "rehook": true
+    }
+  ]
+}

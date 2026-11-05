@@ -54,8 +54,8 @@ def main(argv=None) -> int:
         if args.step == "hooks":
             brief = Path(args.brief).read_text(encoding="utf-8") if args.brief else ""
             data, cost, err = ed.draft(llm, "hooks", ed.hooks_prompt(args.topic or "", brief), ed.HOOKS_SCHEMA)
-            out = {"status": "drafts_for_agent", "hooks": (data or {}).get("hooks", []), "shortlist": [],
-                   "cost_usd": cost, "error": err}
+            out = {"status": "drafts_for_agent", "hooks": ed.annotate_hooks((data or {}).get("hooks", [])),
+                   "shortlist": [], "cost_usd": cost, "error": err}
             _write(hooks_path, out)
         else:
             script = _read(Path(args.script) if args.script else project / "artifacts" / "script.json")

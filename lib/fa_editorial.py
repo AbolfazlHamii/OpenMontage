@@ -19,12 +19,31 @@ import jsonschema
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DECISION_SCHEMA = REPO_ROOT / "schemas" / "artifacts" / "decision_log.schema.json"
 
+# Hook types the worker drafts, with the definition it gets. The first six are
+# the original lab mix; the rest come from skills/creative/narration-craft.md.
+HOOK_TYPES = {
+    "number": "a big exact number from the brief",
+    "paradox": "two true facts that seem impossible together",
+    "question": "a question the viewer can almost answer but not quite",
+    "shock": "the most extreme act in the story, said flatly",
+    "story": "one person, one year, one place, mid-action",
+    "promise": "what the viewer will know by the end",
+    "you": "puts the viewer in the scene («تصور کن…», «احتمالاً توی دستت…»)",
+    "myth": "what most people believe, then that it is wrong",
+    "contrast": "then vs now in one breath (tiny start, giant today)",
+    "cold_open": "start at the climax, then rewind («ولی بذار از اول بگم»)",
+    "stakes": "what was about to be lost and by whom",
+    "mystery": "one strange detail the video explains later",
+}
+ORIGINAL_HOOK_TYPES = ["number", "paradox", "question", "shock", "story", "promise"]
+
 HOOKS_SCHEMA = {
     "type": "object", "required": ["hooks"],
     "properties": {"hooks": {"type": "array", "minItems": 12, "maxItems": 12, "items": {
         "type": "object", "required": ["text", "type"],
         "properties": {"text": {"type": "string", "minLength": 8},
-                       "type": {"type": "string", "enum": ["number", "paradox", "question", "shock", "story", "promise"]}},
+                       "type": {"type": "string", "enum": list(HOOK_TYPES)},
+                       "open_loop": {"type": "string"}},
     }}},
 }
 CLAIMS_SCHEMA = {
@@ -38,14 +57,38 @@ CLAIMS_SCHEMA = {
 VERDICTS = {"verified", "corrected", "removed", "unverified"}
 
 
-def hooks_prompt(topic: str, brief: str = "") -> str:
+def hooks_prompt(topic: str, brief: str = "", types: Optional[list[str]] = None) -> str:
+    """types: which HOOK_TYPES to mix (default all 12, one of each; the
+    original six give 2 of each)."""
+    types = types or list(HOOK_TYPES)
+    each = max(1, 12 // len(types))
+    kinds = "\n".join(f"- {t}: {HOOK_TYPES[t]}" for t in types)
     return (
         f"Write 12 different opening hooks (first 3 seconds, at most 18 words each) in colloquial "
         f"Tehran Persian for a YouTube video: {topic}. {brief}\n"
-        "Mix the types: number, paradox, question, shock, story, promise (2 of each). "
+        f"Mix the types ({each} of each):\n{kinds}\n"
+        "The hook must land in the first words, not after a setup. For each hook give open_loop: "
+        "the question it leaves in the viewer's head, in Persian. "
         "Only facts that are in the brief; no invented numbers. "
-        'Return JSON {"hooks": [{"text": "...", "type": "number"}, ...]}'
+        'Return JSON {"hooks": [{"text": "...", "type": "number", "open_loop": "..."}, ...]}'
     )
+
+
+def annotate_hooks(hooks: list[dict[str, Any]], cps: Optional[float] = None) -> list[dict[str, Any]]:
+    """Add the lint's hook timing to each draft (when a listener hears the
+    first «تو», number, question or «ولی»), to help the agent shortlist."""
+    from lib import fa_script_lint as lint
+
+    out = []
+    for h in hooks:
+        script = {"sections": [{"id": "h", "text": h["text"], "spoken": h["text"]}], "loops": []}
+        sentences = lint.split_sentences(script, cps or lint.DEFAULT_CPS)
+        for s in sentences:
+            s.features = lint.analyse(s, cps or lint.DEFAULT_CPS, [])
+        timing, _ = lint.check_hook(sentences)
+        out.append({**h, "first_hook_seconds": timing["first_hook_seconds"],
+                    "first_hook_kind": timing["first_hook_kind"]})
+    return out
 
 
 def claims_prompt(script_text: str) -> str:

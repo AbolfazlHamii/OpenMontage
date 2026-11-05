@@ -198,9 +198,14 @@ def split_sentences(script: dict[str, Any], cps: float) -> list[Sentence]:
 
 # -- features --------------------------------------------------------------------
 
+_COUNTED = re.compile(r"\s+(?:سال|تا|ماه|روز|هفته|نفر|ساعت|دقیقه|ثانیه)(?!\w)")
+
+
 def _number_runs(folded: str) -> list[re.Match]:
+    """Number phrases; «نه» before a counting word («نه سال بعد») is nine, not no."""
     return [m for m in NUMBER_RUN.finditer(folded)
-            if any(w not in _AMBIGUOUS for w in m.group().split() if w != "و")]
+            if any(w not in _AMBIGUOUS for w in m.group().split() if w != "و")
+            or (m.group() == "نه" and _COUNTED.match(folded, m.end()))]
 
 
 def _at(s: Sentence, offset: int, cps: float) -> float:
@@ -212,11 +217,12 @@ def analyse(s: Sentence, cps: float, names: list[str]) -> dict[str, Any]:
     folded = _fold(s.spoken)
     numbers = _number_runs(folded)
     you = YOU.search(folded)
+    turn = TURN.search(folded)
     name_hits = [n for n in names if _words(n, suffix=True).search(folded)] + LATIN_NAME.findall(s.text)
     f = {
         "question": "؟" in s.text or "?" in s.text,
         "exclaim": "!" in s.text,
-        "turn": bool(TURN.search(folded)),
+        "turn": bool(turn),
         "therefore": len(THEREFORE.findall(folded)),
         "and_then": len(AND_THEN.findall(folded)),
         "you_at": _at(s, you.end(), cps) if you else None,
@@ -232,7 +238,14 @@ def analyse(s: Sentence, cps: float, names: list[str]) -> dict[str, Any]:
         "formal": [m.group() for m in FORMAL.finditer(folded)],
         "digits": bool(re.search(r"[0-9۰-۹٠-٩]", s.text)),
     }
-    f["rehook"] = f["question"] or f["exclaim"] or f["turn"] or bool(numbers) or bool(you)
+    # Re-hook cues land where they are heard: the number, the «ولی», the «تو»,
+    # and the end of a question or exclamation. One sentence can carry several.
+    cues = [t for t in (f["you_at"], f["number_at"], _at(s, turn.end(), cps) if turn else None) if t is not None]
+    if f["question"] or f["exclaim"]:
+        cues.append(round(s.end, 2))
+    f["rehook_cues"] = sorted(set(cues))
+    f["rehook_at"] = min(cues) if cues else None
+    f["rehook"] = f["rehook_at"] is not None
     return f
 
 
@@ -345,7 +358,7 @@ def check_loops(loops: list[dict[str, Any]], sentences: list[Sentence], ending: 
 
 
 def check_rehooks(sentences: list[Sentence], duration: float) -> tuple[dict[str, Any], list[dict]]:
-    marks = [0.0] + [s.end for s in sentences if s.features["rehook"]] + [duration]
+    marks = [0.0] + [t for s in sentences for t in s.features["rehook_cues"]] + [duration]
     gaps = [(round(b - a, 1), a, b) for a, b in zip(marks, marks[1:])]
     worst = max(gaps, default=(0.0, 0.0, 0.0))
     report = {"rehook_times": [round(t, 1) for t in marks[1:-1]], "max_gap_seconds": worst[0],
