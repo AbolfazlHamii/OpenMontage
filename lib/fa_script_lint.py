@@ -61,13 +61,16 @@ def _fold(text: str) -> str:
 def _words(*items: str, suffix: bool = False) -> re.Pattern:
     """Whole-word alternation. suffix=True also takes the attached spoken
     copula/object/ezafe endings («دستته»، «سامسونگه»، «گوشیتو»)."""
-    alts = sorted({re.escape(_fold(w)).replace(" ", r"\s+") for w in items}, key=len, reverse=True)
+    # re.escape writes a space as "\ "; replace the escaped form, or the
+    # pattern asks for a literal backslash and multi-word items never match.
+    alts = sorted({re.escape(_fold(w)).replace(r"\ ", r"\s+") for w in items}, key=len, reverse=True)
     tail = r"(?:ه|ی|و|رو)?" if suffix else ""
     return re.compile(r"(?<!\w)(?:" + "|".join(alts) + r")" + tail + r"(?!\w)")
 
 
 YOU = _words("دستت", "جیبت", "گوشیت", "خودت", "بهت", "برات", "ازت", "باهات", "می‌دونستی",
-             "میدونستی", "شنیدی", "دیدی", "فکرشو بکن", "فکر کن", "تصور کن", "حدس بزن", "ببین",
+             "میدونستی", "شنیدی", "دیدی", "فکرشو بکن", "فکرشو کن", "فکر کن", "تصور کن", "حدس بزن", "ببین",
+             "می‌گی", "میگی",
              "بذار بگم", "باورت می‌شه", "باورت میشه", "شما", "خودتون", "بهتون", suffix=True)
 TURN = _words("ولی", "اما", "امّا", "یهو", "یکهو", "ناگهان", "تا این‌که", "تا اینکه", "برعکس",
               "در عوض", "با این‌که", "با اینکه", "در حالی که", "عجیبه", "اینجا بود که",

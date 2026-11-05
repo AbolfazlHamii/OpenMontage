@@ -115,3 +115,17 @@ def test_cli_reads_voice_pace_and_writes_report(tmp_path):
     code = cli.main([str(draft), "--cps", "9.5", "--out", str(tmp_path / "r.json")])
     report = json.loads((tmp_path / "r.json").read_text(encoding="utf-8"))
     assert code in (0, 1, 2) and report["cps"] == 9.5
+
+
+@pytest.mark.parametrize("text,pattern", [
+    ("می‌دونستی همین الان یه ماشین قرمز داره دور خورشید می‌چرخه", "YOU"),
+    ("باورت می‌شه؟", "YOU"),
+    ("تا اینکه یه روز همه‌چی عوض شد", "TURN"),
+    ("فکرشو کن بیرون یه قلعه وایسادی", "YOU"),
+    ("می‌گی چه‌جوری؟ خب", "YOU"),
+])
+def test_multi_word_and_zwnj_phrases_match(text, pattern):
+    # re.escape writes spaces as "\ "; these phrases never matched before.
+    import lib.fa_script_lint as fl
+
+    assert getattr(fl, pattern).search(fl._fold(text))
