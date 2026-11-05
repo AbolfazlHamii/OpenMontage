@@ -168,6 +168,19 @@ in Google Flow with ZAPI FLOW):
   redo list `manual_images/zapi_redo.txt` (14 rows), new images continue at row 72.
   Section windows: `manual_images/render_windows.txt`.
 - Render by music section, not by scene, so a track never restarts mid-section: `renders/preview_99s.mp4` = scenes 1–9 with m01+m02.
+- Round 3 (2026-11-05 ~12:00): owner's Suno tracks 3–6 are `music/m03`–`m06`
+  (m07–m10 still to come). 77 images in after importing rows 75–98 (names
+  matched rows this time, still checked by eye; row 80 was a broken 126 px
+  icon, rows 72, 73, 79, 87, 88, 90 never came). To keep the rhythm every
+  still held over ~5 s got a new shot on the words it covers (backup:
+  `shotlist.before_round3.json`, script logic: one new shot per long still,
+  ids end in x/y/w): 148 shots, avg 3.2 s per still, max 5.9 s (the outro).
+  Free callbacks: s06a reuses the 1917 room (s39c), s29r the car boot
+  (s01c), s39r the four-eras line-up (s04x). Everything still missing
+  (67 = 47 new + 14 redo + 6 never made) is in `manual_images/zapi_round3.txt`
+  (rows → shots in `zapi_round3_rows.json`); this replaces `zapi_redo.txt`.
+  `render_sections.sh [upto]` renders one window per music section and joins
+  them into `renders/kgb_so_far.mp4`.
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
