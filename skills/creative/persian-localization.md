@@ -205,6 +205,24 @@ mix → qa. Notes from the first real run (2026-11-04, 2.5 min, 2 speakers):
   `projects/_reference/<name>/` (git-ignored). Check renders against the card
   with its `compare` operation.
 
+## Remake from a link
+
+The owner pastes a YouTube (Shorts or long), Instagram, TikTok or X link and
+asks for a Persian version: follow `skills/meta/remake-from-link.md`
+(`scripts/fa_remake.py`, or Studio FA → ویدیوی جدید → «از لینک بساز»).
+
+- Default is **transcreate**: structure, pacing and hook technique only; our
+  own research, script, images and voice. Dub needs `rights`
+  (own / licensed / permission) and is refused without it.
+- YouTube answers 429 to caption downloads from this network; the kit falls
+  back to AvalAI whisper-1 with the source language from the metadata.
+  `avalai_stt` defaults to `fa` (it checks our own TTS): never call it on a
+  foreign video without `language`, or the transcript comes back as Persian
+  gibberish.
+- Instagram needs a cookies.txt the owner exports (outside the repo,
+  `OPENMONTAGE_COOKIES_FILE`) or the reel as a file.
+- The kit puts `api.avalai.ir` in `NO_PROXY` for its run (below).
+
 ## Working from Iran
 
 - Google's Gemini docs and API answer 403 from Iranian IPs and from many

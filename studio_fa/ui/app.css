@@ -177,6 +177,13 @@ pre {
   background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 12px;
   direction: ltr; text-align: left; font-size: 12.5px; overflow: auto; max-height: 420px; margin: 14px 0 0;
 }
+/* Persian summary with English notes; production.js makes each line a dir="auto" row. */
+#remake-summary {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px;
+  overflow: auto; max-height: 420px; margin: 14px 0 0;
+  white-space: pre-wrap; overflow-wrap: anywhere; text-align: start;
+  font-family: "Vazirmatn", Tahoma, sans-serif; font-size: 13.5px; line-height: 1.9;
+}
 
 .toast {
   position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);

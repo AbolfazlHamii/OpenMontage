@@ -97,6 +97,7 @@ class Wizard(BaseModel):
     voice_style: str = Field(default="", max_length=300)
     budget_usd: float = Field(ge=0, le=50)
     draft_rounds: int = Field(default=1, ge=0, le=5)
+    reference_kit: Optional[str] = Field(default=None, max_length=80)
 
 
 def _estimate(w: Wizard) -> dict[str, Any]:
@@ -124,6 +125,12 @@ def _create(w: Wizard) -> dict[str, Any]:
         card = load_edit_style(w.edit_style)
     except FileNotFoundError:
         raise fa_error(400, "کارت سبک تدوین پیدا نشد.", "یکی از کارت‌های گالری سبک را انتخاب کنید.")
+    kit = None
+    if w.reference_kit:
+        if not SLUG.match(w.reference_kit) or not (projects_dir() / "_reference" / w.reference_kit
+                                                   / "remake_brief.json").exists():
+            raise fa_error(400, "کیت لینک پیدا نشد.", "اول «تحلیل لینک» را اجرا کنید.")
+        kit = _read_json(projects_dir() / "_reference" / w.reference_kit / "remake_brief.json")
     est = _estimate(w)
     if not est["within_budget"]:
         raise fa_error(400, f"تخمین هزینه‌ی نهایی (${est['final']['total_usd']:.2f}) از بودجه بیشتر است.",
@@ -144,6 +151,15 @@ def _create(w: Wizard) -> dict[str, Any]:
             "created_by": "studio_fa wizard", "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         },
     }
+    if kit:
+        brief["reference_material"] = [{
+            "type": "reference_video", "url": kit["source"]["url"], "title": kit["source"].get("title"),
+            "kit": f"projects/_reference/{w.reference_kit}",
+            "use": "structure, pacing and hook technique only" if kit["mode"] == "transcreate"
+            else f"dub, rights: {kit['rights']['status']}",
+        }]
+        brief["metadata"]["remake"] = {"kit": w.reference_kit, "mode": kit["mode"],
+                                       "rights": kit["rights"]["status"]}
     import jsonschema
 
     # Validate before creating anything, so a bad brief leaves no half-made project.
@@ -326,10 +342,11 @@ class LearnStyle(BaseModel):
 
 
 def _learn_estimate(req: LearnStyle) -> dict[str, Any]:
+    from tools.analysis.edit_style_extractor import clip_weights_cached
     from tools.analysis.video_understand import VideoUnderstand
     from tools.base_tool import ToolStatus
 
-    clip = VideoUnderstand().get_status() == ToolStatus.AVAILABLE
+    clip = VideoUnderstand().get_status() == ToolStatus.AVAILABLE and clip_weights_cached()
     frames = min(req.max_frames, max(1, int(req.duration_seconds / 3.75)))
     per_frame = 0.00036  # measured: gemini-3.1-flash-lite, 40 frames for $0.0143 (2026-11-04)
     vision = round(frames * per_frame * (0.2 if clip else 1.0), 4)
@@ -372,6 +389,63 @@ def _learn_start(req: LearnStyle) -> dict[str, Any]:
 
     threading.Thread(target=run, daemon=True).start()
     return _jobs[job_id]
+
+
+# ---- remake from a link -------------------------------------------------------------------------------
+
+class RemakeLink(BaseModel):
+    url: str = Field(min_length=8, max_length=500)
+    mode: Literal["transcreate", "dub"] = "transcreate"
+    rights: Literal["unknown", "own", "licensed", "permission"] = "unknown"
+    target_seconds: Optional[float] = Field(default=None, ge=10, le=3600)
+    budget_usd: float = Field(default=0.10, ge=0, le=0.5)
+
+
+def _remake_start(req: RemakeLink) -> dict[str, Any]:
+    from tools.analysis.reference_kit import RIGHTS_OK, classify_url
+
+    if not re.match(r"^https?://", req.url):
+        raise fa_error(400, "لینک باید با http یا https شروع شود.")
+    if req.mode == "dub" and req.rights not in RIGHTS_OK:
+        raise fa_error(400, "دوبله‌ی ویدیوی دیگران بدون اجازه مشکل حق نشر دارد.",
+                       "اگر ویدیو مال خودتان است یا اجازه دارید، همان را انتخاب کنید؛ وگرنه «بازتولید» را بزنید.")
+    info = classify_url(req.url)
+    job_id = uuid.uuid4().hex[:10]
+    with _jobs_lock:
+        _jobs[job_id] = {"id": job_id, "kind": "remake", "status": "running", "platform": info["platform"],
+                         "video_kind": info["kind"], "started": time.time()}
+
+    def run():
+        from tools.analysis.reference_kit import ReferenceKit
+
+        inputs = {"url": req.url, "mode": req.mode, "rights": req.rights, "budget_usd": req.budget_usd,
+                  "out_root": str(projects_dir() / "_reference")}
+        if req.target_seconds:
+            inputs["target_seconds"] = req.target_seconds
+        try:
+            r = ReferenceKit().execute(inputs)
+            if r.success:
+                folder = Path(r.data["folder"])
+                b = r.data["brief"]
+                result = {"status": "done", "kit": folder.name, "cost_usd": r.cost_usd,
+                          "summary_fa": (folder / "REMAKE_fa.md").read_text(encoding="utf-8"),
+                          "prefill": {
+                              "topic": f"نسخه‌ی فارسی: {b['source'].get('title') or folder.name}"[:300],
+                              "project_id": (folder.name[:52] + "-fa").strip("-"),
+                              "format": "vertical" if b["format"]["aspect"] == "9:16" else "landscape",
+                              "duration_seconds": int(max(15, min(1200, b["format"]["target_seconds"]))),
+                              "edit_style": b["recommendation"]["edit_style_card"],
+                              "reference_kit": folder.name}}
+            else:
+                result = {"status": "failed", "error": explain(r.error)
+                          + (" راه‌حل: فایل cookies.txt یا خود فایل ویدیو." if info["platform"] == "instagram" else "")}
+        except Exception as exc:
+            result = {"status": "failed", "error": explain(exc)}
+        with _jobs_lock:
+            _jobs[job_id].update(result)
+
+    threading.Thread(target=run, daemon=True).start()
+    return dict(_jobs[job_id])
 
 
 # ---- LLM routing ----------------------------------------------------------------------------------
@@ -487,6 +561,10 @@ def build_router(panel: list) -> APIRouter:
     @router.post("/styles/learn", dependencies=panel)
     async def learn(req: LearnStyle) -> dict:
         return await asyncio.to_thread(_learn_start, req)
+
+    @router.post("/remake", dependencies=panel)
+    async def remake(req: RemakeLink) -> dict:
+        return await asyncio.to_thread(_remake_start, req)
 
     @router.get("/jobs/{job_id}")
     async def job(job_id: str) -> dict:

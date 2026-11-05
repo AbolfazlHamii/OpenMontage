@@ -172,6 +172,30 @@
         <h1>ویدیوی جدید</h1>
         <p>پنج قدم؛ قبل از ساخت، تخمین هزینه نشان داده می‌شود. ساخت پروژه هیچ هزینه‌ای ندارد.</p>
       </header>
+      <form class="card" id="remake-form">
+        <h2>از لینک بساز (یوتیوب، شورتس، اینستاگرام، تیک‌تاک)</h2>
+        <p class="hint">لینک رو بده؛ ویدیو، متن، ساختار، ریتم تدوین و تخمین هزینه درمیاد و فرم پایین خودش پر می‌شه.
+          «بازتولید» یعنی ساختار و ریتم رو نگه می‌داریم، ولی متن و تصویر و صدا مال خودمونه.</p>
+        <div class="fields">
+          <label>لینک ویدیو <input id="remake-url" type="url" dir="ltr" placeholder="https://www.youtube.com/shorts/…"></label>
+          <label>حالت
+            <select id="remake-mode"><option value="transcreate">بازتولید (پیش‌فرض)</option><option value="dub">دوبله</option></select>
+          </label>
+          <label class="hidden" id="remake-rights-label">حق استفاده
+            <select id="remake-rights">
+              <option value="unknown">مطمئن نیستم</option><option value="own">ویدیوی خودمه</option>
+              <option value="licensed">مجوز دارم</option><option value="permission">صاحبش اجازه داده</option>
+            </select>
+          </label>
+          <label>طول نسخه‌ی فارسی (ثانیه، خالی = مثل اصل) <input id="remake-target" type="number" min="10" max="3600"></label>
+          <label>سقف هزینه‌ی تحلیل (دلار) <input id="remake-budget" type="number" min="0" max="0.5" step="0.01" value="0.10"></label>
+        </div>
+        <div class="actions">
+          <button class="btn" type="submit" id="remake-go">تحلیل لینک</button>
+          <span class="status" id="remake-status"></span>
+        </div>
+        <div id="remake-summary" class="hidden"></div>
+      </form>
       <ol class="stepper" id="wiz-steps">
         <li class="active">موضوع</li><li>فرمت و طول</li><li>سبک تدوین</li><li>صدا</li><li>بودجه</li>
       </ol>

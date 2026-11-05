@@ -292,6 +292,7 @@ Cross-cutting skills that apply to all pipelines:
 |-------|------|---------|
 | Onboarding | `meta/onboarding.md` | First-interaction greeting, capability discovery, starter prompts |
 | Reviewer | `meta/reviewer.md` | Self-review protocol after every stage |
+| Remake From a Link | `meta/remake-from-link.md` | Persian version of a YouTube (long or Shorts) / Instagram / TikTok link: `scripts/fa_remake.py` builds the kit; transcreate by default, dub only with rights |
 | Delegation Protocol | `meta/delegation-protocol.md` | Bulk text (drafts, prompts, hooks, JSON) goes to cheap models via `llm_selector`; the agent chooses and reviews |
 | Checkpoint Protocol | `meta/checkpoint-protocol.md` | When/how to checkpoint and request human approval |
 | Skill Creator | `meta/skill-creator.md` | Dynamically create new skills during pipeline runs |

@@ -6,7 +6,7 @@ brief (phases 0–5) is `BUILD_PROMPT.md` (kept outside the repo, in the
 owner's Downloads). The owner's cross-project hub has the same status in
 Persian: `D:\project\MaN\projects-hub\projects\openmontage-fa.md`.
 
-Last updated: 2026-11-04 (build phases 1–3, 5; research tools)
+Last updated: 2026-11-05 (remake from a link; earlier: build phases 1–3, 5; research tools)
 
 ## Rules from the brief
 
@@ -35,6 +35,7 @@ Last updated: 2026-11-04 (build phases 1–3, 5; research tools)
 | Gateway check | `scripts/check_gateway.py` | OpenAI-compatible gateways |
 | Tests | `tests/tools/test_persian_localization.py`, `test_avalai_gemini_tts.py`, `test_avalai_gemini_image.py`, `test_subtitle_fonts_dir.py`, `test_studio_fa.py` | all mocked |
 | Test network guard | `tests/conftest.py` | Also clears `HTTP(S)_PROXY` and sets `NO_PROXY=*` for the session: a loopback proxy (v2rayN) otherwise carried requests past the socket guard |
+| Remake from a link | `tools/analysis/reference_kit.py`, `scripts/fa_remake.py`, Studio FA «از لینک بساز» | YouTube Shorts / long, Instagram (cookies.txt or file), TikTok, X → kit in `projects/_reference/<slug>/`; transcreate by default, dub only with rights; `skills/meta/remake-from-link.md` |
 | Desktop shortcut | `Desktop\استودیو ویدیو فارسی.lnk` | Opens `studio-fa.bat` minimized (not in the repo) |
 
 ## Environment (owner's Windows laptop)
@@ -177,6 +178,10 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
 
 ## Next steps
 
+0. Remake from a link works for YouTube Shorts and long videos (real runs:
+   $0.014 and $0.081, `docs/fa/UPGRADE_PROGRESS.md`). Owner: send a link to
+   remake → the agent presents 2–3 concepts. Instagram needs the owner's
+   exported cookies.txt (outside the repo) or the reel file.
 1. Research sessions (2026-11-04, on another Claude account) stopped
    before writing their reports; no findings were saved anywhere. They left
    three uncommitted tools, now finished and tested (commit `195d15e`):

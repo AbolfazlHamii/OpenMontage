@@ -168,3 +168,44 @@ $0.05.
 
 - Skipped: the owner has not approved the Samsung video yet (still at the
   sample review). Run this phase after approval.
+
+### 2026-11-05 — remake from a link (owner request after the phases)
+
+The owner asked for "give it a YouTube or Instagram link and it makes a
+Persian version", both Shorts and long YouTube videos.
+
+- New: `tools/analysis/reference_kit.py` (link or file → kit in
+  `projects/_reference/<slug>/`: video, transcript, outline, learned edit
+  card, Gemini analysis, claims, worker translation draft, `remake_brief.json`,
+  `REMAKE_fa.md`), `scripts/fa_remake.py`, `skills/meta/remake-from-link.md`,
+  Studio FA «از لینک بساز» (`POST /api/fa/remake`, pre-fills the wizard and
+  attaches the kit to the brief), tests `tests/tools/test_reference_kit.py`.
+- Modes: transcreate (default; structure, pacing, hook technique only) and
+  dub (refused without `rights` own / licensed / permission).
+- Real runs (paid, all under the $0.10 cap):
+  - NASA Short, 39 s, 9:16: every step ran, **$0.0136**; YouTube captions
+    429 on both routes → whisper-1 $0.0039 in 2.9 s.
+  - CEOzoned Coca-Cola, 11 min, 16:9 (target 90 s): free captions, 186
+    shots (ASL 3.55 s), 8 sections, 34 claims, **$0.0809** (style $0.0172,
+    Gemini $0.0562 for the first 8 min, text $0.0075). 10.5 min wall time,
+    with the test suite and the Short sharing the CPU (scene detection 4 min).
+- Found and fixed while testing:
+  - CLIP: transformers installed without weights made frame labels try a
+    HuggingFace download and hang; now only used when the weights are cached
+    (`clip_weights_cached`), offline.
+  - `avalai_stt` defaults to `fa`; on an English video it returned Persian
+    gibberish. The kit passes the source language (or "" to detect).
+  - STT `ReadTimeout` and Gemini `SSLError` on `api.avalai.ir`: the shell's
+    `HTTPS_PROXY` (v2rayN) carried plain `requests` calls. The kit adds the
+    AvalAI host to `NO_PROXY` for its run and retries STT once.
+  - Studio FA runs without `HTTPS_PROXY`, so its "direct" yt-dlp calls
+    really are direct and YouTube refuses them (WinError 10061); each step
+    waited out yt-dlp's retries there (~2 min each) before the proxy. The
+    route that worked last now goes first.
+  - Gemini estimate was 3× low ($0.0184 vs $0.0562); now
+    $0.004 + $0.00011/s from the two runs. The brief records each step's
+    actual cost (`cost.actual`).
+- An 11-minute video **without** captions plans ~$0.14: under the default
+  $0.10 the Gemini step is skipped and listed; `--budget 0.15` runs it.
+- Instagram: untested with a real session (needs the owner's cookies.txt or
+  the reel file).

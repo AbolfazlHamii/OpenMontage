@@ -1,5 +1,7 @@
 # Video Reference Analyst — Meta Skill
 
+> Persian channel: start with `python scripts/fa_remake.py "<link>"` (download, transcript, outline, style card, cost) and follow `skills/meta/remake-from-link.md`.
+
 ## When to Use
 
 When the user provides a video URL (YouTube, Shorts, Instagram, TikTok, or any URL)

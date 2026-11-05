@@ -69,8 +69,68 @@ function wizBody() {
     voice_style: $("#wiz-voice-style").value,
     budget_usd: Number($("#wiz-budget").value) || 0,
     draft_rounds: Number($("#wiz-rounds").value) || 0,
+    reference_kit: remakeKit,
   };
 }
+
+// ---- remake from a link --------------------------------------------------
+
+let remakeKit = null;
+
+$("#remake-mode").addEventListener("change", () =>
+  $("#remake-rights-label").classList.toggle("hidden", $("#remake-mode").value !== "dub"));
+
+function prefillWizard(p) {
+  $("#wiz-topic").value = p.topic;
+  $("#wiz-id").value = p.project_id;
+  $("#wiz-format").value = p.format;
+  $("#wiz-duration").value = p.duration_seconds;
+  wizStyle = p.edit_style;
+  remakeKit = p.reference_kit;
+  styleCards = [];  // reload so the learned card shows up
+}
+
+$("#remake-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const status = $("#remake-status");
+  const go = $("#remake-go");
+  status.classList.remove("err");
+  go.disabled = true;
+  try {
+    const body = { url: $("#remake-url").value.trim(), mode: $("#remake-mode").value,
+                   rights: $("#remake-rights").value, budget_usd: Number($("#remake-budget").value) || 0.1 };
+    const target = Number($("#remake-target").value);
+    if (target) body.target_seconds = target;
+    const job = await api("/api/fa/remake", body);
+    status.textContent = "در حال دانلود و تحلیل… (شورتس یکی دو دقیقه، ویدیوی ۱۰ دقیقه‌ای تا ۱۰ دقیقه)";
+    const timer = setInterval(async () => {
+      const j = await api(`/api/fa/jobs/${job.id}`);
+      if (j.status === "running") return;
+      clearInterval(timer);
+      go.disabled = false;
+      if (j.status !== "done") {
+        status.classList.add("err");
+        status.textContent = j.error;
+        return;
+      }
+      status.textContent = `آماده شد (هزینه‌ی تحلیل ${usd(j.cost_usd)}). فرم پایین پر شد؛ مرحله‌به‌مرحله جلو برید.`;
+      // One element per line so English notes and Persian lines each get their own direction.
+      $("#remake-summary").replaceChildren(...j.summary_fa.split("\n").map((line) => {
+        const row = document.createElement("div");
+        row.dir = "auto";
+        row.textContent = line || " ";
+        return row;
+      }));
+      $("#remake-summary").classList.remove("hidden");
+      prefillWizard(j.prefill);
+      setWizStep(0);
+    }, 4000);
+  } catch (e) {
+    go.disabled = false;
+    status.classList.add("err");
+    status.textContent = e.message;
+  }
+});
 
 async function showEstimate() {
   const box = $("#wiz-estimate");

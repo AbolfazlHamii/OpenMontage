@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import os
 import shutil
 import statistics
 import subprocess
@@ -68,6 +69,22 @@ CLIP_TO_LABEL = {
     "live-action video frame": "live_action", "map": "map", "chart or diagram": "chart",
     "text on screen": "text",
 }
+CLIP_REPO = "openai/clip-vit-base-patch32"
+
+
+def clip_weights_cached() -> bool:
+    """True only when the CLIP weights themselves are in the local HF cache."""
+    try:
+        from huggingface_hub import try_to_load_from_cache
+    except ImportError:
+        return False
+    for name in ("model.safetensors", "pytorch_model.bin"):
+        path = try_to_load_from_cache(CLIP_REPO, name)
+        if isinstance(path, str) and Path(path).exists():
+            return True
+    return False
+
+
 RTL_NOTES = [
     "Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn; never baked into generated images.",
     "Slides and reveals that mean 'forward in time' move right to left.",
@@ -368,16 +385,27 @@ class EditStyleExtractor(BaseTool):
         from tools.analysis.video_understand import VideoUnderstand
 
         tool = VideoUnderstand()
-        if tool.get_status() != ToolStatus.AVAILABLE:
+        # transformers being installed is not enough: from Iran the weights
+        # download from huggingface.co times out, and a half-finished download
+        # made every run hang. Use CLIP only when the weights are on disk, offline.
+        if tool.get_status() != ToolStatus.AVAILABLE or not clip_weights_cached():
             return None
         out = [dict() for _ in paths]
-        for group, labels in LABEL_GROUPS.items():
-            for i, p in enumerate(paths):
-                r = tool.execute({"input_path": str(p), "mode": "classify", "model": "clip", "labels": labels})
-                if not r.success:
-                    return None
-                top = r.data["frames"][0]
-                out[i][group] = (CLIP_TO_LABEL.get(top["top_category"], top["top_category"]), top["confidence"])
+        previous = os.environ.get("HF_HUB_OFFLINE")
+        os.environ["HF_HUB_OFFLINE"] = "1"
+        try:
+            for group, labels in LABEL_GROUPS.items():
+                for i, p in enumerate(paths):
+                    r = tool.execute({"input_path": str(p), "mode": "classify", "model": "clip", "labels": labels})
+                    if not r.success:
+                        return None
+                    top = r.data["frames"][0]
+                    out[i][group] = (CLIP_TO_LABEL.get(top["top_category"], top["top_category"]), top["confidence"])
+        finally:
+            if previous is None:
+                os.environ.pop("HF_HUB_OFFLINE", None)
+            else:
+                os.environ["HF_HUB_OFFLINE"] = previous
         return out
 
     def vision_labels(self, frames: list[dict], ids: list[int]) -> tuple[dict[int, dict], float, list[str]]:
@@ -494,7 +522,8 @@ class EditStyleExtractor(BaseTool):
         clip = self.clip_labels([f["path"] for f in frames])
         unsure: list[int] = []
         if clip is None:
-            notes.append("local CLIP not installed: every sampled frame labelled by vision_bulk")
+            notes.append("local CLIP not available (not installed or weights not downloaded): "
+                         "every sampled frame labelled by vision_bulk")
             unsure = list(range(len(frames)))
         else:
             for i, lab in enumerate(clip):
