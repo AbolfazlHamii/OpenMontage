@@ -158,6 +158,15 @@ in Google Flow with ZAPI FLOW):
 - Sound design: `sfx` in the shot list (swish on scene changes, whoosh on
   flash jumps, 18 cued accents, 3 crackle beds) from `projects/_sfx_library/fa-v1`.
 - Images: 53/98 in (content-matched; 2026-11-05 ~09:30). Music m01, m02 from the owner's Suno runs (Downloads/1.mp3, 2.mp3); bed sits ~19 dB under the mix (volume 0.16).
+- Owner review of the first 1:40 (2026-11-05): images too sparse from 0:12
+  (missing rows held on screen), an abrupt jump into the history at 0:40, and
+  the 0:49 line ("its leader fears something") was loose. Fixed: s05 now
+  bridges from the car boot ("how did this man end up in a car boot? … back to
+  winter 1917") with `image: s01c` reuse, the Cheka is "a special commission to
+  fight counter-revolution and sabotage" (its official name, Wikipedia), and
+  `rhythm.max_still: 3.6` adds punch-in cuts (avg cut 2.6 s). 58/98 images in;
+  redo list `manual_images/zapi_redo.txt` (14 rows), new images continue at row 72.
+  Section windows: `manual_images/render_windows.txt`.
 - Render by music section, not by scene, so a track never restarts mid-section: `renders/preview_99s.mp4` = scenes 1–9 with m01+m02.
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
