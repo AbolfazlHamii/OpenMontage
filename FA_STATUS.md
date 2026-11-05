@@ -181,6 +181,12 @@ in Google Flow with ZAPI FLOW):
   (rows → shots in `zapi_round3_rows.json`); this replaces `zapi_redo.txt`.
   `render_sections.sh [upto]` renders one window per music section and joins
   them into `renders/kgb_so_far.mp4`.
+- Round 3 images (2026-11-05 ~13:30): the owner now saves ZAPI FLOW output to
+  `Downloads/zapi-img/`. 56 matched by content (names lagged one row up to
+  row 21, matched from row 22 on; five "29_*" files were copies of other
+  rows). s15x now reuses s15a (the same study). 133/143 in; the last 10 are
+  in `manual_images/zapi_round4.txt`. Full render (all sections, music only
+  up to m06) runs via `render_sections.sh 475.5`.
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
