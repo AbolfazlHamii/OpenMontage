@@ -262,3 +262,51 @@ def test_import_keeps_existing_images_unless_overwrite(project, tmp_path):
     assert "s1a" in [c["shot"] for c in again["copied"]]
     assert not (project / "manual_images" / "in" / "s1a.jpg").exists()
     assert (project / "manual_images" / "in" / "s1a.png").exists()
+
+
+# -- cues and caption-free builds --------------------------------------------------
+
+def _cued(cue: str | None, second_cue: str | None = None) -> dict:
+    data = json.loads(json.dumps(SHOTLIST))
+    shots = data["scenes"][0]["shots"]
+    shots.append({"id": "s1c", "prompt": "A third still.", "camera": "still"})
+    if cue:
+        shots[1]["cue"] = cue
+    if second_cue:
+        shots[2]["cue"] = second_cue
+    return data
+
+
+CLIPS = {"s1": {"seconds": 10.0}, "s2": {"seconds": 4.0}}
+
+
+def test_cue_starts_the_shot_where_its_words_are_spoken():
+    data = _cued("ولی می‌دونستی")
+    timing = mi.plan_timing(data, CLIPS)
+    s1b = next(s for s in timing["shots"] if s["id"] == "s1b")
+    text = data["scenes"][0]["narration"]
+    share = mi._letters(text[:text.find("ولی می‌دونستی")]) / mi._letters(text)
+    assert s1b["start"] == pytest.approx(mi.LEAD_IN + 10.0 * share - mi.CUE_LEAD, abs=0.01)
+    # the uncued shot after it shares the rest of the scene with it by weight
+    s1c = next(s for s in timing["shots"] if s["id"] == "s1c")
+    scene_end = timing["scenes"][0]["end"]
+    assert s1c["end"] == pytest.approx(scene_end, abs=0.01)
+    assert (s1c["start"] - s1b["start"]) == pytest.approx(2 * (scene_end - s1c["start"]), abs=0.02)
+
+
+def test_without_cues_shots_split_by_weight_as_before():
+    timing = mi.plan_timing(json.loads(json.dumps(SHOTLIST)), CLIPS)
+    a, b = [s for s in timing["shots"] if s["scene"] == "s1"]
+    assert (b["end"] - b["start"]) == pytest.approx(2 * (a["end"] - a["start"]), abs=0.01)
+
+
+def test_cues_out_of_order_and_unknown_cues_are_rejected():
+    with pytest.raises(ValueError, match="out of order"):
+        mi.plan_timing(_cued("ماهی خشک", "احتمالاً گوشیِ"), CLIPS)
+    assert any("is not in the scene's narration" in p for p in mi.validate(_cued("کلمه‌ای که نیست")))
+
+
+def test_captions_can_be_switched_off():
+    data = json.loads(json.dumps(SHOTLIST))
+    data["captions"] = False
+    assert mi.plan_timing(data, CLIPS)["captions"] == []

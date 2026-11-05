@@ -48,6 +48,17 @@ Code: `lib/fa_manual_images.py`, CLI `scripts/fa_manual_images.py`.
    `style.characters` (`{"Lenin": "bald man, pointed beard, ..."}`) and each
    shot lists who appears (`"characters": ["Lenin"]`); the same description
    is then written into every prompt that shows them.
+   **Picture on the right words.** Give every shot after a scene's first a
+   `cue`: a phrase copied from that scene's narration where the image should
+   appear (it lands 0.15 s before the phrase, placed by letter share like the
+   captions). Without cues, shots split the scene by `weight` and drift from
+   the words they illustrate, which the owner notices. Check the pairing
+   before handing out prompts: list each shot with the words spoken over it
+   (`plan_timing` + the scene's narration) and fix any shot that shows a
+   beat before or after it is said. Aim for ≤ 8 s per still.
+   **No on-screen text.** `"captions": false` at the top of the shot list
+   drops the captions; leave every `stamp` empty; and replace the caption-band
+   rule in `style.rules` (e.g. "Use the whole frame like a film still").
 5. **Check.** `check` lists missing, unreadable, non-16:9 (cropped by the
    camera) and small (< 1280 px) images. Look at the images too: text in
    an image, wrong era, a character that changed face — ask for a redo.

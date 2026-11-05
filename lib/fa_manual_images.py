@@ -136,6 +136,8 @@ def validate(data: dict) -> list[str]:
             for name in shot.get("characters") or []:
                 if name not in cast:
                     problems.append(f"{shid}: character {name!r} is not in style.characters")
+            if shot.get("cue") and shot["cue"] not in (scene.get("narration") or ""):
+                problems.append(f"{shid}: cue {shot['cue']!r} is not in the scene's narration")
     return problems
 
 
@@ -439,6 +441,43 @@ def caption_chunks(text: str, max_words: int = CAPTION_WORDS) -> list[str]:
     return chunks
 
 
+CUE_LEAD = 0.15  # the picture lands just before the cue word is heard
+
+
+def _letters(text: str) -> int:
+    return len(normalize(text).replace(" ", ""))
+
+
+def _cue_lengths(scene: dict, start: float, end: float, voice_start: float, seconds: float,
+                 weights: list[float]) -> Optional[list[float]]:
+    """Shot lengths when shots name the words they start on (`cue`), else None.
+
+    A cue is placed by its share of the scene's letters, like the captions.
+    Shots without a cue share the time between their cued neighbours by weight.
+    """
+    shots_ = scene["shots"]
+    if not any(s.get("cue") for s in shots_[1:]):
+        return None
+    text = scene.get("narration", "")
+    total = max(1, _letters(text))
+    bounds: list[Optional[float]] = [start] + [None] * (len(shots_) - 1) + [end]
+    for i, shot in enumerate(shots_[1:], 1):
+        if shot.get("cue"):
+            at = text.find(shot["cue"])
+            bounds[i] = voice_start + seconds * _letters(text[:at]) / total - CUE_LEAD
+    known = [i for i, b in enumerate(bounds) if b is not None]
+    for left, right in zip(known, known[1:]):
+        share = weights[left:right]
+        cursor = bounds[left]
+        for i in range(left + 1, right):
+            cursor += (bounds[right] - bounds[left]) * share[i - left - 1] / sum(share)
+            bounds[i] = cursor
+    lengths = [b - a for a, b in zip(bounds, bounds[1:])]
+    if any(length <= 0 for length in lengths):
+        raise ValueError(f"{scene['id']}: shot cues are out of order")
+    return lengths
+
+
 def plan_timing(data: dict, clips: dict) -> dict:
     """Scene, shot and caption times from the narration lengths."""
     t = LEAD_IN
@@ -454,11 +493,15 @@ def plan_timing(data: dict, clips: dict) -> dict:
 
         weights = [max(0.1, float(s.get("weight", 1))) for s in scene["shots"]]
         span = end - start
-        lengths = [span * w / sum(weights) for w in weights]
+        lengths = _cue_lengths(scene, start, end, voice_start, seconds, weights)
+        cued = lengths is not None
+        if not cued:
+            lengths = [span * w / sum(weights) for w in weights]
         # Very short shots read as flicker; give them a floor and take the time
         # from the longer shots in proportion to what they have above it, so
         # none of them drops under the floor and the scene keeps its length.
-        if span >= MIN_SHOT * len(lengths):
+        # Cued shots keep their exact cut points.
+        if not cued and span >= MIN_SHOT * len(lengths):
             deficit = sum(MIN_SHOT - length for length in lengths if length < MIN_SHOT)
             excess = sum(length - MIN_SHOT for length in lengths if length > MIN_SHOT)
             if deficit and excess:
@@ -472,7 +515,7 @@ def plan_timing(data: dict, clips: dict) -> dict:
                               "focus": shot.get("focus") or [0.5, 0.45]})
             cursor += length
 
-        chunks = caption_chunks(scene.get("caption") or scene.get("narration", ""))
+        chunks = caption_chunks(scene.get("caption") or scene.get("narration", "")) if data.get("captions", True) else []
         letters = [max(1, len(normalize(c).replace(" ", ""))) for c in chunks]
         c_start = voice_start
         for chunk, n in zip(chunks, letters):
