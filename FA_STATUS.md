@@ -256,6 +256,12 @@ Owner: "build it to the end until I give you the music". Done:
 - Open: Suno m07–m10 (then `build --render` once more, QA, re-check the
   chapter times), the owner's Suno plan must allow commercial use, Persian
   SRT not made (captions are off; could export one from the narration).
+- **Final (2026-11-06 11:17): `renders/kgb_final.mp4`** (7:22, 1080p, QA pass:
+  −14.4 LUFS, −1.0 dBTP). Owner said to use the existing music for the rest:
+  m07–m10 are cut from unused parts of m05, m04, m02, m03 (notes at the end
+  of `music/SUNO_PROMPTS.md`). Phone copy `kgb_final_small.mp4` is for viewing
+  only. Timing unchanged, so the chapters in `packaging/description.txt` hold.
+  The `youtube-upload` session (channel @spoilfa) was told to use this file.
 
 ## Earlier production: first transcreation
 
