@@ -240,6 +240,23 @@ projects/kgb-history-fa --from <download folder>` → `check` → look at the
 images (no text, same faces) → pick a tense music track (none chosen yet;
 Mixkit, licence copy in assets/music/) → `build --render` → render QA.
 
+### KGB: finish without music (2026-11-06)
+
+Owner: "build it to the end until I give you the music". Done:
+- `renders/kgb_full_v2.mp4`: v1 re-leveled (two-pass loudnorm, −14.3 LUFS,
+  true peak −1.7 dBTP; v1 hit 0.0 dBTP on the gunshots) and the audio cut
+  to the video length. `fa_render_qa.py` passes (only warning: the end fade).
+  `render_video` now normalizes to −2.5 dBTP (AAC lifts the peaks).
+- `packaging/`: `titles.txt` (5 titles, rubric 88–100; recommended
+  «از چکا تا پوتین: داستان کامل کا.گ.ب»), `description.txt` (hook, 15
+  chapters from the final timing, 17 sources, music/SFX credit, 3 hashtags),
+  `tags.txt`, `pinned_comment.txt`, thumbnails `thumbs_A|B|C/` (punch: car
+  boot «فرار مرگبار»; era: Lubyanka today «۱۹۱۷ / هنوز روشنه»; question:
+  eagle seal «توش چی بود؟»), all pass the phone check; `thumbs_ABC.jpg`.
+- Open: Suno m07–m10 (then `build --render` once more, QA, re-check the
+  chapter times), the owner's Suno plan must allow commercial use, Persian
+  SRT not made (captions are off; could export one from the narration).
+
 ## Earlier production: first transcreation
 
 Project: `projects/samsung-history-fa/` (git-ignored), "کل تاریخ سامسونگ در ۹۰ ثانیه".

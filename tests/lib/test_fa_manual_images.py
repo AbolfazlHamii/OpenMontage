@@ -282,7 +282,7 @@ def test_render_normalizes_with_headroom(project, tmp_path):
 
     out = mi.render(project, compose=Compose(), loudness=Loud())
     assert seen["compose"]["operation"] == "render_existing"
-    assert seen["loud"]["true_peak"] == -1.5
+    assert seen["loud"]["true_peak"] == -2.5
     assert out["output"].endswith("manual_images.mp4")
 
 

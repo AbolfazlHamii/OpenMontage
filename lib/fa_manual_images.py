@@ -1138,8 +1138,9 @@ def render(project: Path, out: Optional[Path] = None, compose=None, loudness=Non
     if not result.success:
         raise RuntimeError(result.error)
     loudness = loudness or LoudnessNormalize()
-    # -1.5 dBTP: the AAC encode lifts peaks a little (seen on the dub renders).
-    final = loudness.execute({"input_path": str(raw), "output_path": str(out), "true_peak": -1.5})
+    # The AAC encode lifts peaks: -1.5 came out at -1.4 on the dub renders but at
+    # 0.0 dBTP on the KGB cut, whose gunshots are sharp transients. -2.5 left -1.7.
+    final = loudness.execute({"input_path": str(raw), "output_path": str(out), "true_peak": -2.5})
     if not final.success:
         raise RuntimeError(final.error)
     return {"output": str(out)}
