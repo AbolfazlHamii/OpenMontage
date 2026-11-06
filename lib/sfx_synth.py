@@ -123,7 +123,65 @@ def crackle(duration: float = 3.0, density: float = 38.0, seed: int = 6) -> np.n
     return _normalize(np.tanh(3 * bed / np.max(np.abs(bed))) * env)
 
 
-SYNTHS = {"whoosh": whoosh, "swish": swish, "pop": pop, "hit": hit, "riser": riser, "crackle": crackle}
+def _room(dry: np.ndarray, seconds: float, seed: int) -> np.ndarray:
+    """Dry sound in a hard-walled yard: a slap echo off the far wall and a
+    darkening noise tail (FFT convolution with a decaying-noise impulse)."""
+    n_ir = int(seconds * RATE)
+    t = np.arange(n_ir) / RATE
+    ir = _lowpass(_rng(seed).standard_normal(n_ir), 2600) * np.exp(-t / (seconds / 5))
+    ir[0] = 0.0
+    size = len(dry) + n_ir
+    wet = np.fft.irfft(np.fft.rfft(dry, size) * np.fft.rfft(ir, size), size)
+    wet *= 0.45 * np.max(np.abs(dry)) / (np.max(np.abs(wet)) or 1.0)
+    out = np.concatenate([dry, np.zeros(n_ir)]) + wet
+    slap = int(0.11 * RATE)
+    out[slap:] += 0.3 * _lowpass(out[:-slap], 3000)
+    return out
+
+
+def gunshot(shots: int = 1, gaps: tuple = (0.42, 0.36), seed: int = 7) -> np.ndarray:
+    """Pistol shots: a hard broadband crack, a short body and a low thump,
+    soft-clipped, then the yard's echo. Several shots come at uneven gaps,
+    the later ones a little weaker, like a hand firing again."""
+    rng = _rng(seed)
+    starts = [0.0]
+    for i in range(shots - 1):
+        starts.append(starts[-1] + gaps[i % len(gaps)])
+    n = int((starts[-1] + 0.35) * RATE)
+    dry = np.zeros(n)
+    for i, at in enumerate(starts):
+        m = int(0.35 * RATE)
+        t = np.arange(m) / RATE
+        noise = rng.standard_normal(m)
+        crack = _highpass(noise, 900) * np.exp(-t / 0.006) * 3.0
+        body = _lowpass(noise, 3200) * (1 - np.exp(-t / 0.0004)) * np.exp(-t / 0.045) * 1.6
+        thump = _sweep(110, 42, m) * np.exp(-t / 0.08) * 1.2
+        shot = np.tanh(2.4 * (crack + body + thump)) * (0.92 ** i) * rng.uniform(0.9, 1.0)
+        a = int(at * RATE)
+        dry[a:a + m] += shot[: n - a]
+    return _normalize(_room(dry, 1.1, seed + 100))
+
+
+def typing(duration: float = 1.0, step: float = 0.045, seed: int = 8) -> np.ndarray:
+    """Typewriter keys at `step` seconds apart, each a dry clack with a small
+    metallic ring; uneven strength and timing so it does not sound like a clock."""
+    rng = _rng(seed)
+    n = int((duration + 0.1) * RATE)
+    out = np.zeros(n)
+    m = int(0.04 * RATE)
+    t = np.arange(m) / RATE
+    at = 0.0
+    while at < duration:
+        noise = rng.standard_normal(m)
+        clack = _highpass(noise, 2200) * np.exp(-t / 0.004) + np.sin(2 * np.pi * rng.uniform(2400, 3100) * t) * np.exp(-t / 0.012) * 0.25
+        a = int(at * RATE)
+        out[a:a + m] += clack[: n - a] * rng.uniform(0.55, 1.0)
+        at += step * rng.uniform(0.75, 1.3)
+    return _normalize(out)
+
+
+SYNTHS = {"whoosh": whoosh, "swish": swish, "pop": pop, "hit": hit, "riser": riser, "crackle": crackle,
+          "gunshot": gunshot, "typing": typing}
 
 
 def write_wav(path: Path, samples: np.ndarray, rate: int = RATE) -> Path:

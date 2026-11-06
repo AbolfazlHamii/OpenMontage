@@ -138,6 +138,107 @@ def test_narrate_uses_tts_once_per_text_and_reuses_files(project, tmp_path):
     assert out["clips"]["s2"]["source"] == "file"
 
 
+def _speech(rate, pattern):
+    """Tone for each positive length, silence for each negative one (seconds)."""
+    import numpy as np
+
+    parts = []
+    for sec in pattern:
+        n = int(abs(sec) * rate)
+        parts.append(np.zeros(n) if sec < 0 else 8000 * np.sin(np.arange(n) * 2 * np.pi * 140 / rate))
+    return np.concatenate(parts).astype(np.int16)
+
+
+def test_split_on_pauses_cuts_at_scene_breaths_not_commas():
+    rate = 8000
+    # scene A (2 s with a short comma pause), long breath, scene B (1 s), breath, scene C (1 s)
+    samples = _speech(rate, [0.9, -0.2, 1.1, -0.7, 1.0, -0.6, 1.0])
+    bounds = mi.split_on_pauses(samples, rate, [20, 10, 10])
+    cuts = [b / rate for _, b in bounds[:-1]]
+    assert cuts[0] == pytest.approx(2.2 + mi.CLIP_PAD, abs=0.02)
+    assert cuts[1] == pytest.approx(3.9 + mi.CLIP_PAD, abs=0.02)
+    assert bounds[1][0] / rate == pytest.approx(2.9 - mi.CLIP_PAD, abs=0.02)
+
+
+def test_scene_breaks_follow_the_transcript_despite_spelling():
+    texts = ["سال هزار و نهصد و هفده بود.", "یه کمیسیونِ ویژه درست می‌کنن."]
+    # the transcriber writes the year as digits and splits a word differently
+    heard = [("سال", 0.0, 0.3), ("1917", 0.3, 1.4), ("بود", 1.4, 1.7),
+             ("یک", 2.3, 2.5), ("کمیسیون", 2.5, 3.0), ("ویژه", 3.0, 3.3), ("درست", 3.3, 3.6), ("میکنن", 3.6, 4.0)]
+    words = [{"word": w, "start": a, "end": b} for w, a, b in heard]
+    assert mi.scene_breaks_from_words(words, texts) == [pytest.approx(2.0)]
+
+
+def test_split_follows_transcript_breaks_over_letter_shares():
+    rate = 8000
+    # letter shares say the first scene is the long one; the transcript says it ends at 1.25 s
+    samples = _speech(rate, [1.0, -0.5, 2.0, -0.4, 1.0])
+    bounds = mi.split_on_pauses(samples, rate, [30, 10], breaks=[1.25])
+    assert bounds[0][1] / rate == pytest.approx(1.0 + mi.CLIP_PAD, abs=0.02)
+
+
+def test_narrate_voices_a_group_in_one_call_and_splits_it(project):
+    import wave
+
+    rate, calls = 8000, []
+
+    class TTS:
+        def execute(self, inputs):
+            calls.append(inputs)
+            with wave.open(inputs["output_path"], "wb") as w:
+                w.setnchannels(1), w.setsampwidth(2), w.setframerate(rate)
+                w.writeframes(_speech(rate, [2.0, -0.7, 1.0]).tobytes())
+            return ToolResult(success=True, data={}, cost_usd=0.003)
+
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["voice"]["groups"] = ["s1"]
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    (project / "manual_images" / "audio").mkdir(parents=True)
+
+    def seconds(path):
+        with wave.open(str(path)) as w:
+            return w.getnframes() / w.getframerate()
+
+    out = mi.narrate(project, tts=TTS(), duration=seconds)
+    assert len(calls) == 1 and "\n\n" in calls[0]["text"]
+    assert out["clips"]["s1"]["seconds"] == pytest.approx(2.0 + mi.CLIP_PAD, abs=0.02)
+    assert out["clips"]["s2"]["seconds"] == pytest.approx(1.0 + mi.CLIP_PAD, abs=0.02)
+    mi.narrate(project, tts=TTS(), duration=seconds)
+    assert len(calls) == 1
+
+
+def test_titles_are_typed_on_their_shot_and_give_way_to_the_next(project, tmp_path):
+    data = mi.load_shotlist(project)
+    data["scenes"][0]["shots"][0]["title"] = ["WINTER 1917", "PETROGRAD, RUSSIA"]
+    data["scenes"][0]["shots"][1]["title"] = "LEE BYUNG-CHUL"
+    timing = mi.plan_timing(data, {"s1": {"seconds": 6.0}, "s2": {"seconds": 3.0}})
+    first, second = timing["titles"]
+    shots = {s["id"]: s for s in timing["shots"]}
+    assert first["start"] == pytest.approx(shots["s1a"]["start"] + mi.TITLE_LEAD)
+    assert second["start"] == pytest.approx(shots["s1b"]["start"] + mi.TITLE_LEAD)
+    assert first["end"] <= second["start"] - 0.15 + 1e-6
+    assert second["end"] - second["start"] == pytest.approx(mi.TITLE_HOLD)
+
+    data["scenes"][1]["shots"][0]["title"] = ["a", "b", "c"]
+    assert any("title must be one or two lines" in p for p in mi.validate(data))
+
+
+def test_workspace_types_the_titles(project, tmp_path):
+    data = json.loads((project / "manual_images" / "shotlist.json").read_text(encoding="utf-8"))
+    data["scenes"][1]["shots"][0]["title"] = ["GUMI, 1995"]
+    (project / "manual_images" / "shotlist.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    for shot in ("s1a", "s1b", "s2"):
+        _image(project / "manual_images" / "in" / f"{shot}.png")
+    for name in ("a.wav", "b.wav"):
+        (tmp_path / name).write_bytes(b"wav")
+    clips = {"s1": {"path": str(tmp_path / "a.wav"), "seconds": 6.0},
+             "s2": {"path": str(tmp_path / "b.wav"), "seconds": 3.0}}
+    mi.build_workspace(project, clips)
+    page = (project / "manual_images" / "workspace" / "index.html").read_text(encoding="utf-8")
+    assert 'id="title-0"' in page and 'id="tc-0-0-9"' in page and 'id="cur-0-0"' in page
+    assert '"type_step": 0.045' in page
+
+
 def test_workspace_has_every_shot_caption_and_audio(project, tmp_path, monkeypatch):
     inbox = project / "manual_images" / "in"
     for shot in ("s1a", "s1b", "s2"):

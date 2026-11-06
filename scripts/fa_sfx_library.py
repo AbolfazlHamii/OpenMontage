@@ -42,6 +42,9 @@ SYNTH = {
     "hit": ("hit", {}),
     "riser-1.5": ("riser", {"duration": 1.5}),
     "crackle": ("crackle", {"duration": 9.0}),
+    "gunshot": ("gunshot", {}),
+    "gunshots-3": ("gunshot", {"shots": 3}),
+    "typing": ("typing", {"duration": 1.0}),
 }
 PIXABAY = "Pixabay Content License (https://pixabay.com/service/terms/, last updated 20 October 2026)"
 

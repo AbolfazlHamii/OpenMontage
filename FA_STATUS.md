@@ -190,6 +190,29 @@ in Google Flow with ZAPI FLOW):
 - Round 4 (2026-11-05 ~13:45): 9 of the last 10 in (from `zapi-img/01–10`
   and `Downloads/1/`; extras kept in `in/alts/`). 142/143; only s05y (sailors
   storming the palace stairs) is missing, prompt in `Downloads/kgb_zapi_s05y.txt`.
+- Owner review of 0–1:49 (2026-11-06), all applied:
+  - "The voice sounds like a different person in places (1:20)." Per-scene
+    TTS calls drift (median pitch 101–156 Hz). New in `lib/fa_manual_images.py`:
+    `voice.groups` voices several scenes per call, `voice.align: "transcript"`
+    transcribes the take (AvalAI whisper-1 word times, uploaded as 16 kHz mp3)
+    and cuts at each scene's first word (`scene_breaks_from_words`,
+    `split_on_pauses(..., breaks)`). Pause-only splitting failed (scene breaks
+    are no longer than sentence pauses). KGB: 4 groups starting s01, s10, s19,
+    s29 (on music changes). Cost: TTS ~$0.12 + STT ~$0.05.
+  - "Type dates and names in English like documentaries (0:50, 1:12)." Shot
+    field `title` (1–2 lines) is typed letter by letter bottom-left with a red
+    block cursor (Courier New Bold from Windows, `TYPEWRITER_FONT` overrides),
+    `sfx.title: "typing"` (new synth). 44 titles in the KGB shot list, dates
+    checked (Cheka 20 Dec 1917, Lenin shot 30 Aug 1918, Bandera 15 Oct 1959...).
+  - "The gunshot effect is weak." There was no gunshot; the generic hit played.
+    New synth `gunshot` / `gunshots-3` (crack + body + thump + yard echo) in
+    `lib/sfx_synth.py` and the library; three shots on «شلیک» in s08 (Kaplan
+    fired three times), shots under the Kabul palace storming, «ترور سرخ» now
+    the bass impact.
+  - s05y made by API (owner asked): avalai gemini-3.1-flash-image 1K with s05a
+    and s06w as style references, $0.067.
+- `render_sections.sh [upto]` now reads window edges from the music sections
+  and the current narration instead of fixed times.
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).

@@ -74,6 +74,25 @@ Code: `lib/fa_manual_images.py`, CLI `scripts/fa_manual_images.py`.
    edit pass in `skills/creative/editing-craft.md` for SFX and word-timed
    captions).
 
+## One narrator voice
+
+Every TTS call comes out a slightly different voice; a video voiced scene
+by scene sounds like several narrators (owner heard it on the KGB video).
+Set `voice.groups` to the scene ids that start a call (music-section starts
+hide the seam) and `voice.align: "transcript"`: each take is transcribed
+with word times (AvalAI whisper-1, about $0.0001/s) and cut at every
+scene's first word. Without `align`, cuts go to pauses by letter share,
+which can miss by a sentence.
+
+## Typed titles
+
+The fa channel shows no captions, but wants English documentary titles for
+dates, places and names. Give a shot `"title": ["DECEMBER 1917",
+"PETROGRAD, RUSSIA"]` (one or two lines): it types in bottom-left, letter
+by letter behind a red cursor, 0.2 s after the cut, holds ≥ 3 s and gives
+way to the next title. `sfx.title: "typing"` adds key clacks. Check every
+date and name against a source; a wrong date on screen is worse than none.
+
 ## Notes
 
 - Captions are timed by letter share of the line, not by word timestamps.

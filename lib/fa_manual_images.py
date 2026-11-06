@@ -28,8 +28,10 @@ import hashlib
 import html
 import json
 import math
+import os
 import re
 import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -39,6 +41,8 @@ from lib.fa_text import chars_per_second, normalize
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GSAP = REPO_ROOT / ".agents" / "skills" / "music-to-video" / "references" / "motion-primitives" / "assets" / "gsap.min.js"
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
+# Courier New Bold ships with Windows; TYPEWRITER_FONT points elsewhere on other machines.
+TYPEWRITER_FONT = Path(os.environ.get("TYPEWRITER_FONT", "C:/Windows/Fonts/courbd.ttf"))
 CAMERAS = ("push_in", "pull_out", "pan_left", "pan_right", "tilt_up", "tilt_down", "still")
 # Varied by default so consecutive stills never move the same way.
 CAMERA_CYCLE = ("push_in", "pan_right", "pull_out", "pan_left", "tilt_up", "push_in")
@@ -143,6 +147,10 @@ def validate(data: dict) -> list[str]:
                     problems.append(f"{shid}: character {name!r} is not in style.characters")
             if shot.get("cue") and shot["cue"] not in (scene.get("narration") or ""):
                 problems.append(f"{shid}: cue {shot['cue']!r} is not in the scene's narration")
+            if "title" in shot:
+                lines = title_lines(shot["title"])
+                if not 1 <= len(lines) <= 2 or not all(isinstance(x, str) and x.strip() for x in lines):
+                    problems.append(f"{shid}: title must be one or two lines of text")
     return problems
 
 
@@ -383,9 +391,187 @@ def _duration(path: Path) -> float:
     return float(probe_duration(str(path)))
 
 
-def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _duration) -> dict:
+def _voice_groups(data: dict) -> list[list[dict]]:
+    """Scenes voiced together. Separate TTS calls drift in pitch and timbre, so
+    `voice.groups` (the scene ids that start a new call) keeps one voice across
+    several scenes; without it every scene is its own call."""
+    starts = set((data.get("voice") or {}).get("groups") or [])
+    groups: list[list[dict]] = []
+    for scene in data["scenes"]:
+        if scene.get("audio") or not groups or not starts or scene["id"] in starts or groups[-1][0].get("audio"):
+            groups.append([scene])
+        else:
+            groups[-1].append(scene)
+    return groups
+
+
+PAUSE_DB = -32.0   # quieter than this, relative to loud speech, is a pause
+MIN_PAUSE = 0.15
+CLIP_PAD = 0.1     # silence kept at each end of a split clip
+
+
+def scene_breaks_from_words(words: list[dict], texts: list[str]) -> list[float]:
+    """Where each scene after the first starts in a take, from a transcript
+    with word times: the script and the transcript are matched letter by
+    letter (spellings and spoken numbers differ, the bulk still lines up), and
+    a break sits between the last matched letter before it and the first after."""
+    from difflib import SequenceMatcher
+
+    def letters(text: str) -> str:
+        return normalize(text).replace(" ", "")
+
+    heard, start_at, end_at = [], [], []
+    for w in words:
+        for ch in letters(w["word"]):
+            heard.append(ch)
+            start_at.append(w["start"])
+            end_at.append(w["end"])
+    script = "".join(letters(t) for t in texts)
+    to_heard = {}
+    for block in SequenceMatcher(None, script, "".join(heard), autojunk=False).get_matching_blocks():
+        for k in range(block.size):
+            to_heard[block.a + k] = block.b + k
+    matched = sorted(to_heard)
+    breaks, offset = [], 0
+    for text in texts[:-1]:
+        offset += len(letters(text))
+        before = [i for i in matched if offset - 40 <= i < offset]
+        after = [i for i in matched if offset <= i < offset + 40]
+        if not before and not after:
+            raise ValueError(f"transcript does not cover the break before letter {offset}")
+        end = end_at[to_heard[before[-1]]] if before else None
+        start = start_at[to_heard[after[0]]] if after else None
+        if end is not None and start is not None and start >= end:
+            breaks.append((end + start) / 2)
+        else:
+            breaks.append(start if start is not None else end)
+    return breaks
+
+
+def split_on_pauses(samples, rate: int, weights: list[float],
+                    breaks: Optional[list[float]] = None) -> list[tuple[int, int]]:
+    """Cut one long take into len(weights) parts at pauses. Each cut goes to the
+    pause that best balances being long (scenes end on a breath) and sitting
+    where the scene ends: `breaks` (seconds, from a transcript) when known,
+    otherwise the share of letters (weights: letters per scene)."""
+    import numpy as np
+
+    hop = max(1, rate // 100)
+    frames = len(samples) // hop
+    rms = np.sqrt(np.mean(samples[:frames * hop].reshape(frames, hop).astype(np.float64) ** 2, axis=1))
+    loud = np.percentile(rms, 95) or 1.0
+    quiet = rms < loud * 10 ** (PAUSE_DB / 20)
+    voiced = np.flatnonzero(~quiet)
+    first, last = (int(voiced[0]), int(voiced[-1]) + 1) if len(voiced) else (0, frames)
+    pauses, i = [], first
+    while i < last:
+        if quiet[i]:
+            j = i
+            while j < last and quiet[j]:
+                j += 1
+            if (j - i) * hop / rate >= MIN_PAUSE:
+                pauses.append((i, j))
+            i = j
+        else:
+            i += 1
+    cuts = len(weights) - 1
+    span = last - first
+    if breaks is not None:
+        expected = [t * rate / hop for t in breaks]
+        # a break the transcript placed well clear of any pause still gets a cut
+        for e in expected:
+            if not any(a - 30 <= e <= b + 30 for a, b in pauses):
+                pauses.append((int(e), int(e)))
+        pauses.sort()
+        tolerance = 0.5 * rate / hop          # transcript times are good to a word
+    else:
+        total = sum(weights)
+        expected = [first + span * sum(weights[:k + 1]) / total for k in range(cuts)]
+        tolerance = span / len(weights) / 2   # letter shares drift by a sentence
+    if len(pauses) < cuts:
+        raise ValueError(f"found {len(pauses)} pauses for {cuts} scene breaks")
+
+    def cost(k: int, p: int) -> float:
+        a, b = pauses[p]
+        miss = abs((a + b) / 2 - expected[k]) / tolerance
+        return miss * miss - (b - a) * hop / rate
+
+    # best[k][p]: cheapest way to place cuts 0..k with cut k on pause p
+    inf = float("inf")
+    best = [[inf] * len(pauses) for _ in range(cuts)]
+    back = [[-1] * len(pauses) for _ in range(cuts)]
+    for p in range(len(pauses)):
+        best[0][p] = cost(0, p)
+    for k in range(1, cuts):
+        run, arg = inf, -1
+        for p in range(len(pauses)):
+            if p > 0 and best[k - 1][p - 1] < run:
+                run, arg = best[k - 1][p - 1], p - 1
+            if arg >= 0:
+                best[k][p], back[k][p] = run + cost(k, p), arg
+    chosen = []
+    if cuts:
+        p = min(range(len(pauses)), key=lambda q: best[cuts - 1][q])
+        for k in range(cuts - 1, -1, -1):
+            chosen.append(p)
+            p = back[k][p]
+        chosen.reverse()
+    pad = int(CLIP_PAD * rate / hop)
+    bounds, start = [], first
+    for p in chosen:
+        a, b = pauses[p]
+        bounds.append((max(0, start - pad), min(frames, a + pad)))
+        start = b
+    bounds.append((max(0, start - pad), min(frames, last + pad)))
+    return [(a * hop, b * hop) for a, b in bounds]
+
+
+def _split_take(take: Path, scenes: list[dict], paths: list[Path], breaks=None) -> None:
+    import wave
+
+    import numpy as np
+
+    with wave.open(str(take)) as w:
+        params = w.getparams()
+        raw = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+    mono = raw.reshape(-1, params.nchannels).mean(axis=1) if params.nchannels > 1 else raw
+    weights = [max(1, len(normalize(s["narration"]).replace(" ", ""))) for s in scenes]
+    for (a, b), path in zip(split_on_pauses(mono, params.framerate, weights, breaks), paths):
+        with wave.open(str(path), "wb") as out:
+            out.setparams(params)
+            out.writeframes(raw[a * params.nchannels:b * params.nchannels].tobytes())
+
+
+def _take_words(take: Path, stt) -> tuple[list[dict], float]:
+    """Word times for a take, transcribed once and kept beside it."""
+    cached = take.with_suffix(".words.json")
+    if cached.exists():
+        return json.loads(cached.read_text(encoding="utf-8")), 0.0
+    if stt is None:
+        from tools.analysis.avalai_stt import AvalAISTT
+
+        stt = AvalAISTT()
+    upload = take
+    if shutil.which("ffmpeg"):
+        # a two-minute 24 kHz WAV is ~6 MB and timed out on a slow line; speech
+        # recognition needs no more than 16 kHz mono
+        upload = take.with_suffix(".stt.mp3")
+        subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(take), "-ac", "1", "-ar", "16000",
+                        "-b:a", "48k", str(upload)], check=True)
+    result = stt.execute({"audio_path": str(upload), "word_timestamps": True, "language": "fa",
+                          "output_path": str(take.with_suffix(".transcript.json"))})
+    if not result.success:
+        raise RuntimeError(f"{take.name}: transcription failed: {result.error}")
+    _write(cached, result.data["words"])
+    return result.data["words"], result.cost_usd or 0.0
+
+
+def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _duration, stt=None) -> dict:
     """One clip per scene. A scene's own `audio` file wins; otherwise TTS with
-    the channel's narrator and lexicon. Clips are keyed by text and voice."""
+    the channel's narrator and lexicon, one call per voice group (split back
+    into scenes at the pauses; with `voice.align: "transcript"` the take is
+    transcribed so each cut lands on its scene's first word). Clips are keyed
+    by text and voice."""
     from lib.channel_bible import load_channel
     from tools.audio.tts_selector import TTSSelector
 
@@ -397,7 +583,8 @@ def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _durati
     tts = tts or TTSSelector()
     out_dir = root(project) / "audio"
     clips, cost = {}, 0.0
-    for scene in data["scenes"]:
+    for group in _voice_groups(data):
+        scene = group[0]
         if scene.get("audio"):
             path = Path(scene["audio"])
             if not path.is_absolute():
@@ -407,7 +594,7 @@ def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _durati
             clips[scene["id"]] = {"path": str(path), "seconds": round(duration(path), 3), "source": "file"}
             continue
         request = {
-            "text": scene["narration"], "language_code": "fa",
+            "text": "\n\n".join(s["narration"] for s in group), "language_code": "fa",
             "voice_id": voice_cfg.get("voice_id") or narrator.get("voice") or "Kore",
             "style": scene.get("style") or voice_cfg.get("style") or narrator.get("style") or "",
             "model_id": voice_cfg.get("model_id") or narrator.get("model_final", "gemini-3.8-flash-tts"),
@@ -415,14 +602,24 @@ def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _durati
         if voice_cfg.get("channel"):
             request["channel"] = voice_cfg["channel"]
         digest = hashlib.sha256(json.dumps(request, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:10]
-        path = out_dir / f"{scene['id']}_{digest}.wav"
-        if not path.exists():
-            result = tts.execute({**request, "output_path": str(path), "allowed_providers":
-                                  voice_cfg.get("providers") or narrator.get("providers") or ["gemini", "avalai"]})
-            if not result.success:
-                raise RuntimeError(f"{scene['id']}: {result.error}")
-            cost += result.cost_usd or 0.0
-        clips[scene["id"]] = {"path": str(path), "seconds": round(duration(path), 3), "source": "tts"}
+        paths = [out_dir / f"{s['id']}_{digest}.wav" for s in group]
+        if not all(p.exists() for p in paths):
+            take = paths[0] if len(group) == 1 else out_dir / f"take_{scene['id']}_{digest}.wav"
+            if not take.exists():
+                result = tts.execute({**request, "output_path": str(take), "allowed_providers":
+                                      voice_cfg.get("providers") or narrator.get("providers") or ["gemini", "avalai"]})
+                if not result.success:
+                    raise RuntimeError(f"{scene['id']}: {result.error}")
+                cost += result.cost_usd or 0.0
+            if len(group) > 1:
+                breaks = None
+                if voice_cfg.get("align") == "transcript":
+                    words, spent = _take_words(take, stt)
+                    cost += spent
+                    breaks = scene_breaks_from_words(words, [s["narration"] for s in group])
+                _split_take(take, group, paths, breaks)
+        for s, path in zip(group, paths):
+            clips[s["id"]] = {"path": str(path), "seconds": round(duration(path), 3), "source": "tts"}
     return {"clips": clips, "cost_usd": round(cost, 6)}
 
 
@@ -493,10 +690,22 @@ def _cue_lengths(scene: dict, start: float, end: float, voice_start: float, seco
     return lengths
 
 
+# Documentary titles: an English date, place or name typed onto a shot.
+TITLE_LEAD = 0.2      # after the cut
+TYPE_STEP = 0.045     # per character
+TITLE_LINE_GAP = 0.15
+TITLE_READ = 1.8      # held after the last character
+TITLE_HOLD = 3.0      # shortest time on screen
+
+
+def title_lines(title) -> list[str]:
+    return [title] if isinstance(title, str) else list(title)
+
+
 def plan_timing(data: dict, clips: dict) -> dict:
     """Scene, shot and caption times from the narration lengths."""
     t = LEAD_IN
-    scenes, captions, all_shots = [], [], []
+    scenes, captions, all_shots, titles = [], [], [], []
     for index, scene in enumerate(data["scenes"]):
         seconds = clips[scene["id"]]["seconds"]
         start = 0.0 if index == 0 else t
@@ -528,6 +737,12 @@ def plan_timing(data: dict, clips: dict) -> dict:
                               "end": round(cursor + length, 3),
                               "camera": shot.get("camera") or CAMERA_CYCLE[len(all_shots) % len(CAMERA_CYCLE)],
                               "focus": shot.get("focus") or [0.5, 0.45]})
+            if shot.get("title"):
+                lines = title_lines(shot["title"])
+                at = cursor + TITLE_LEAD
+                typed = sum(len(line) for line in lines) * TYPE_STEP + TITLE_LINE_GAP * (len(lines) - 1)
+                titles.append({"shot": shot["id"], "lines": lines, "start": round(at, 3),
+                               "end": round(at + max(TITLE_HOLD, typed + TITLE_READ), 3)})
             cursor += length
 
         chunks = caption_chunks(scene.get("caption") or scene.get("narration", "")) if data.get("captions", True) else []
@@ -539,7 +754,11 @@ def plan_timing(data: dict, clips: dict) -> dict:
                              "end": round(c_start + c_len, 3)})
             c_start += c_len
         t = end
-    return {"duration": round(t + 0.4, 3), "scenes": scenes, "shots": all_shots, "captions": captions}
+    # a title gives way to the next one
+    for title, nxt in zip(titles, titles[1:]):
+        title["end"] = round(min(title["end"], nxt["start"] - 0.15), 3)
+    return {"duration": round(t + 0.4, 3), "scenes": scenes, "shots": all_shots, "captions": captions,
+            "titles": titles}
 
 
 # -- workspace -------------------------------------------------------------------
@@ -617,12 +836,17 @@ def sfx_events(sfx_cfg: dict, data: dict, timing: dict) -> list[dict]:
 
     sfx = {"library": <dir>, "scene_change": <sfx or "">, "flash": <sfx>,
            "marks": [{"scene", "cue", "sfx", "priority"?, "volume"?, "lead"?}],
-           "beds": [{"scene", "sfx", "seconds", "volume"?}]}
+           "beds": [{"scene", "sfx", "seconds", "volume"?}],
+           "title": <sfx under each typed title> , "title_volume"?}
     Marks land where their cue is spoken (letter share, like shot cues).
     """
     scenes = {s["id"]: s for s in timing["scenes"]}
     text = {s["id"]: s.get("narration", "") for s in data["scenes"]}
     events = []
+    if sfx_cfg.get("title"):
+        for title in timing.get("titles") or []:
+            events.append({"at": title["start"], "sfx": sfx_cfg["title"], "kind": "mark", "priority": 4,
+                           "volume": sfx_cfg.get("title_volume", 0.3)})
     for sc in timing["scenes"][1:]:
         sound = sfx_cfg.get("flash") if sc["transition"] == "flash" else sfx_cfg.get("scene_change")
         if sound:
@@ -667,6 +891,12 @@ def build_workspace(project: Path, clips: dict) -> dict:
     if missing_fonts:
         warnings.append(f"fonts not found: {', '.join(missing_fonts)} (searched {', '.join(fonts.searched)}); "
                         "Persian text will render in a fallback font. Install Vazirmatn or set SUBTITLE_FONTS_DIR.")
+
+    if timing["titles"]:
+        if TYPEWRITER_FONT.exists():
+            shutil.copyfile(TYPEWRITER_FONT, ws / "assets" / "fonts" / "typewriter.ttf")
+        else:
+            warnings.append(f"typewriter font not found at {TYPEWRITER_FONT}; titles fall back to monospace")
 
     sections, audio_tags = [], []
     source = image_source(data)
@@ -735,6 +965,17 @@ def build_workspace(project: Path, clips: dict) -> dict:
                      for s in timing["scenes"] if s["stamp"])
     caps = "".join(f'<div id="cg-{i}" class="cg"><span class="box">{html.escape(c["text"])}</span></div>'
                    for i, c in enumerate(timing["captions"]))
+    titles, title_plan = [], []
+    for i, title in enumerate(timing["titles"]):
+        rows, keys, at = [], [], title["start"]
+        for j, line in enumerate(title["lines"]):
+            chars = "".join(f'<span id="tc-{i}-{j}-{k}" class="ch">{html.escape(ch)}</span>'
+                            for k, ch in enumerate(line))
+            rows.append(f'<div class="tl tl{j}">{chars}<span id="cur-{i}-{j}" class="cur"></span></div>')
+            keys.append({"line": j, "start": round(at, 3), "count": len(line)})
+            at += len(line) * TYPE_STEP + TITLE_LINE_GAP
+        titles.append(f'<div id="title-{i}" class="title">{"".join(rows)}</div>')
+        title_plan.append({"i": i, "start": title["start"], "end": title["end"], "lines": keys})
     moves = []
     max_still = float((data.get("rhythm") or {}).get("max_still") or 0)
     punch_at = {sh["id"]: sh.get("punch_focus") for sc in data["scenes"] for sh in sc["shots"]}
@@ -743,13 +984,14 @@ def build_workspace(project: Path, clips: dict) -> dict:
     page = WORKSPACE_PAGE.format(
         title=html.escape(data.get("title") or Path(project).name),
         duration=timing["duration"], sections="\n      ".join(sections), stamps=stamps, captions=caps,
-        audio="\n      ".join(audio_tags),
+        titles="".join(titles), audio="\n      ".join(audio_tags),
         timeline=json.dumps({
             "moves": moves,
             "flashes": [s["start"] for s in timing["scenes"][1:] if s["transition"] == "flash"],
             "stamps": [{"id": s["id"], "start": s["voice_start"] + 0.1,
                         "end": min(s["end"], s["voice_start"] + 2.4)} for s in timing["scenes"] if s["stamp"]],
             "captions": [{"start": c["start"], "end": c["end"]} for c in timing["captions"]],
+            "titles": title_plan, "type_step": TYPE_STEP,
             "duration": timing["duration"], "music": bool(music), "music_volume": music_volume,
             "music_tracks": [{"id": t["id"], "start": t["start"], "end": t["end"]} for t in tracks if "id" in t],
         }, ensure_ascii=False))
@@ -782,6 +1024,16 @@ WORKSPACE_PAGE = """<!doctype html>
       .stamp {{ position: absolute; top: 56px; right: 64px; direction: rtl; font-family: "Vazirmatn"; font-weight: 800;
                font-size: 44px; line-height: 1.3; color: var(--cream); background: var(--cobalt); padding: 8px 28px 14px;
                border-radius: 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); opacity: 0; }}
+      @font-face {{ font-family: "Typewriter"; src: url("assets/fonts/typewriter.ttf") format("truetype"); font-display: block; }}
+      .title {{ position: absolute; left: 84px; bottom: 96px; direction: ltr; text-align: left; font-family: "Typewriter", "Courier New", monospace;
+               padding: 6px 0 6px 26px; border-left: 6px solid #b3261e; opacity: 0;
+               text-shadow: 0 0 2px #000, 0 3px 12px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 0, 0, 0.6); }}
+      .title .tl {{ white-space: pre; color: var(--cream); }}
+      .title .tl0 {{ font-size: 58px; letter-spacing: 6px; line-height: 1.15; }}
+      .title .tl1 {{ font-size: 36px; letter-spacing: 5px; line-height: 1.4; color: #e9dcc0; }}
+      .title .ch {{ display: none; }}
+      .title .cur {{ display: inline-block; width: 0.55em; height: 0.9em; margin-left: 4px; vertical-align: -0.08em;
+                    background: #b3261e; opacity: 0; }}
       .cg {{ position: absolute; left: 0; right: 0; bottom: 78px; display: flex; justify-content: center; opacity: 0; }}
       .cg .box {{ direction: rtl; max-width: 1600px; text-align: center; font-family: "Vazirmatn"; font-weight: 800;
                  font-size: 62px; line-height: 1.4; color: var(--cream); background: var(--pill); padding: 6px 36px 14px;
@@ -796,6 +1048,7 @@ WORKSPACE_PAGE = """<!doctype html>
       </div>
       <div id="stamps" class="clip overlay" data-start="0" data-duration="{duration}" data-track-index="2">{stamps}</div>
       <div id="captions" class="clip overlay" data-start="0" data-duration="{duration}" data-track-index="3">{captions}</div>
+      <div id="titles" class="clip overlay" data-start="0" data-duration="{duration}" data-track-index="4">{titles}</div>
       {audio}
     </div>
     <script>
@@ -824,6 +1077,26 @@ WORKSPACE_PAGE = """<!doctype html>
         tl.fromTo(el, {{ opacity: 0, x: 40 }}, {{ opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }}, s.start);
         tl.to(el, {{ opacity: 0, duration: 0.18, ease: "power2.in" }}, s.end - 0.18);
         tl.set(el, {{ opacity: 0 }}, s.end);
+      }});
+      // Typewriter titles: characters appear one by one behind a blinking block cursor.
+      PLAN.titles.forEach((t) => {{
+        const box = "#title-" + t.i;
+        tl.set(box, {{ opacity: 1 }}, t.start);
+        t.lines.forEach((line, j) => {{
+          const cur = "#cur-" + t.i + "-" + line.line;
+          const done = line.start + line.count * PLAN.type_step;
+          tl.set(cur, {{ opacity: 1 }}, line.start);
+          for (let k = 0; k < line.count; k++) {{
+            tl.set("#tc-" + t.i + "-" + line.line + "-" + k, {{ display: "inline" }}, line.start + k * PLAN.type_step);
+          }}
+          const last = j === t.lines.length - 1;
+          if (!last) {{ tl.set(cur, {{ opacity: 0 }}, done + 0.1); return; }}
+          for (let b = done + 0.4, on = false; b < t.end - 0.3; b += 0.4, on = !on) {{
+            tl.set(cur, {{ opacity: on ? 1 : 0 }}, b);
+          }}
+        }});
+        tl.to(box, {{ opacity: 0, duration: 0.3, ease: "power2.in" }}, t.end - 0.3);
+        tl.set(box, {{ opacity: 0 }}, t.end);
       }});
       PLAN.captions.forEach((c, i) => {{
         const el = "#cg-" + i;
