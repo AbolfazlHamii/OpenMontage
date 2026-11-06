@@ -1026,11 +1026,13 @@ WORKSPACE_PAGE = """<!doctype html>
                border-radius: 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); opacity: 0; }}
       @font-face {{ font-family: "Typewriter"; src: url("assets/fonts/typewriter.ttf") format("truetype"); font-display: block; }}
       .title {{ position: absolute; left: 84px; bottom: 96px; direction: ltr; text-align: left; font-family: "Typewriter", "Courier New", monospace;
-               padding: 6px 0 6px 26px; border-left: 6px solid #b3261e; opacity: 0;
-               text-shadow: 0 0 2px #000, 0 3px 12px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 0, 0, 0.6); }}
+               padding: 12px 120px 12px 26px; border-left: 6px solid #b3261e; opacity: 0;
+               /* light sepia stills swallowed the second line: a soft dark band behind the text */
+               background: linear-gradient(90deg, rgba(12, 9, 7, 0.72), rgba(12, 9, 7, 0.5) 70%, rgba(12, 9, 7, 0));
+               text-shadow: 0 0 2px #000, 0 2px 8px rgba(0, 0, 0, 0.8); }}
       .title .tl {{ white-space: pre; color: var(--cream); }}
       .title .tl0 {{ font-size: 58px; letter-spacing: 6px; line-height: 1.15; }}
-      .title .tl1 {{ font-size: 36px; letter-spacing: 5px; line-height: 1.4; color: #e9dcc0; }}
+      .title .tl1 {{ font-size: 38px; letter-spacing: 5px; line-height: 1.4; color: #f4e9d2; }}
       .title .ch {{ display: none; }}
       .title .cur {{ display: inline-block; width: 0.55em; height: 0.9em; margin-left: 4px; vertical-align: -0.08em;
                     background: #b3261e; opacity: 0; }}
