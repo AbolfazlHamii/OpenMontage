@@ -211,8 +211,18 @@ in Google Flow with ZAPI FLOW):
     the bass impact.
   - s05y made by API (owner asked): avalai gemini-3.1-flash-image 1K with s05a
     and s06w as style references, $0.067.
-- `render_sections.sh [upto]` now reads window edges from the music sections
-  and the current narration instead of fixed times.
+- `render_sections.sh [upto] [from]` now reads window edges from the music
+  sections and the current narration instead of fixed times, and reuses
+  windows before `from`.
+- Bug found 2026-11-06: `preview` narrated each window on its own, so with
+  voice groups every window became a new TTS take (9 extra takes, ~$0.16, and
+  the 0–1:45 sent to the owner changed voice at 0:34). Fixed (commit 2906763):
+  windows use the whole video's clips. Window joins also add ~1 s of tail per
+  join; for the real cut use one `build --render`, not joined windows.
+- First full cut (2026-11-06 04:09): `renders/kgb_full_v1.mp4`, one pass, 7:22,
+  -14.1 LUFS, 143/143 images, 44 titles, both gunshots; phone copy
+  `kgb_full_v1_small.mp4` (720p, 28 MB). Still missing: Suno m07–m10 (no music
+  from Kabul to the end).
 - Earlier note: 27/98 in (content-matched). Rejected row 34 (hammer and sickle on
   the US Great Seal); the seal prompts now say so. Redo list for the owner:
   `manual_images/zapi_redo.txt` (rows in `zapi_redo_rows.json`).
