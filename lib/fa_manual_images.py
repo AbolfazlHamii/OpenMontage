@@ -1185,7 +1185,6 @@ def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, re
         if playing:
             music_cfg["active_at_start"] = playing[-1]
     _write(sub / "manual_images" / "shotlist.json", {**data, "scenes": scenes, "music": music_cfg})
-    shutil.copytree(root(project) / "audio", sub / "manual_images" / "audio")
     borrowed = {}
     for i, sid in enumerate(order):
         src = have[sid]
@@ -1195,7 +1194,9 @@ def preview(project: Path, upto_seconds: float, *, from_seconds: float = 0.0, re
             borrowed[sid] = src.stem
         shutil.copy2(src, sub / "manual_images" / "in" / f"{sid}{src.suffix.lower()}")
 
-    built = build_workspace(sub, narrate(sub, tts=tts, duration=duration)["clips"])
+    # The whole video's clips, not a fresh narration of the window: with voice
+    # groups the window would start its own group and come out a new take.
+    built = build_workspace(sub, {sid: clips[sid] for sid in keep})
     out = {"scenes": [s["id"] for s in scenes], "seconds": built.get("duration"),
            "borrowed": borrowed, "workdir": str(sub), "warnings": built["warnings"]}
     if render_video:
