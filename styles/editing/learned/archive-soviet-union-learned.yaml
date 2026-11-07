@@ -1,0 +1,181 @@
+name: archive-soviet-union-learned
+title: Learned from archive-soviet-union
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The climax-first paradox hook: show the ending, amplify
+  its mystery through scale and surprise, ask how it began and ended, then rewind
+  to the start.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\archive-soviet-union\source.mp4
+  date: '2026-11-05'
+  measured:
+    duration_seconds: 1019.3
+    shots: 14
+    asl_seconds: 72.8
+    shot_length_range:
+    - 0.6
+    - 270.7
+    cuts_per_minute: 0.8
+    words_per_minute: 167.8
+    onset_sync:
+      ratio: 0.231
+      chance: 0.526
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 2.0
+    - start: 30.0
+      cuts_per_minute: 2.0
+    - start: 60.0
+      cuts_per_minute: 0.0
+    - start: 90.0
+      cuts_per_minute: 0.0
+    - start: 120.0
+      cuts_per_minute: 0.0
+    - start: 150.0
+      cuts_per_minute: 0.0
+    - start: 180.0
+      cuts_per_minute: 0.0
+    - start: 210.0
+      cuts_per_minute: 0.0
+    - start: 240.0
+      cuts_per_minute: 0.0
+    - start: 270.0
+      cuts_per_minute: 0.0
+    - start: 300.0
+      cuts_per_minute: 2.0
+    - start: 330.0
+      cuts_per_minute: 0.0
+    - start: 360.0
+      cuts_per_minute: 0.0
+    - start: 390.0
+      cuts_per_minute: 0.0
+    - start: 420.0
+      cuts_per_minute: 0.0
+    - start: 450.0
+      cuts_per_minute: 0.0
+    - start: 480.0
+      cuts_per_minute: 0.0
+    - start: 510.0
+      cuts_per_minute: 0.0
+    - start: 540.0
+      cuts_per_minute: 2.0
+    - start: 570.0
+      cuts_per_minute: 0.0
+    - start: 600.0
+      cuts_per_minute: 8.0
+    - start: 630.0
+      cuts_per_minute: 0.0
+    - start: 660.0
+      cuts_per_minute: 2.0
+    - start: 690.0
+      cuts_per_minute: 0.0
+    - start: 720.0
+      cuts_per_minute: 0.0
+    - start: 750.0
+      cuts_per_minute: 2.0
+    - start: 780.0
+      cuts_per_minute: 2.0
+    - start: 810.0
+      cuts_per_minute: 0.0
+    - start: 840.0
+      cuts_per_minute: 0.0
+    - start: 870.0
+      cuts_per_minute: 0.0
+    - start: 900.0
+      cuts_per_minute: 0.0
+    - start: 930.0
+      cuts_per_minute: 0.0
+    - start: 960.0
+      cuts_per_minute: 2.0
+    - start: 990.0
+      cuts_per_minute: 2.0
+    shot_size:
+      wide: 8
+      extreme_wide: 1
+      medium: 4
+      close_up: 1
+    camera_angle:
+      low: 2
+      eye_level: 12
+    content:
+      live_action: 3
+      photo: 10
+      illustration: 1
+    motion:
+      fast_motion: 13
+      ken_burns: 1
+    text_on_screen_share: 0.29
+pacing:
+  sections:
+    hook:
+      asl_seconds: 20.37
+      cuts_per_minute: 2.0
+      duration_seconds: 30.0
+    body:
+      asl_seconds: 87.97
+      cuts_per_minute: 0.7
+      duration_seconds: 959.3
+    outro:
+      asl_seconds: 15.63
+      cuts_per_minute: 2.0
+      duration_seconds: 30.0
+  words_per_minute: 167.8
+  beat_sync_ratio: 0.231
+hook_formula:
+  duration_seconds: 30.0
+  beats:
+  - Open on the dramatic endpoint with precise temporal specificity.
+  - Sharpen the mystery by contrasting the event’s massive scale with its surprising
+    ease or absence of expected drama.
+  - 'Pose the central causal question: how did this begin, and how did it stop?'
+  - Frame the narrative journey by jumping back in time from an origin image to the
+    already-shown endpoint, then begin the story.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 0.93
+  note: from frame differences inside each sampled shot
+- name: ken_burns
+  weight: 0.07
+subtitles:
+  style: none
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 0.92
+- at: 0.2
+  energy: 0.99
+- at: 0.4
+  energy: 1.0
+- at: 0.6
+  energy: 0.98
+- at: 0.8
+  energy: 0.95
+- at: 1.0
+  energy: 1.0
+pattern_interrupt_seconds:
+  min: 15.4
+  max: 233.1
+color_type:
+  palette:
+  - '#040706'
+  - '#5f5d57'
+  - '#b1b5b6'
+  - '#262321'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.
