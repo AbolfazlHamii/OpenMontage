@@ -263,6 +263,26 @@ Owner: "build it to the end until I give you the music". Done:
   only. Timing unchanged, so the chapters in `packaging/description.txt` hold.
   The `youtube-upload` session (channel @spoilfa) was told to use this file.
 
+## Next production: Stasi (2026-11-06/07)
+
+Owner chose the episode the KGB video teases. Own script (no ArchiveInMinutes
+Stasi video was found). Project `projects/stasi-history-fa/`, same pipeline:
+- 44 scenes, cold open on Vera Lengsfeld finding out from her file that
+  "Donald" was her husband; callback to the KGB video in Dresden (s34).
+  Claims and sources: `artifacts/sources.md` (unverified details left out).
+  Lint: medium, no high findings (longest gap 10.7 s).
+- Narration voiced in 4 groups (s01, s14, s25, s37) with transcript
+  alignment: 344 s of speech, video ~6:00, $0.12.
+- 117 shots after a rhythm pass on the voiced timing (avg 3.1 s, max 5.9 s);
+  33 English titles; gunshots on Mielke's 1931 shooting; music sections
+  m01–m08 (`music/SUNO_PROMPTS.md`).
+- 5 stills copied from the KGB project (clock, four-eras line-up, Berlin Wall,
+  Dresden officer, crowd at the gate); 111 prompts for the owner in
+  `manual_images/zapi_stasi.txt` (rows in `zapi_stasi_rows.json`), also
+  `Downloads/stasi_zapi.txt` and `Downloads/stasi_suno_prompts.md`.
+- Next: owner makes the images (ZAPI FLOW → `Downloads/zapi-img/`) and the
+  music; match images by content, import, render with `build --render`.
+
 ## Earlier production: first transcreation
 
 Project: `projects/samsung-history-fa/` (git-ignored), "کل تاریخ سامسونگ در ۹۰ ثانیه".
