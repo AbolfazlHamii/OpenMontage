@@ -1,7 +1,7 @@
 {
   "date": "2026-11-04",
   "cap_usd": 0.3,
-  "spent_usd": 0.200655,
+  "spent_usd": 0.201073,
   "max_tokens": 2500,
   "wall_seconds": 227.3,
   "results": [
@@ -1139,6 +1139,420 @@
       "json_valid": false,
       "text": null,
       "json": null
+    },
+    {
+      "profile": "dahl",
+      "model": "MiniMaxAI/MiniMax-M2.7",
+      "task": "narration",
+      "success": true,
+      "error": null,
+      "seconds": 64.61,
+      "cost_usd": 5.258e-05,
+      "usage": {
+        "prompt_tokens": 129,
+        "completion_tokens": 2500
+      },
+      "repaired": false,
+      "json_valid": null,
+      "text": "",
+      "json": null,
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "MiniMaxAI/MiniMax-M2.7",
+      "task": "translation",
+      "success": true,
+      "error": null,
+      "seconds": 9.89,
+      "cost_usd": 1.326e-05,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 556
+      },
+      "repaired": false,
+      "json_valid": null,
+      "text": "سال ۱۹۹۵، رئیسِ سامسونگ دستور داد ۱۵۰ هزار تا گوشی خراب رو بیارن توی حیاط کارخونه‌ی گومی و جلوی چشمِ همه‌ی کارکناش آتیش بزنن بهشون. پیامش ساده بود: کیفیت اول، هر چی هزینه‌اش باشه.",
+      "json": null,
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "MiniMaxAI/MiniMax-M2.7",
+      "task": "image_prompts",
+      "success": true,
+      "error": null,
+      "seconds": 30.44,
+      "cost_usd": 4.764e-05,
+      "usage": {
+        "prompt_tokens": 175,
+        "completion_tokens": 2207
+      },
+      "repaired": false,
+      "json_valid": true,
+      "text": "{\n  \"prompts\": [\n    {\n      \"scene\": 1,\n      \"prompt\": \"A hand holding a modern smartphone, viewed from a high-angle isometric perspective. 2D editorial illustration style featuring flat geometric shapes and a subtle film grain texture. Strict color palette consisting of deep navy, soft cream, and a vibrant cobalt blue accent for the screen glow. No text or logos included.\"\n    },\n    {\n      \"scene\": 2,\n      \"prompt\": \"A traditional wooden storefront in 1930s Korea selling hanging dried fish. The shop features a sloped tiled roof and an awning over wooden crates. Workers in period-specific clothing arranging the stock outside. Flat 2D illustration with a paper grain overlay. Palette: Navy, Cream, Cobalt.\"\n    },\n    {\n      \"scene\": 3,\n      \"prompt\": \"The interior of a 1960s electronics factory assembly line. Workers in white coats and caps are assembling early transistor radios and circuit boards along a long conveyor belt. Isometric flat design with a grainy texture. Colors: Navy, Cream, Cobalt (machinery accents).\"\n    },\n    {\n      \"scene\": 4,\n      \"prompt\": \"A dramatic scene of a bonfire burning piles of large, boxy 1990s mobile phones in a factory yard at dusk. Workers standing in a semi-circle watching the flames, with thick smoke rising against a navy night sky. 2D flat illustration style with grain. Palette: Navy, Cream, Cobalt.\"\n    },\n    {\n      \"scene\": 5,\n      \"prompt\": \"A sleek, open foldable smartphone displayed on a white marble pedestal in a minimalist museum gallery. A spotlight highlights the device, casting a soft shadow. Flat vector art style with a grain texture. Strict palette of navy, cream, and cobalt.\"\n    }\n  ]\n}",
+      "json": {
+        "prompts": [
+          {
+            "scene": 1,
+            "prompt": "A hand holding a modern smartphone, viewed from a high-angle isometric perspective. 2D editorial illustration style featuring flat geometric shapes and a subtle film grain texture. Strict color palette consisting of deep navy, soft cream, and a vibrant cobalt blue accent for the screen glow. No text or logos included."
+          },
+          {
+            "scene": 2,
+            "prompt": "A traditional wooden storefront in 1930s Korea selling hanging dried fish. The shop features a sloped tiled roof and an awning over wooden crates. Workers in period-specific clothing arranging the stock outside. Flat 2D illustration with a paper grain overlay. Palette: Navy, Cream, Cobalt."
+          },
+          {
+            "scene": 3,
+            "prompt": "The interior of a 1960s electronics factory assembly line. Workers in white coats and caps are assembling early transistor radios and circuit boards along a long conveyor belt. Isometric flat design with a grainy texture. Colors: Navy, Cream, Cobalt (machinery accents)."
+          },
+          {
+            "scene": 4,
+            "prompt": "A dramatic scene of a bonfire burning piles of large, boxy 1990s mobile phones in a factory yard at dusk. Workers standing in a semi-circle watching the flames, with thick smoke rising against a navy night sky. 2D flat illustration style with grain. Palette: Navy, Cream, Cobalt."
+          },
+          {
+            "scene": 5,
+            "prompt": "A sleek, open foldable smartphone displayed on a white marble pedestal in a minimalist museum gallery. A spotlight highlights the device, casting a soft shadow. Flat vector art style with a grain texture. Strict palette of navy, cream, and cobalt."
+          }
+        ]
+      },
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "MiniMaxAI/MiniMax-M2.7",
+      "task": "hooks",
+      "success": true,
+      "error": null,
+      "seconds": 45.01,
+      "cost_usd": 0.00010458,
+      "usage": {
+        "prompt_tokens": 249,
+        "completion_tokens": 4980
+      },
+      "repaired": true,
+      "json_valid": true,
+      "text": "{\n  \"hooks\": [\n    \"از ۱۹۳۸ تا ۲۰۲۵، ۸۷ سال تاریخ Samsung در ۹۰ ثانیه!\",\n    \"شرکتی که از فروش خواروبار شروع شد، حالا غول الکترونیکه!\",\n    \"Samsung از کجا شروع شد؟ جواب اینجاست!\",\n    \"یادتونه ۱۹۹۵ وقتی موبایل‌هاشون رو آتیش زدن؟\",\n    \"ببین چطور یه کوه‌پیکر از یه دانه برنج ساخته شد!\",\n    \"آیا می‌دونید Samsung تو ۹۰ ثانیه چه بلایی سر دنیا آورد؟\",\n    \"هی! ۸۷ سال نوآوری رو تو یه ویدیو ببین!\",\n    \"از گوشی‌های ساده تا گلکسی‌های پرچمدار، همه رو اینجا ببین!\",\n    \"یه لحظه! Samsung قبل از الکترونیک، بذار یه چیز دیگه ببینی!\",\n    \"آماده‌ای؟ ۹۰ ثانیه درباره Samsung که همه چیز رو عوض کرد!\"\n  ]\n}",
+      "json": {
+        "hooks": [
+          "از ۱۹۳۸ تا ۲۰۲۵، ۸۷ سال تاریخ Samsung در ۹۰ ثانیه!",
+          "شرکتی که از فروش خواروبار شروع شد، حالا غول الکترونیکه!",
+          "Samsung از کجا شروع شد؟ جواب اینجاست!",
+          "یادتونه ۱۹۹۵ وقتی موبایل‌هاشون رو آتیش زدن؟",
+          "ببین چطور یه کوه‌پیکر از یه دانه برنج ساخته شد!",
+          "آیا می‌دونید Samsung تو ۹۰ ثانیه چه بلایی سر دنیا آورد؟",
+          "هی! ۸۷ سال نوآوری رو تو یه ویدیو ببین!",
+          "از گوشی‌های ساده تا گلکسی‌های پرچمدار، همه رو اینجا ببین!",
+          "یه لحظه! Samsung قبل از الکترونیک، بذار یه چیز دیگه ببینی!",
+          "آماده‌ای؟ ۹۰ ثانیه درباره Samsung که همه چیز رو عوض کرد!"
+        ]
+      },
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "MiniMaxAI/MiniMax-M2.7",
+      "task": "json_fill",
+      "success": true,
+      "error": null,
+      "seconds": 4.66,
+      "cost_usd": 1.288e-05,
+      "usage": {
+        "prompt_tokens": 144,
+        "completion_tokens": 500
+      },
+      "repaired": false,
+      "json_valid": true,
+      "text": "{\"events\":[{\"year\":1938,\"event_fa\":\"تأسیس سامسونگ به عنوان یک شرکت تجاری\",\"category\":\"founding\"},{\"year\":1969,\"event_fa\":\"ورود به حوزه الکترونیک\",\"category\":\"founding\"},{\"year\":1974,\"event_fa\":\"اولین سرمایه‌گذاری در نیمه‌رسانا\",\"category\":\"expansion\"},{\"year\":1995,\"event_fa\":\"سوزاندن ۱۵۰ هزار گوشی معیوب\",\"category\":\"crisis\"},{\"year\":2010,\"event_fa\":\"عرضه اولین گلکسی اس\",\"category\":\"product\"},{\"year\":2019,\"event_fa\":\"عرضه اولین گوشی تاشو\",\"category\":\"product\"}]}",
+      "json": {
+        "events": [
+          {
+            "year": 1938,
+            "event_fa": "تأسیس سامسونگ به عنوان یک شرکت تجاری",
+            "category": "founding"
+          },
+          {
+            "year": 1969,
+            "event_fa": "ورود به حوزه الکترونیک",
+            "category": "founding"
+          },
+          {
+            "year": 1974,
+            "event_fa": "اولین سرمایه‌گذاری در نیمه‌رسانا",
+            "category": "expansion"
+          },
+          {
+            "year": 1995,
+            "event_fa": "سوزاندن ۱۵۰ هزار گوشی معیوب",
+            "category": "crisis"
+          },
+          {
+            "year": 2010,
+            "event_fa": "عرضه اولین گلکسی اس",
+            "category": "product"
+          },
+          {
+            "year": 2019,
+            "event_fa": "عرضه اولین گوشی تاشو",
+            "category": "product"
+          }
+        ]
+      },
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "task": "narration",
+      "success": false,
+      "error": "APITimeoutError: Request timed out.",
+      "seconds": 120.69,
+      "cost_usd": 0.0,
+      "usage": null,
+      "repaired": null,
+      "json_valid": null,
+      "text": null,
+      "json": null,
+      "busy_retries": 4
+    },
+    {
+      "profile": "dahl",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "task": "translation",
+      "success": true,
+      "error": null,
+      "seconds": 110.31,
+      "cost_usd": 2.274e-05,
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 964
+      },
+      "repaired": false,
+      "json_valid": null,
+      "text": "سال ۱۹۹۵، مدیرعامل سامسونگ دستور داد ۱۵۰ هزار تا گوشی معیوب رو توی حیاط کارخونه‌ی گومی تلنبار کنن و جلوی چشم همه‌ی کارمندا آتیش بزنن. پیامش خیلی ساده بود: کیفیت حرف اول رو می‌زنه، مهم نیست چه قیمتی داشته باشه.",
+      "json": null,
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "task": "image_prompts",
+      "success": false,
+      "error": "RateLimitError: Error code: 429 - This model is at concurrency capacity. Paid accounts are admitted first. Top up at https://inference.dahl.global/account — $0.01 per 1M tokens (in + out + cached) on any model, promo until 13 Nov 19:00 UTC. Retry after Retry-After, or switch model. Other models available now: Mini…",
+      "seconds": 1.33,
+      "cost_usd": 0.0,
+      "usage": null,
+      "repaired": null,
+      "json_valid": false,
+      "text": null,
+      "json": null,
+      "busy_retries": 4
+    },
+    {
+      "profile": "dahl",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "task": "hooks",
+      "success": false,
+      "error": "APITimeoutError: Request timed out.",
+      "seconds": 120.75,
+      "cost_usd": 0.0,
+      "usage": null,
+      "repaired": null,
+      "json_valid": false,
+      "text": null,
+      "json": null,
+      "busy_retries": 3
+    },
+    {
+      "profile": "dahl",
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "task": "json_fill",
+      "success": true,
+      "error": null,
+      "seconds": 34.88,
+      "cost_usd": 1.56e-05,
+      "usage": {
+        "prompt_tokens": 210,
+        "completion_tokens": 570
+      },
+      "repaired": false,
+      "json_valid": true,
+      "text": "{\n  \"events\": [\n    {\n      \"year\": 1938,\n      \"event_fa\": \"سامسونگ به‌عنوان یک شرکت تجاری تأسیس شد\",\n      \"category\": \"founding\"\n    },\n    {\n      \"year\": 1969,\n      \"event_fa\": \"وارد حوزه الکترونیک شد\",\n      \"category\": \"expansion\"\n    },\n    {\n      \"year\": 1974,\n      \"event_fa\": \"اولین سرمایه‌گذاری در صنعت نیمه‌هادی رو انجام داد\",\n      \"category\": \"expansion\"\n    },\n    {\n      \"year\": 1995,\n      \"event_fa\": \"۱۵۰ هزار گوشی معیوب رو آتیش زد\",\n      \"category\": \"crisis\"\n    },\n    {\n      \"year\": 2010,\n      \"event_fa\": \"اولین گلکسی اس رو عرضه کرد\",\n      \"category\": \"product\"\n    },\n    {\n      \"year\": 2019,\n      \"event_fa\": \"اولین گوشی تاشو رو عرضه کرد\",\n      \"category\": \"product\"\n    }\n  ]\n}",
+      "json": {
+        "events": [
+          {
+            "year": 1938,
+            "event_fa": "سامسونگ به‌عنوان یک شرکت تجاری تأسیس شد",
+            "category": "founding"
+          },
+          {
+            "year": 1969,
+            "event_fa": "وارد حوزه الکترونیک شد",
+            "category": "expansion"
+          },
+          {
+            "year": 1974,
+            "event_fa": "اولین سرمایه‌گذاری در صنعت نیمه‌هادی رو انجام داد",
+            "category": "expansion"
+          },
+          {
+            "year": 1995,
+            "event_fa": "۱۵۰ هزار گوشی معیوب رو آتیش زد",
+            "category": "crisis"
+          },
+          {
+            "year": 2010,
+            "event_fa": "اولین گلکسی اس رو عرضه کرد",
+            "category": "product"
+          },
+          {
+            "year": 2019,
+            "event_fa": "اولین گوشی تاشو رو عرضه کرد",
+            "category": "product"
+          }
+        ]
+      },
+      "busy_retries": 4
+    },
+    {
+      "profile": "dahl",
+      "model": "zai-org/GLM-5.3-Flash",
+      "task": "narration",
+      "success": true,
+      "error": null,
+      "seconds": 21.75,
+      "cost_usd": 2.228e-05,
+      "usage": {
+        "prompt_tokens": 128,
+        "completion_tokens": 986
+      },
+      "repaired": false,
+      "json_valid": null,
+      "text": "می‌دونی اسم سامسونگ از کجا اومده؟ سال هزار و نهصد و سی‌وهشت، یه جوون کره‌ای به اسم لی بیونگ‌چول، توی شهر تِگو یه مغازه‌ی کوچیک باز کرد. ماهی‌خشک، سبزیجات و رشته فروش می‌کرد! اسمش رو گذاشت «سامسونگ سانگ‌هو»؛ یعنی «سه ستاره». کسی فکرش رو نمی‌کرد این مغازه‌ی کوچولو، یه روزی غول تکنولوژی دنیا بشه!",
+      "json": null,
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "zai-org/GLM-5.3-Flash",
+      "task": "translation",
+      "success": true,
+      "error": null,
+      "seconds": 21.41,
+      "cost_usd": 3.064e-05,
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 1427
+      },
+      "repaired": false,
+      "json_valid": null,
+      "text": "**نسخه‌ی گویندگی:**\n\n«سال ۹۵ میلادی، رییس سامسونگ دستور داد صد و پنجاه هزار گوشی خراب رو توی حیاط کارخونه‌ی گومی کپه کنن، و بعد... درست جلوی چشم کارمندا آتیشش بزنن! پیام هم فقط یه چیز بود: اول کیفیت، هر چقدرم که خرج داره.»\n\n**چند نکته:**\n- اعداد رو برای گویندگی حروفی نوشتم («صد و پنجاه هزار») که موقع خوندن گیر نکنه. اگه اسکریپت فقط برای چشمه، می‌تونی «۱۵۰ هزار» بذاری.\n- «کپه کنن» از «پهنا کردن» یا «انبار کنن» محاوره‌ای‌تر و تصویری‌تره.\n- «سال ۹۵ میلادی» کوتاه و طبیعیه؛ اگه خواستی صفر ابهام باشه: «سال هزار و نهصد و نود و پنج میلادی».\n\n**یه جایگزین برای جمله‌ی آخر (اگه ضرب بیشتری بخوای):**\n«پیامش هم واضح بود: یا کیفیت، یا هیچی — هر چی هم خرجش داشته باشه.»",
+      "json": null,
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "zai-org/GLM-5.3-Flash",
+      "task": "image_prompts",
+      "success": false,
+      "error": "APITimeoutError: Request timed out.",
+      "seconds": 120.75,
+      "cost_usd": 0.0,
+      "usage": null,
+      "repaired": null,
+      "json_valid": false,
+      "text": null,
+      "json": null,
+      "busy_retries": 1
+    },
+    {
+      "profile": "dahl",
+      "model": "zai-org/GLM-5.3-Flash",
+      "task": "hooks",
+      "success": true,
+      "error": null,
+      "seconds": 83.53,
+      "cost_usd": 5.092e-05,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2439
+      },
+      "repaired": false,
+      "json_valid": true,
+      "text": "{\"hooks\": [\"سامسونگ روزانه صدها هزار تا گوشی می‌فروشه؛ ولی یه زمانی فقط ماهی خشک می‌فروخت!\", \"بزرگ‌ترین سازنده گوشی دنیا، کارش رو با فروش ماهی خشک و رشته شروع کرد؛ جدی می‌گم!\", \"می‌دونی سامسونگ چند درصد از اقتصاد کره رو کنترل می‌کنه؟ حدود بیست درصد! باور می‌کنی؟\", \"سال ۱۹۹۵ رییس سامسونگ ۱۵۰ هزار گوشی معیوب رو جلوی چشم کارخونه آتیش زد!\", \"سامسونگ سالانه بیش از دویست میلیارد دلار می‌فروشه؛ یعنی بیشتر از اقتصاد بعضی کشورها!\", \"از فروش نودل تا رقیب مستقیم آیفون؛ سامسونگ چطور این مسیر رو اومد؟\", \"سامسونگ فقط گوشی نیست ها! از کشتی تا چیپ تا بیمارستان؛ چی می‌سازه که نمی‌سازه؟\", \"تصور کن کارخونه‌دارت گوشی‌هات رو جلوی چشمت آتیش بزنه! سامسونگ دقیقاً همین کارو کرد.\", \"۲۷۰ هزار کارمند، ۷۴ کشور، حدود نود سال تاریخ؛ همه‌ش رو تو ۹۰ ثانیه می‌گم!\", \"ماهی خشک، شیرینی، رشته؛ از اینا شروع شد و شد غول تکنولوژی دنیا! باورم نمی‌شه.\"]}",
+      "json": {
+        "hooks": [
+          "سامسونگ روزانه صدها هزار تا گوشی می‌فروشه؛ ولی یه زمانی فقط ماهی خشک می‌فروخت!",
+          "بزرگ‌ترین سازنده گوشی دنیا، کارش رو با فروش ماهی خشک و رشته شروع کرد؛ جدی می‌گم!",
+          "می‌دونی سامسونگ چند درصد از اقتصاد کره رو کنترل می‌کنه؟ حدود بیست درصد! باور می‌کنی؟",
+          "سال ۱۹۹۵ رییس سامسونگ ۱۵۰ هزار گوشی معیوب رو جلوی چشم کارخونه آتیش زد!",
+          "سامسونگ سالانه بیش از دویست میلیارد دلار می‌فروشه؛ یعنی بیشتر از اقتصاد بعضی کشورها!",
+          "از فروش نودل تا رقیب مستقیم آیفون؛ سامسونگ چطور این مسیر رو اومد؟",
+          "سامسونگ فقط گوشی نیست ها! از کشتی تا چیپ تا بیمارستان؛ چی می‌سازه که نمی‌سازه؟",
+          "تصور کن کارخونه‌دارت گوشی‌هات رو جلوی چشمت آتیش بزنه! سامسونگ دقیقاً همین کارو کرد.",
+          "۲۷۰ هزار کارمند، ۷۴ کشور، حدود نود سال تاریخ؛ همه‌ش رو تو ۹۰ ثانیه می‌گم!",
+          "ماهی خشک، شیرینی، رشته؛ از اینا شروع شد و شد غول تکنولوژی دنیا! باورم نمی‌شه."
+        ]
+      },
+      "busy_retries": 0
+    },
+    {
+      "profile": "dahl",
+      "model": "zai-org/GLM-5.3-Flash",
+      "task": "json_fill",
+      "success": true,
+      "error": null,
+      "seconds": 68.59,
+      "cost_usd": 4.498e-05,
+      "usage": {
+        "prompt_tokens": 142,
+        "completion_tokens": 2107
+      },
+      "repaired": false,
+      "json_valid": true,
+      "text": "{\"events\": [{\"year\": 1938, \"event_fa\": \"سامسونگ به‌عنوان یه شرکت بازرگانی تأسیس شد\", \"category\": \"founding\"}, {\"year\": 1969, \"event_fa\": \"سامسونگ پا به دنیای الکترونیک گذاشت\", \"category\": \"expansion\"}, {\"year\": 1974, \"event_fa\": \"اولین سرمایه‌گذاری سامسونگ توی نیمه‌هادی‌ها\", \"category\": \"expansion\"}, {\"year\": 1995, \"event_fa\": \"سامسونگ ۱۵۰ هزار گوشی معیوب رو آتیش زد\", \"category\": \"crisis\"}, {\"year\": 2010, \"event_fa\": \"عرضه اولین گوشی گلکسی S\", \"category\": \"product\"}, {\"year\": 2019, \"event_fa\": \"معرفی اولین گوشی تاشو سامسونگ\", \"category\": \"product\"}]}",
+      "json": {
+        "events": [
+          {
+            "year": 1938,
+            "event_fa": "سامسونگ به‌عنوان یه شرکت بازرگانی تأسیس شد",
+            "category": "founding"
+          },
+          {
+            "year": 1969,
+            "event_fa": "سامسونگ پا به دنیای الکترونیک گذاشت",
+            "category": "expansion"
+          },
+          {
+            "year": 1974,
+            "event_fa": "اولین سرمایه‌گذاری سامسونگ توی نیمه‌هادی‌ها",
+            "category": "expansion"
+          },
+          {
+            "year": 1995,
+            "event_fa": "سامسونگ ۱۵۰ هزار گوشی معیوب رو آتیش زد",
+            "category": "crisis"
+          },
+          {
+            "year": 2010,
+            "event_fa": "عرضه اولین گوشی گلکسی S",
+            "category": "product"
+          },
+          {
+            "year": 2019,
+            "event_fa": "معرفی اولین گوشی تاشو سامسونگ",
+            "category": "product"
+          }
+        ]
+      },
+      "busy_retries": 1
+    }
+  ],
+  "added_runs": [
+    {
+      "profile": "dahl",
+      "date": "2026-11-09",
+      "spent_usd": 0.000418,
+      "wall_seconds": 631.9
     }
   ]
 }

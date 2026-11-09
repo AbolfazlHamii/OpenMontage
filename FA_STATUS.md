@@ -62,7 +62,7 @@ Last updated: 2026-11-05 (remake from a link; earlier: build phases 1–3, 5; re
   Verified 2026-11-09: JSON-mode hooks in Persian via `openai_compat_llm`
   from MiniMax (~350 tokens) and GLM; DeepSeek returned 429 at that moment.
   Persian quality is rough (emoji, a Latin fragment inside a Persian word),
-  so it is not in any tier until a bake-off run.
+  so it is not in any tier (bake-off 2026-11-09: see Next steps 5).
 - Network: Iran. Gemini API works directly from the laptop; Google's docs
   pages return 403. Downloads often truncate silently — retry through the
   local proxy `127.0.0.1:10808` with resume.
@@ -384,9 +384,11 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
    page since upgrade phase 6.)
 5. Owner: confirm or change the bake-off's worker/bulk model picks
    (`docs/fa/llm_bakeoff/report.html`, Studio FA → مسیریابی متن).
-   Dahl's three models are not in the bake-off yet; adding them (free
-   tokens) would show whether Dahl can take bulk tasks (classification,
-   JSON repair) from AvalAI. Putting it in a tier needs the owner's OK.
+   Dahl's three models were added to the bake-off on 2026-11-09
+   (`--run --only dahl`, $0.0004): quality 3.3 / 2.5 / 3.2 against 4.4 for
+   AvalAI DeepSeek, and the free tier timed out or returned 429 on 4 of 15
+   calls. Not in any tier; at most a last fallback for `json_fill` /
+   `classification` if the owner wants it (`RECOMMENDATION.md`).
 6. `fa` is pushed to `AbolfazlHamii/OpenMontage` up to `6ff8807` (2026-11-05,
    owner's go-ahead; includes the fixes for eight edge cases found by the
    code review of the edit pass, hook lab and manual-images mode). Push

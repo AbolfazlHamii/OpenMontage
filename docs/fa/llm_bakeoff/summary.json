@@ -110,5 +110,47 @@
     "out_tokens": 0,
     "quality": null,
     "note": "Google API 403 from this network for all 5 calls"
+  },
+  {
+    "key": "dahl|MiniMaxAI/MiniMax-M2.7",
+    "family": "Dahl MiniMax",
+    "profile": "dahl",
+    "model": "MiniMaxAI/MiniMax-M2.7",
+    "ok": 5,
+    "total": 5,
+    "cost_usd": 0.000231,
+    "seconds_avg": 30.9,
+    "json_valid": "3/3",
+    "out_tokens": 10743,
+    "quality": 3.3,
+    "note": "Narration empty (inline reasoning used all 2500 tokens); hooks keep 'Samsung' in Latin and needed a repair; 1969 filed as founding"
+  },
+  {
+    "key": "dahl|deepseek-ai/DeepSeek-V4-Flash-0731",
+    "family": "Dahl DeepSeek",
+    "profile": "dahl",
+    "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+    "ok": 2,
+    "total": 5,
+    "cost_usd": 3.8e-05,
+    "seconds_avg": 72.6,
+    "json_valid": "1/3",
+    "out_tokens": 1534,
+    "quality": 2.5,
+    "note": "Free tier: 3/5 failed (429 busy after 4 retries, 120 s timeouts); the two answers were accurate and natural"
+  },
+  {
+    "key": "dahl|zai-org/GLM-5.3-Flash",
+    "family": "Dahl GLM",
+    "profile": "dahl",
+    "model": "zai-org/GLM-5.3-Flash",
+    "ok": 4,
+    "total": 5,
+    "cost_usd": 0.000149,
+    "seconds_avg": 48.8,
+    "json_valid": "2/3",
+    "out_tokens": 6959,
+    "quality": 3.2,
+    "note": "Good narration; translation wrapped in notes and alternatives; hooks invent figures (20% of Korea's economy, 270k staff); image prompts timed out"
   }
 ]

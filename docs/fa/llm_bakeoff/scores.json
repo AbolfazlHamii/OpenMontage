@@ -1,18 +1,86 @@
 {
   "_scale": "1-5, agent's read of each output (Persian naturalness, accuracy to the brief, instruction following). 1 = empty or failed.",
-  "avalai|kimi-k3.1-pro": {"narration": 4.5, "translation": 4.5, "image_prompts": 4.5, "hooks": 1, "json_fill": 5,
-    "note": "Natural Persian; hooks JSON invalid after repair; most expensive"},
-  "avalai|kimi-k2.6": {"narration": 1, "translation": 1, "image_prompts": 4.5, "hooks": 3, "json_fill": 5,
-    "note": "Empty answers on 2/5 (reasoning used all 2500 tokens); a hook invents '5 trillion dollars'"},
-  "avalai|deepseek-v4.1-flash": {"narration": 4, "translation": 4.5, "image_prompts": 4.5, "hooks": 4, "json_fill": 5,
-    "note": "Accurate, natural, faithful translation; best quality per dollar"},
-  "avalai|qwen3.8-flash": {"narration": 3.5, "translation": 4, "image_prompts": 4, "hooks": 4, "json_fill": 5,
-    "note": "Founder's name misspelled; slow (35 s avg)"},
-  "avalai|gemini-3.8-flash": {"narration": 4.5, "translation": 3.5, "image_prompts": 4, "hooks": 3.5, "json_fill": 4,
-    "note": "Liveliest colloquial voice; embellishes facts in translation and hooks (unsourced '20% of Korea's economy')"},
-  "avalai|gemini-3.1-flash-lite": {"narration": 4, "translation": 2.5, "image_prompts": 3.5, "hooks": 3.5, "json_fill": 5,
-    "note": "Fastest and cheapest; added a preamble and notes to the translation"},
-  "avalai|claude-haiku-5-5": {"narration": 3, "translation": 4, "image_prompts": 4.5, "hooks": 4, "json_fill": 5,
-    "note": "Good prompts and hooks; got the shop's name wrong in the narration"},
-  "gemini|gemini-3.8-flash": {"note": "Google API 403 from this network for all 5 calls"}
+  "avalai|kimi-k3.1-pro": {
+    "narration": 4.5,
+    "translation": 4.5,
+    "image_prompts": 4.5,
+    "hooks": 1,
+    "json_fill": 5,
+    "note": "Natural Persian; hooks JSON invalid after repair; most expensive"
+  },
+  "avalai|kimi-k2.6": {
+    "narration": 1,
+    "translation": 1,
+    "image_prompts": 4.5,
+    "hooks": 3,
+    "json_fill": 5,
+    "note": "Empty answers on 2/5 (reasoning used all 2500 tokens); a hook invents '5 trillion dollars'"
+  },
+  "avalai|deepseek-v4.1-flash": {
+    "narration": 4,
+    "translation": 4.5,
+    "image_prompts": 4.5,
+    "hooks": 4,
+    "json_fill": 5,
+    "note": "Accurate, natural, faithful translation; best quality per dollar"
+  },
+  "avalai|qwen3.8-flash": {
+    "narration": 3.5,
+    "translation": 4,
+    "image_prompts": 4,
+    "hooks": 4,
+    "json_fill": 5,
+    "note": "Founder's name misspelled; slow (35 s avg)"
+  },
+  "avalai|gemini-3.8-flash": {
+    "narration": 4.5,
+    "translation": 3.5,
+    "image_prompts": 4,
+    "hooks": 3.5,
+    "json_fill": 4,
+    "note": "Liveliest colloquial voice; embellishes facts in translation and hooks (unsourced '20% of Korea's economy')"
+  },
+  "avalai|gemini-3.1-flash-lite": {
+    "narration": 4,
+    "translation": 2.5,
+    "image_prompts": 3.5,
+    "hooks": 3.5,
+    "json_fill": 5,
+    "note": "Fastest and cheapest; added a preamble and notes to the translation"
+  },
+  "avalai|claude-haiku-5-5": {
+    "narration": 3,
+    "translation": 4,
+    "image_prompts": 4.5,
+    "hooks": 4,
+    "json_fill": 5,
+    "note": "Good prompts and hooks; got the shop's name wrong in the narration"
+  },
+  "gemini|gemini-3.8-flash": {
+    "note": "Google API 403 from this network for all 5 calls"
+  },
+  "dahl|MiniMaxAI/MiniMax-M2.7": {
+    "narration": 1,
+    "translation": 4.5,
+    "image_prompts": 4.5,
+    "hooks": 2.5,
+    "json_fill": 4,
+    "note": "Narration empty (inline reasoning used all 2500 tokens); hooks keep 'Samsung' in Latin and needed a repair; 1969 filed as founding"
+  },
+  "dahl|deepseek-ai/DeepSeek-V4-Flash-0731": {
+    "narration": 1,
+    "translation": 4.5,
+    "image_prompts": 1,
+    "hooks": 1,
+    "json_fill": 5,
+    "note": "Free tier: 3/5 failed (429 busy after 4 retries, 120 s timeouts); the two answers were accurate and natural"
+  },
+  "dahl|zai-org/GLM-5.3-Flash": {
+    "narration": 4.5,
+    "translation": 2.5,
+    "image_prompts": 1,
+    "hooks": 3,
+    "json_fill": 5,
+    "note": "Good narration; translation wrapped in notes and alternatives; hooks invent figures (20% of Korea's economy, 270k staff); image prompts timed out"
+  }
 }

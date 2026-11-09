@@ -2,6 +2,7 @@
 
     python scripts/llm_bakeoff.py --list            # candidates + worst-case cost, no calls
     python scripts/llm_bakeoff.py --run --cap 0.30  # run; stops starting calls past the cap
+    python scripts/llm_bakeoff.py --run --only dahl # run one profile, keep the other results
     python scripts/llm_bakeoff.py --report          # rebuild report.html from results + scores
 
 Outputs in docs/fa/llm_bakeoff/: results.json (raw), scores.json (quality
@@ -37,7 +38,13 @@ CANDIDATES = [
     {"profile": "avalai", "model": "claude-haiku-5-5", "family": "Claude Haiku"},
     {"profile": "gemini", "model": "gemini-3.8-flash", "family": "Gemini direct",
      "price": {"input": 0.75, "output": 3.75}},
+    {"profile": "dahl", "model": "MiniMaxAI/MiniMax-M2.7", "family": "Dahl MiniMax"},
+    {"profile": "dahl", "model": "deepseek-ai/DeepSeek-V4-Flash-0731", "family": "Dahl DeepSeek"},
+    {"profile": "dahl", "model": "zai-org/GLM-5.3-Flash", "family": "Dahl GLM"},
 ]
+# Dahl's free accounts get 429 model_concurrency at peak hours.
+BUSY_RETRIES = 4
+BUSY_WAIT_SECONDS = 20
 
 FA_SYSTEM = (
     "You write for a Persian-language YouTube channel (Iranian audience, "
@@ -153,8 +160,9 @@ def list_candidates() -> None:
     print(f"worst case total ${total:.3f} (typical is a fraction of this)")
 
 
-def run(cap: float) -> None:
+def run(cap: float, only: str | None = None) -> None:
     llm = OpenAICompatLLM()
+    candidates = [c for c in CANDIDATES if only is None or c["profile"] == only]
     spent = [0.0]
     lock = threading.Lock()
     results = []
@@ -163,14 +171,20 @@ def run(cap: float) -> None:
         with lock:
             if spent[0] >= cap:
                 return {"skipped": "cost cap reached"}
-        started = time.monotonic()
-        r = llm.execute({
-            "profile": c["profile"], "model": c["model"], "price": c.get("price"),
-            "system": FA_SYSTEM, "prompt": task["prompt"], "temperature": 0.7,
-            "max_tokens": MAX_TOKENS, "json_mode": task["json"],
-            "json_schema": task.get("schema"), "use_cache": False, "timeout_seconds": 120,
-        })
-        seconds = time.monotonic() - started
+        busy = 0
+        while True:
+            started = time.monotonic()
+            r = llm.execute({
+                "profile": c["profile"], "model": c["model"], "price": c.get("price"),
+                "system": FA_SYSTEM, "prompt": task["prompt"], "temperature": 0.7,
+                "max_tokens": MAX_TOKENS, "json_mode": task["json"],
+                "json_schema": task.get("schema"), "use_cache": False, "timeout_seconds": 120,
+            })
+            seconds = time.monotonic() - started
+            if r.success or "429" not in (r.error or "") or busy >= BUSY_RETRIES:
+                break
+            busy += 1
+            time.sleep(BUSY_WAIT_SECONDS)
         with lock:
             spent[0] += r.cost_usd or 0.0
         valid = None
@@ -181,12 +195,13 @@ def run(cap: float) -> None:
             "cost_usd": r.cost_usd, "usage": (r.data or {}).get("usage"),
             "repaired": (r.data or {}).get("repaired"), "json_valid": valid,
             "text": (r.data or {}).get("text"), "json": (r.data or {}).get("json"),
+            "busy_retries": busy,
         }
 
     jobs = [Job(key=f"{c['profile']}|{c['model']}|{t['id']}", provider=c["profile"],
                 fn=lambda c=c, t=t: one(c, t))
-            for c in CANDIDATES for t in TASKS]
-    report = run_parallel(jobs, limits={"avalai": 4, "gemini": 2})
+            for c in candidates for t in TASKS]
+    report = run_parallel(jobs, limits={"avalai": 4, "gemini": 2, "dahl": 2})
     for job_result in report.results:
         profile, model, task = job_result.key.split("|")
         row = {"profile": profile, "model": model, "task": task}
@@ -196,7 +211,18 @@ def run(cap: float) -> None:
     payload = {"date": time.strftime("%Y-%m-%d"), "cap_usd": cap,
                "spent_usd": round(spent[0], 6), "max_tokens": MAX_TOKENS,
                "wall_seconds": round(report.seconds, 1), "results": results}
-    (OUT_DIR / "results.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+    results_path = OUT_DIR / "results.json"
+    if only is not None and results_path.exists():
+        # Keep the earlier run; replace only this profile's rows.
+        earlier = json.loads(results_path.read_text(encoding="utf-8"))
+        kept = [r for r in earlier["results"] if r["profile"] != only]
+        added = {"profile": only, "date": payload["date"], "spent_usd": payload["spent_usd"],
+                 "wall_seconds": payload["wall_seconds"]}
+        payload = {**earlier, "results": kept + results,
+                   "spent_usd": round(earlier["spent_usd"] + spent[0], 6),
+                   "added_runs": [a for a in earlier.get("added_runs", []) if a["profile"] != only]
+                   + [added]}
+    results_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
                                           encoding="utf-8")
     print(f"spent ${spent[0]:.4f} in {report.seconds:.0f} s; wrote {OUT_DIR / 'results.json'}")
 
@@ -259,6 +285,7 @@ def build_report() -> None:
             for c in CANDIDATES)
         sections.append(f"<section><h2>{esc(t['title'])}</h2><details><summary>prompt</summary>"
                         f"<pre dir='ltr'>{esc(t['prompt'])}</pre></details><div class='grid'>{cols}</div></section>")
+    added = "".join(f" · {esc(a['profile'])}: {esc(a['date'])}" for a in data.get("added_runs", []))
     page = f"""<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>LLM bake-off</title>
 <style>
@@ -270,7 +297,7 @@ table{{border-collapse:collapse;width:100%;font-size:14px}}td,th{{border:1px sol
 .meta{{color:#666;font-size:12px}}.err{{color:#a12;font-size:13px}}section{{margin-top:28px}}
 </style></head><body>
 <h1>مقایسه مدل‌ها برای کارهای worker/bulk</h1>
-<p>تاریخ {esc(data['date'])} · هزینه کل ${data['spent_usd']:.4f} (سقف ${data['cap_usd']}) · سقف خروجی هر پاسخ {data['max_tokens']} توکن.
+<p>تاریخ {esc(data['date'])}{added} · هزینه کل ${data['spent_usd']:.4f} (سقف ${data['cap_usd']}) · سقف خروجی هر پاسخ {data['max_tokens']} توکن.
 امتیاز کیفیت (۱ تا ۵) را ایجنت بعد از خواندن خروجی‌ها داده؛ تصمیم نهایی با شماست.</p>
 <table><tr><th>خانواده</th><th>مدل</th><th>موفق</th><th>هزینه</th><th>ثانیه (میانگین)</th><th>JSON معتبر</th><th>توکن خروجی</th><th>کیفیت</th><th>یادداشت</th></tr>{summary}</table>
 {''.join(sections)}
@@ -286,11 +313,13 @@ def main(argv=None) -> int:
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--report", action="store_true")
     parser.add_argument("--cap", type=float, default=0.30)
+    parser.add_argument("--only", metavar="PROFILE",
+                        help="with --run: run only this profile's candidates and keep the other results")
     args = parser.parse_args(argv)
     if args.list or not (args.run or args.report):
         list_candidates()
     if args.run:
-        run(args.cap)
+        run(args.cap, args.only)
     if args.run or args.report:
         build_report()
     return 0

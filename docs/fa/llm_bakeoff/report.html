@@ -9,10 +9,10 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 .meta{color:#666;font-size:12px}.err{color:#a12;font-size:13px}section{margin-top:28px}
 </style></head><body>
 <h1>مقایسه مدل‌ها برای کارهای worker/bulk</h1>
-<p>تاریخ 2026-11-04 · هزینه کل $0.2007 (سقف $0.3) · سقف خروجی هر پاسخ 2500 توکن.
+<p>تاریخ 2026-11-04 · dahl: 2026-11-09 · هزینه کل $0.2011 (سقف $0.3) · سقف خروجی هر پاسخ 2500 توکن.
 امتیاز کیفیت (۱ تا ۵) را ایجنت بعد از خواندن خروجی‌ها داده؛ تصمیم نهایی با شماست.</p>
-<table><tr><th>خانواده</th><th>مدل</th><th>موفق</th><th>هزینه</th><th>ثانیه (میانگین)</th><th>JSON معتبر</th><th>توکن خروجی</th><th>کیفیت</th><th>یادداشت</th></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k3.1-pro</td><td>4/5</td><td>$0.0975</td><td>32.0</td><td>2/3</td><td>9491</td><td>3.9</td><td>Natural Persian; hooks JSON invalid after repair; most expensive</td></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k2.6</td><td>5/5</td><td>$0.0619</td><td>51.0</td><td>3/3</td><td>15171</td><td>2.9</td><td>Empty answers on 2/5 (reasoning used all 2500 tokens); a hook invents &#x27;5 trillion dollars&#x27;</td></tr><tr><td>DeepSeek</td><td dir='ltr'>avalai / deepseek-v4.1-flash</td><td>5/5</td><td>$0.0032</td><td>7.5</td><td>3/3</td><td>5083</td><td>4.4</td><td>Accurate, natural, faithful translation; best quality per dollar</td></tr><tr><td>Qwen</td><td dir='ltr'>avalai / qwen3.8-flash</td><td>5/5</td><td>$0.0058</td><td>35.0</td><td>3/3</td><td>12070</td><td>4.1</td><td>Founder&#x27;s name misspelled; slow (35 s avg)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.8-flash</td><td>5/5</td><td>$0.0267</td><td>16.2</td><td>3/3</td><td>6971</td><td>3.9</td><td>Liveliest colloquial voice; embellishes facts in translation and hooks (unsourced &#x27;20% of Korea&#x27;s economy&#x27;)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.1-flash-lite</td><td>5/5</td><td>$0.0022</td><td>2.3</td><td>3/3</td><td>1337</td><td>3.7</td><td>Fastest and cheapest; added a preamble and notes to the translation</td></tr><tr><td>Claude Haiku</td><td dir='ltr'>avalai / claude-haiku-5-5</td><td>5/5</td><td>$0.0034</td><td>8.8</td><td>3/3</td><td>6594</td><td>4.1</td><td>Good prompts and hooks; got the shop&#x27;s name wrong in the narration</td></tr><tr><td>Gemini direct</td><td dir='ltr'>gemini / gemini-3.8-flash</td><td>0/5</td><td>$0.0000</td><td>–</td><td>0/3</td><td>0</td><td>–</td><td>Google API 403 from this network for all 5 calls</td></tr></table>
-<section><h2>پیش‌نویس narration محاوره‌ای</h2><details><summary>prompt</summary><pre dir='ltr'>Write a 20-second Persian narration (about 55-65 words) in colloquial spoken Tehran Persian for a fast history video. Topic: in 1938 Lee Byung-chul opened a small trading shop in Daegu, Korea, selling dried fish, vegetables and noodles; it was called Samsung Sanghoe, &#x27;three stars&#x27;. Open with a question to the viewer. Write numbers as words the narrator will say. Output only the narration.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01627 · 42.78 s</div><pre>فکرش رو می‌کنی سامسونگ با ماهی خشک شروع شده باشه؟ سال هزار و نهصد و سی‌وهشت، لی بیونگ‌چول تو دائگوی کره یه مغازه‌ی تجاری کوچیک باز کرد. اونجا ماهی خشک، سبزیجات و نودل می‌فروخت و اسمش رو گذاشت سامسونگ سانگهوه، یعنی «سه ستاره». همین مغازه‌ی ساده، نقطه‌ی شروع یه ماجرای بزرگ بود؛ ماجرایی که از دلش یه برند جهانی دراومد!</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 1/5</h4><div class='meta'>$0.01012 · 77.14 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00065 · 6.84 s</div><pre>می‌دونستید سامسونگ از یه مغازهٔ کوچیک شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ چول تو شهر دگو کره، یه دکهٔ تجاری کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهوئه، یعنی «سه ستاره». فکرشو بکن؛ همین شروع ساده و فروتنانه بعداً شد غول فناوری دنیا.</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00190 · 46.56 s</div><pre>تا حالا فکر کردی یه مغازه کوچیک واقعاً چطور می‌تونه امپراتوری جهانی بشه؟ سال هزار و نهصد و سی و هشت، لی بونگ‌چول توی دئگو، کره، یه مغازه تجارتی کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهه، یعنی سه ستاره. از همین شروع ساده، خیلی زود شد سامسونگ بزرگ.</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00708 · 20.55 s</div><pre>می‌دونستین غول فناوری دنیا کارشو با چی شروع کرده؟ سال هزار و نهصد و سی و هشت، مردی به اسم لی بیونگ‌چول، توی شهر دگوی کره یه تجارتخونه‌ی نقلی راه انداخت. کارش چی بود؟ فروش ماهی خشک، سبزیجات و نودل! اسم مغازه‌شو گذاشت «سامسونگ سانگ‌هو» که یعنی «سه ستاره». باورتون می‌شه غول تکنولوژی امروز از همین دکون ساده متولد شد؟</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00021 · 2.41 s</div><pre>تا حالا فکر کردین سامسونگ چطوری شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ‌چول توی شهر دگو یه مغازه کوچیک باز کرد. اونجا فقط ماهی خشک، سبزیجات و نودل می‌فروخت! اسمش رو هم گذاشت «سامسونگ سانگهو» که یعنی «سه ستاره». کی فکرش رو می‌کرد اون بقالی کوچیک، یه روزی بشه غول دنیای تکنولوژی و گوشی‌های موبایل؟ عجیبه، نه؟</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.00065 · 8.08 s</div><pre>می‌دونی سامسونگ، اون غول تکنولوژی، از کجا شروع شد؟ تو سال هزار و نهصد و سی و هشت، یه مرد کره‌ای به اسم لی بیونگ‌چول، توی شهر دائگو، یه مغازه کوچیک باز کرد. اون‌جا ماهی خشک، سبزی و رشته‌فرنگی می‌فروخت. اسم مغازه‌اش هم شد «سان‌هوی سامسونگ»، یعنی «سه ستاره». از یه دکون خواروبارفروشی کوچیک، تا یکی از بزرگ‌ترین برندهای دنیا!</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>ترجمه EN→FA</h2><details><summary>prompt</summary><pre dir='ltr'>Translate into natural colloquial Persian for a voice-over (not word for word; keep facts exact):
+<table><tr><th>خانواده</th><th>مدل</th><th>موفق</th><th>هزینه</th><th>ثانیه (میانگین)</th><th>JSON معتبر</th><th>توکن خروجی</th><th>کیفیت</th><th>یادداشت</th></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k3.1-pro</td><td>4/5</td><td>$0.0975</td><td>32.0</td><td>2/3</td><td>9491</td><td>3.9</td><td>Natural Persian; hooks JSON invalid after repair; most expensive</td></tr><tr><td>Kimi</td><td dir='ltr'>avalai / kimi-k2.6</td><td>5/5</td><td>$0.0619</td><td>51.0</td><td>3/3</td><td>15171</td><td>2.9</td><td>Empty answers on 2/5 (reasoning used all 2500 tokens); a hook invents &#x27;5 trillion dollars&#x27;</td></tr><tr><td>DeepSeek</td><td dir='ltr'>avalai / deepseek-v4.1-flash</td><td>5/5</td><td>$0.0032</td><td>7.5</td><td>3/3</td><td>5083</td><td>4.4</td><td>Accurate, natural, faithful translation; best quality per dollar</td></tr><tr><td>Qwen</td><td dir='ltr'>avalai / qwen3.8-flash</td><td>5/5</td><td>$0.0058</td><td>35.0</td><td>3/3</td><td>12070</td><td>4.1</td><td>Founder&#x27;s name misspelled; slow (35 s avg)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.8-flash</td><td>5/5</td><td>$0.0267</td><td>16.2</td><td>3/3</td><td>6971</td><td>3.9</td><td>Liveliest colloquial voice; embellishes facts in translation and hooks (unsourced &#x27;20% of Korea&#x27;s economy&#x27;)</td></tr><tr><td>Gemini Flash</td><td dir='ltr'>avalai / gemini-3.1-flash-lite</td><td>5/5</td><td>$0.0022</td><td>2.3</td><td>3/3</td><td>1337</td><td>3.7</td><td>Fastest and cheapest; added a preamble and notes to the translation</td></tr><tr><td>Claude Haiku</td><td dir='ltr'>avalai / claude-haiku-5-5</td><td>5/5</td><td>$0.0034</td><td>8.8</td><td>3/3</td><td>6594</td><td>4.1</td><td>Good prompts and hooks; got the shop&#x27;s name wrong in the narration</td></tr><tr><td>Gemini direct</td><td dir='ltr'>gemini / gemini-3.8-flash</td><td>0/5</td><td>$0.0000</td><td>–</td><td>0/3</td><td>0</td><td>–</td><td>Google API 403 from this network for all 5 calls</td></tr><tr><td>Dahl MiniMax</td><td dir='ltr'>dahl / MiniMaxAI/MiniMax-M2.7</td><td>5/5</td><td>$0.0002</td><td>30.9</td><td>3/3</td><td>10743</td><td>3.3</td><td>Narration empty (inline reasoning used all 2500 tokens); hooks keep &#x27;Samsung&#x27; in Latin and needed a repair; 1969 filed as founding</td></tr><tr><td>Dahl DeepSeek</td><td dir='ltr'>dahl / deepseek-ai/DeepSeek-V4-Flash-0731</td><td>2/5</td><td>$0.0000</td><td>72.6</td><td>1/3</td><td>1534</td><td>2.5</td><td>Free tier: 3/5 failed (429 busy after 4 retries, 120 s timeouts); the two answers were accurate and natural</td></tr><tr><td>Dahl GLM</td><td dir='ltr'>dahl / zai-org/GLM-5.3-Flash</td><td>4/5</td><td>$0.0001</td><td>48.8</td><td>2/3</td><td>6959</td><td>3.2</td><td>Good narration; translation wrapped in notes and alternatives; hooks invent figures (20% of Korea&#x27;s economy, 270k staff); image prompts timed out</td></tr></table>
+<section><h2>پیش‌نویس narration محاوره‌ای</h2><details><summary>prompt</summary><pre dir='ltr'>Write a 20-second Persian narration (about 55-65 words) in colloquial spoken Tehran Persian for a fast history video. Topic: in 1938 Lee Byung-chul opened a small trading shop in Daegu, Korea, selling dried fish, vegetables and noodles; it was called Samsung Sanghoe, &#x27;three stars&#x27;. Open with a question to the viewer. Write numbers as words the narrator will say. Output only the narration.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01627 · 42.78 s</div><pre>فکرش رو می‌کنی سامسونگ با ماهی خشک شروع شده باشه؟ سال هزار و نهصد و سی‌وهشت، لی بیونگ‌چول تو دائگوی کره یه مغازه‌ی تجاری کوچیک باز کرد. اونجا ماهی خشک، سبزیجات و نودل می‌فروخت و اسمش رو گذاشت سامسونگ سانگهوه، یعنی «سه ستاره». همین مغازه‌ی ساده، نقطه‌ی شروع یه ماجرای بزرگ بود؛ ماجرایی که از دلش یه برند جهانی دراومد!</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 1/5</h4><div class='meta'>$0.01012 · 77.14 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00065 · 6.84 s</div><pre>می‌دونستید سامسونگ از یه مغازهٔ کوچیک شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ چول تو شهر دگو کره، یه دکهٔ تجاری کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهوئه، یعنی «سه ستاره». فکرشو بکن؛ همین شروع ساده و فروتنانه بعداً شد غول فناوری دنیا.</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00190 · 46.56 s</div><pre>تا حالا فکر کردی یه مغازه کوچیک واقعاً چطور می‌تونه امپراتوری جهانی بشه؟ سال هزار و نهصد و سی و هشت، لی بونگ‌چول توی دئگو، کره، یه مغازه تجارتی کوچیک باز کرد. چی می‌فروخت؟ ماهی خشک، سبزیجات و نودل. اسمش رو گذاشت سامسونگ سانگهه، یعنی سه ستاره. از همین شروع ساده، خیلی زود شد سامسونگ بزرگ.</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00708 · 20.55 s</div><pre>می‌دونستین غول فناوری دنیا کارشو با چی شروع کرده؟ سال هزار و نهصد و سی و هشت، مردی به اسم لی بیونگ‌چول، توی شهر دگوی کره یه تجارتخونه‌ی نقلی راه انداخت. کارش چی بود؟ فروش ماهی خشک، سبزیجات و نودل! اسم مغازه‌شو گذاشت «سامسونگ سانگ‌هو» که یعنی «سه ستاره». باورتون می‌شه غول تکنولوژی امروز از همین دکون ساده متولد شد؟</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00021 · 2.41 s</div><pre>تا حالا فکر کردین سامسونگ چطوری شروع شد؟ سال هزار و نهصد و سی و هشت، لی بیونگ‌چول توی شهر دگو یه مغازه کوچیک باز کرد. اونجا فقط ماهی خشک، سبزیجات و نودل می‌فروخت! اسمش رو هم گذاشت «سامسونگ سانگهو» که یعنی «سه ستاره». کی فکرش رو می‌کرد اون بقالی کوچیک، یه روزی بشه غول دنیای تکنولوژی و گوشی‌های موبایل؟ عجیبه، نه؟</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.00065 · 8.08 s</div><pre>می‌دونی سامسونگ، اون غول تکنولوژی، از کجا شروع شد؟ تو سال هزار و نهصد و سی و هشت، یه مرد کره‌ای به اسم لی بیونگ‌چول، توی شهر دائگو، یه مغازه کوچیک باز کرد. اون‌جا ماهی خشک، سبزی و رشته‌فرنگی می‌فروخت. اسم مغازه‌اش هم شد «سان‌هوی سامسونگ»، یعنی «سه ستاره». از یه دکون خواروبارفروشی کوچیک، تا یکی از بزرگ‌ترین برندهای دنیا!</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div><div class='card'><h4 dir='ltr'>MiniMaxAI/MiniMax-M2.7 <small>(dahl)</small> · 1/5</h4><div class='meta'>$0.00005 · 64.61 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-ai/DeepSeek-V4-Flash-0731 <small>(dahl)</small> · 1/5</h4><div class='err'>APITimeoutError: Request timed out.</div></div><div class='card'><h4 dir='ltr'>zai-org/GLM-5.3-Flash <small>(dahl)</small> · 4.5/5</h4><div class='meta'>$0.00002 · 21.75 s</div><pre>می‌دونی اسم سامسونگ از کجا اومده؟ سال هزار و نهصد و سی‌وهشت، یه جوون کره‌ای به اسم لی بیونگ‌چول، توی شهر تِگو یه مغازه‌ی کوچیک باز کرد. ماهی‌خشک، سبزیجات و رشته فروش می‌کرد! اسمش رو گذاشت «سامسونگ سانگ‌هو»؛ یعنی «سه ستاره». کسی فکرش رو نمی‌کرد این مغازه‌ی کوچولو، یه روزی غول تکنولوژی دنیا بشه!</pre></div></div></section><section><h2>ترجمه EN→FA</h2><details><summary>prompt</summary><pre dir='ltr'>Translate into natural colloquial Persian for a voice-over (not word for word; keep facts exact):
 
 &quot;In 1995, Samsung&#x27;s chairman ordered 150,000 faulty phones to be piled up in a factory yard in Gumi and set on fire in front of the employees. The message was simple: quality first, whatever it costs.&quot;</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01084 · 30.89 s</div><pre>سال ۱۹۹۵، رئیس هیئت‌مدیره‌ی سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو توی حیاط کارخونه‌ی گومی روی هم بچینن و جلوی چشم کارمندا آتیش بزنن. پیامش هم خیلی ساده بود: کیفیت، قبل از هر چیزی؛ هر هزینه‌ای هم که داشته باشه.</pre></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 1/5</h4><div class='meta'>$0.01010 · 17.2 s</div><pre></pre></div><div class='card'><h4 dir='ltr'>deepseek-v4.1-flash <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.00049 · 7.25 s</div><pre>سال ۱۹۹۵، رئیس سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو تو حیاط یه کارخونه تو گومی روی هم بریزن و جلوی چشم کارکنان آتیششون بزنن. پیامش ساده بود: اول کیفیت، هرچی هم که هزینه داشته باشه.</pre></div><div class='card'><h4 dir='ltr'>qwen3.8-flash <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00104 · 24.56 s</div><pre>«سال ۱۹۹۵، رئیس سامسونگ دستور داد صد و پنجاه هزار گوشی معیوب رو توی حیاط کارخونه گومی روی هم جمع کنن و جلوی چشم کارمندا آتیش بزنن. پیامش ساده بود: اول کیفیت، هر هزینه‌ای هم که بخواد.»</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(avalai)</small> · 3.5/5</h4><div class='meta'>$0.00312 · 14.59 s</div><pre>سال ۱۹۹۵، رئیس سامسونگ یه حرکت عجیب زد؛ دستور داد ۱۵۰ هزار تا گوشی معیوب و مشکل‌دار رو بیارن وسط حیاط کارخونه تو شهر «گومی»، جلو چشم تک‌تک کارمندها کپه کنن و به آتیش بکشن! پیام این کار خیلی ساده و بی‌تعارف بود: کیفیت حرف اول رو می‌زنه، به هر قیمتی که تموم بشه!</pre></div><div class='card'><h4 dir='ltr'>gemini-3.1-flash-lite <small>(avalai)</small> · 2.5/5</h4><div class='meta'>$0.00040 · 2.05 s</div><pre>برای یک ویدیو یوتیوب با لحنی پرانرژی و خودمانی، این متن رو به این صورت برات نوشتم:
 
@@ -23,7 +23,17 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 **چند نکته برای اجرا:**
 *   **«آب می‌خوره»**: یک اصطلاح خیلی رایج در فارسی برای وقتی که می‌خوایم بگیم «هزینه داشتن» یا «خرج برداشتن».
 *   **«کوبنده»**: برای اینکه حسِ اقتدارِ اون مدیر رو توی صدا منتقل کنی، این کلمه عالیه.
-*   **لحن**: سعی کن جمله‌ی آخر رو با تأکیدِ بیشتر و کمی شمرده‌تر بگی تا تأثیرش روی مخاطب بمونه.</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00038 · 6.45 s</div><pre>«سال ۱۹۹۵، رئیس سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو بیارن وسط حیاط کارخونه‌ی گومی، تلنبارشون کنن و جلوی چشم کارمندها آتیشون بزنن. پیامش خیلی ساده بود: کیفیت اولِ اولِ کاره، هرچی که قیمتش بشه.»</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>prompt تصویر برای ۵ صحنه</h2><details><summary>prompt</summary><pre dir='ltr'>Write English image-generation prompts for 5 scenes of a 2D editorial illustration video (flat shapes, grain, limited palette: navy, cream, cobalt accent). No text, letters or logos may appear in any image. Scenes: 1) a phone in a viewer&#x27;s hand, today; 2) a small 1938 Daegu storefront selling dried fish; 3) 1969 first electronics factory; 4) 1995 bonfire of phones in a factory yard, workers watching; 5) a modern foldable phone on a pedestal. Return JSON: {&quot;prompts&quot;: [{&quot;scene&quot;: 1, &quot;prompt&quot;: &quot;...&quot;}, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01281 · 38.89 s · JSON ok</div><pre>{
+*   **لحن**: سعی کن جمله‌ی آخر رو با تأکیدِ بیشتر و کمی شمرده‌تر بگی تا تأثیرش روی مخاطب بمونه.</pre></div><div class='card'><h4 dir='ltr'>claude-haiku-5-5 <small>(avalai)</small> · 4/5</h4><div class='meta'>$0.00038 · 6.45 s</div><pre>«سال ۱۹۹۵، رئیس سامسونگ دستور داد ۱۵۰ هزار گوشی معیوب رو بیارن وسط حیاط کارخونه‌ی گومی، تلنبارشون کنن و جلوی چشم کارمندها آتیشون بزنن. پیامش خیلی ساده بود: کیفیت اولِ اولِ کاره، هرچی که قیمتش بشه.»</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div><div class='card'><h4 dir='ltr'>MiniMaxAI/MiniMax-M2.7 <small>(dahl)</small> · 4.5/5</h4><div class='meta'>$0.00001 · 9.89 s</div><pre>سال ۱۹۹۵، رئیسِ سامسونگ دستور داد ۱۵۰ هزار تا گوشی خراب رو بیارن توی حیاط کارخونه‌ی گومی و جلوی چشمِ همه‌ی کارکناش آتیش بزنن بهشون. پیامش ساده بود: کیفیت اول، هر چی هزینه‌اش باشه.</pre></div><div class='card'><h4 dir='ltr'>deepseek-ai/DeepSeek-V4-Flash-0731 <small>(dahl)</small> · 4.5/5</h4><div class='meta'>$0.00002 · 110.31 s</div><pre>سال ۱۹۹۵، مدیرعامل سامسونگ دستور داد ۱۵۰ هزار تا گوشی معیوب رو توی حیاط کارخونه‌ی گومی تلنبار کنن و جلوی چشم همه‌ی کارمندا آتیش بزنن. پیامش خیلی ساده بود: کیفیت حرف اول رو می‌زنه، مهم نیست چه قیمتی داشته باشه.</pre></div><div class='card'><h4 dir='ltr'>zai-org/GLM-5.3-Flash <small>(dahl)</small> · 2.5/5</h4><div class='meta'>$0.00003 · 21.41 s</div><pre>**نسخه‌ی گویندگی:**
+
+«سال ۹۵ میلادی، رییس سامسونگ دستور داد صد و پنجاه هزار گوشی خراب رو توی حیاط کارخونه‌ی گومی کپه کنن، و بعد... درست جلوی چشم کارمندا آتیشش بزنن! پیام هم فقط یه چیز بود: اول کیفیت، هر چقدرم که خرج داره.»
+
+**چند نکته:**
+- اعداد رو برای گویندگی حروفی نوشتم («صد و پنجاه هزار») که موقع خوندن گیر نکنه. اگه اسکریپت فقط برای چشمه، می‌تونی «۱۵۰ هزار» بذاری.
+- «کپه کنن» از «پهنا کردن» یا «انبار کنن» محاوره‌ای‌تر و تصویری‌تره.
+- «سال ۹۵ میلادی» کوتاه و طبیعیه؛ اگه خواستی صفر ابهام باشه: «سال هزار و نهصد و نود و پنج میلادی».
+
+**یه جایگزین برای جمله‌ی آخر (اگه ضرب بیشتری بخوای):**
+«پیامش هم واضح بود: یا کیفیت، یا هیچی — هر چی هم خرجش داشته باشه.»</pre></div></div></section><section><h2>prompt تصویر برای ۵ صحنه</h2><details><summary>prompt</summary><pre dir='ltr'>Write English image-generation prompts for 5 scenes of a 2D editorial illustration video (flat shapes, grain, limited palette: navy, cream, cobalt accent). No text, letters or logos may appear in any image. Scenes: 1) a phone in a viewer&#x27;s hand, today; 2) a small 1938 Daegu storefront selling dried fish; 3) 1969 first electronics factory; 4) 1995 bonfire of phones in a factory yard, workers watching; 5) a modern foldable phone on a pedestal. Return JSON: {&quot;prompts&quot;: [{&quot;scene&quot;: 1, &quot;prompt&quot;: &quot;...&quot;}, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 4.5/5</h4><div class='meta'>$0.01281 · 38.89 s · JSON ok</div><pre>{
  &quot;prompts&quot;: [
   {
    &quot;scene&quot;: 1,
@@ -184,7 +194,30 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
    &quot;prompt&quot;: &quot;Flat 2D editorial illustration of a modern foldable smartphone standing upright on a cylindrical cream pedestal in a minimal navy studio space. The phone is shown half-open, with the screen displaying only abstract cobalt geometric shapes and no text. Soft spotlight from above creates a clean cobalt halo on the back wall. Limited palette of navy, cream, and cobalt blue only. Visible film grain across the image, crisp flat vector shapes, symmetrical and calm composition. No text, letters, numbers, logos, or writing anywhere in the image.&quot;
   }
  ]
-}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>۱۰ هوک</h2><details><summary>prompt</summary><pre dir='ltr'>Write 10 different opening hooks (first 3 seconds, max 18 words each) in colloquial Persian for a 90-second video &#x27;The whole history of Samsung in 90 seconds&#x27;. Mix: big number, paradox of origins, direct question, shocking moment (1995 phone bonfire). Return JSON: {&quot;hooks&quot;: [&quot;...&quot;, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 1/5</h4><div class='err'>invalid JSON after one repair: not JSON: Expecting value</div></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.01865 · 95.7 s · JSON ok</div><pre>{
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div><div class='card'><h4 dir='ltr'>MiniMaxAI/MiniMax-M2.7 <small>(dahl)</small> · 4.5/5</h4><div class='meta'>$0.00005 · 30.44 s · JSON ok</div><pre>{
+ &quot;prompts&quot;: [
+  {
+   &quot;scene&quot;: 1,
+   &quot;prompt&quot;: &quot;A hand holding a modern smartphone, viewed from a high-angle isometric perspective. 2D editorial illustration style featuring flat geometric shapes and a subtle film grain texture. Strict color palette consisting of deep navy, soft cream, and a vibrant cobalt blue accent for the screen glow. No text or logos included.&quot;
+  },
+  {
+   &quot;scene&quot;: 2,
+   &quot;prompt&quot;: &quot;A traditional wooden storefront in 1930s Korea selling hanging dried fish. The shop features a sloped tiled roof and an awning over wooden crates. Workers in period-specific clothing arranging the stock outside. Flat 2D illustration with a paper grain overlay. Palette: Navy, Cream, Cobalt.&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;prompt&quot;: &quot;The interior of a 1960s electronics factory assembly line. Workers in white coats and caps are assembling early transistor radios and circuit boards along a long conveyor belt. Isometric flat design with a grainy texture. Colors: Navy, Cream, Cobalt (machinery accents).&quot;
+  },
+  {
+   &quot;scene&quot;: 4,
+   &quot;prompt&quot;: &quot;A dramatic scene of a bonfire burning piles of large, boxy 1990s mobile phones in a factory yard at dusk. Workers standing in a semi-circle watching the flames, with thick smoke rising against a navy night sky. 2D flat illustration style with grain. Palette: Navy, Cream, Cobalt.&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;prompt&quot;: &quot;A sleek, open foldable smartphone displayed on a white marble pedestal in a minimalist museum gallery. A spotlight highlights the device, casting a soft shadow. Flat vector art style with a grain texture. Strict palette of navy, cream, and cobalt.&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-ai/DeepSeek-V4-Flash-0731 <small>(dahl)</small> · 1/5</h4><div class='err'>RateLimitError: Error code: 429 - This model is at concurrency capacity. Paid accounts are admitted first. Top up at https://inference.dahl.global/account — $0.01 per 1M tokens (in + out + cached) on any model, promo until 13 Nov 19:00 UTC. Retry after Retry-After, or switch model. Other models available now: Mini…</div></div><div class='card'><h4 dir='ltr'>zai-org/GLM-5.3-Flash <small>(dahl)</small> · 1/5</h4><div class='err'>APITimeoutError: Request timed out.</div></div></div></section><section><h2>۱۰ هوک</h2><details><summary>prompt</summary><pre dir='ltr'>Write 10 different opening hooks (first 3 seconds, max 18 words each) in colloquial Persian for a 90-second video &#x27;The whole history of Samsung in 90 seconds&#x27;. Mix: big number, paradox of origins, direct question, shocking moment (1995 phone bonfire). Return JSON: {&quot;hooks&quot;: [&quot;...&quot;, ...]}</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 1/5</h4><div class='err'>invalid JSON after one repair: not JSON: Expecting value</div></div><div class='card'><h4 dir='ltr'>kimi-k2.6 <small>(avalai)</small> · 3/5</h4><div class='meta'>$0.01865 · 95.7 s · JSON ok</div><pre>{
  &quot;hooks&quot;: [
   &quot;۵ تریلیون دلار؛ یه شرکت ماهی فروشی این همه پول رو از کجا آورد؟&quot;,
   &quot;سامسونگ اول ماهی می‌فروخت، الان میلیاردها گوشی توی دست ماست!&quot;,
@@ -262,7 +295,33 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
   &quot;از ۱۹۳۸ تا امروز، سامسونگ با بیش از ۲۰۰ هزار کارمند، یکی از بزرگ‌ترین شرکت‌های دنیاست.&quot;,
   &quot;سامسونگ الان تراشه و گوشی می‌سازه، ولی اولین محصولش یه بساط ماهی‌فروشی بود؛ باورت می‌شه؟&quot;
  ]
-}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section><section><h2>پرکردن JSON</h2><details><summary>prompt</summary><pre dir='ltr'>Extract the timeline from this text into JSON {&quot;events&quot;: [{&quot;year&quot;: int, &quot;event_fa&quot;: short Persian description, &quot;category&quot;: one of founding|product|crisis|expansion}]}. Text: Samsung was founded in 1938 as a trading company. It entered electronics in 1969, made its first semiconductor investment in 1974, burned 150,000 faulty phones in 1995, launched the first Galaxy S in 2010 and its first foldable phone in 2019.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00676 · 15.45 s · JSON ok</div><pre>{
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div><div class='card'><h4 dir='ltr'>MiniMaxAI/MiniMax-M2.7 <small>(dahl)</small> · 2.5/5</h4><div class='meta'>$0.00010 · 45.01 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;از ۱۹۳۸ تا ۲۰۲۵، ۸۷ سال تاریخ Samsung در ۹۰ ثانیه!&quot;,
+  &quot;شرکتی که از فروش خواروبار شروع شد، حالا غول الکترونیکه!&quot;,
+  &quot;Samsung از کجا شروع شد؟ جواب اینجاست!&quot;,
+  &quot;یادتونه ۱۹۹۵ وقتی موبایل‌هاشون رو آتیش زدن؟&quot;,
+  &quot;ببین چطور یه کوه‌پیکر از یه دانه برنج ساخته شد!&quot;,
+  &quot;آیا می‌دونید Samsung تو ۹۰ ثانیه چه بلایی سر دنیا آورد؟&quot;,
+  &quot;هی! ۸۷ سال نوآوری رو تو یه ویدیو ببین!&quot;,
+  &quot;از گوشی‌های ساده تا گلکسی‌های پرچمدار، همه رو اینجا ببین!&quot;,
+  &quot;یه لحظه! Samsung قبل از الکترونیک، بذار یه چیز دیگه ببینی!&quot;,
+  &quot;آماده‌ای؟ ۹۰ ثانیه درباره Samsung که همه چیز رو عوض کرد!&quot;
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-ai/DeepSeek-V4-Flash-0731 <small>(dahl)</small> · 1/5</h4><div class='err'>APITimeoutError: Request timed out.</div></div><div class='card'><h4 dir='ltr'>zai-org/GLM-5.3-Flash <small>(dahl)</small> · 3/5</h4><div class='meta'>$0.00005 · 83.53 s · JSON ok</div><pre>{
+ &quot;hooks&quot;: [
+  &quot;سامسونگ روزانه صدها هزار تا گوشی می‌فروشه؛ ولی یه زمانی فقط ماهی خشک می‌فروخت!&quot;,
+  &quot;بزرگ‌ترین سازنده گوشی دنیا، کارش رو با فروش ماهی خشک و رشته شروع کرد؛ جدی می‌گم!&quot;,
+  &quot;می‌دونی سامسونگ چند درصد از اقتصاد کره رو کنترل می‌کنه؟ حدود بیست درصد! باور می‌کنی؟&quot;,
+  &quot;سال ۱۹۹۵ رییس سامسونگ ۱۵۰ هزار گوشی معیوب رو جلوی چشم کارخونه آتیش زد!&quot;,
+  &quot;سامسونگ سالانه بیش از دویست میلیارد دلار می‌فروشه؛ یعنی بیشتر از اقتصاد بعضی کشورها!&quot;,
+  &quot;از فروش نودل تا رقیب مستقیم آیفون؛ سامسونگ چطور این مسیر رو اومد؟&quot;,
+  &quot;سامسونگ فقط گوشی نیست ها! از کشتی تا چیپ تا بیمارستان؛ چی می‌سازه که نمی‌سازه؟&quot;,
+  &quot;تصور کن کارخونه‌دارت گوشی‌هات رو جلوی چشمت آتیش بزنه! سامسونگ دقیقاً همین کارو کرد.&quot;,
+  &quot;۲۷۰ هزار کارمند، ۷۴ کشور، حدود نود سال تاریخ؛ همه‌ش رو تو ۹۰ ثانیه می‌گم!&quot;,
+  &quot;ماهی خشک، شیرینی، رشته؛ از اینا شروع شد و شد غول تکنولوژی دنیا! باورم نمی‌شه.&quot;
+ ]
+}</pre></div></div></section><section><h2>پرکردن JSON</h2><details><summary>prompt</summary><pre dir='ltr'>Extract the timeline from this text into JSON {&quot;events&quot;: [{&quot;year&quot;: int, &quot;event_fa&quot;: short Persian description, &quot;category&quot;: one of founding|product|crisis|expansion}]}. Text: Samsung was founded in 1938 as a trading company. It entered electronics in 1969, made its first semiconductor investment in 1974, burned 150,000 faulty phones in 1995, launched the first Galaxy S in 2010 and its first foldable phone in 2019.</pre></details><div class='grid'><div class='card'><h4 dir='ltr'>kimi-k3.1-pro <small>(avalai)</small> · 5/5</h4><div class='meta'>$0.00676 · 15.45 s · JSON ok</div><pre>{
  &quot;events&quot;: [
   {
    &quot;year&quot;: 1938,
@@ -493,5 +552,104 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
    &quot;category&quot;: &quot;product&quot;
   }
  ]
-}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div></div></section>
+}</pre></div><div class='card'><h4 dir='ltr'>gemini-3.8-flash <small>(gemini)</small></h4><div class='err'>PermissionDeniedError: Error code: 403</div></div><div class='card'><h4 dir='ltr'>MiniMaxAI/MiniMax-M2.7 <small>(dahl)</small> · 4/5</h4><div class='meta'>$0.00001 · 4.66 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;تأسیس سامسونگ به عنوان یک شرکت تجاری&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;ورود به حوزه الکترونیک&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری در نیمه‌رسانا&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سوزاندن ۱۵۰ هزار گوشی معیوب&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گلکسی اس&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی تاشو&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>deepseek-ai/DeepSeek-V4-Flash-0731 <small>(dahl)</small> · 5/5</h4><div class='meta'>$0.00002 · 34.88 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;سامسونگ به‌عنوان یک شرکت تجاری تأسیس شد&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;وارد حوزه الکترونیک شد&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری در صنعت نیمه‌هادی رو انجام داد&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;۱۵۰ هزار گوشی معیوب رو آتیش زد&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;اولین گلکسی اس رو عرضه کرد&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;اولین گوشی تاشو رو عرضه کرد&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div><div class='card'><h4 dir='ltr'>zai-org/GLM-5.3-Flash <small>(dahl)</small> · 5/5</h4><div class='meta'>$0.00004 · 68.59 s · JSON ok</div><pre>{
+ &quot;events&quot;: [
+  {
+   &quot;year&quot;: 1938,
+   &quot;event_fa&quot;: &quot;سامسونگ به‌عنوان یه شرکت بازرگانی تأسیس شد&quot;,
+   &quot;category&quot;: &quot;founding&quot;
+  },
+  {
+   &quot;year&quot;: 1969,
+   &quot;event_fa&quot;: &quot;سامسونگ پا به دنیای الکترونیک گذاشت&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1974,
+   &quot;event_fa&quot;: &quot;اولین سرمایه‌گذاری سامسونگ توی نیمه‌هادی‌ها&quot;,
+   &quot;category&quot;: &quot;expansion&quot;
+  },
+  {
+   &quot;year&quot;: 1995,
+   &quot;event_fa&quot;: &quot;سامسونگ ۱۵۰ هزار گوشی معیوب رو آتیش زد&quot;,
+   &quot;category&quot;: &quot;crisis&quot;
+  },
+  {
+   &quot;year&quot;: 2010,
+   &quot;event_fa&quot;: &quot;عرضه اولین گوشی گلکسی S&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  },
+  {
+   &quot;year&quot;: 2019,
+   &quot;event_fa&quot;: &quot;معرفی اولین گوشی تاشو سامسونگ&quot;,
+   &quot;category&quot;: &quot;product&quot;
+  }
+ ]
+}</pre></div></div></section>
 </body></html>
