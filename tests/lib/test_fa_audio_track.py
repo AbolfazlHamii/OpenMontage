@@ -94,3 +94,47 @@ def test_transcript_alignment_asks_for_the_take_language(tmp_path, monkeypatch):
     take.write_bytes(b"")
     mi._take_words(take, STT(), "en")
     assert seen["language"] == "en"
+
+
+# -- subtitles ---------------------------------------------------------------------
+
+def test_srt_times_and_numbering():
+    srt = at.to_srt([{"start": 0.25, "end": 3661.5, "lines": ["Hello.", "Two lines."]}])
+    assert srt.startswith("1\n00:00:00,250 --> 01:01:01,500\nHello.\nTwo lines.\n")
+
+
+def test_long_sentence_splits_evenly_without_an_orphan_word():
+    text = ("In 1937 and 1938 alone, by their own records, more than 680,000 people "
+            "were shot in the cellars and forests around Moscow.")
+    parts = at._even_parts(text)
+    assert len(parts) == 2 and " ".join(parts) == text
+    assert all(len(p.split()) > 3 for p in parts)
+    assert all(len(at.textwrap.wrap(p, at.LINE_CHARS)) <= at.CUE_LINES for p in parts)
+
+
+def test_cues_follow_persian_sentences_or_spread_over_the_scene():
+    data = {"scenes": [{"id": "s1", "narration": "اول. دوم؟"}, {"id": "s2", "narration": "سوم."}]}
+    timing = {"duration": 12.0, "scenes": [
+        {"id": "s1", "voice_start": 0.0, "voice_seconds": 6.0},
+        {"id": "s2", "voice_start": 6.5, "voice_seconds": 4.0}]}
+    words = [{"word": "اول", "start": 0.1, "end": 2.0}, {"word": "دوم", "start": 4.0, "end": 5.9},
+             {"word": "سوم", "start": 6.6, "end": 10.0}]
+    # two sentences each side: the second English one starts with the second Persian one
+    cues = at.subtitle_cues(data, {"s1": "The first one here. The second?", "s2": "Third one, read slowly."},
+                            timing, words)
+    assert [c["lines"][0] for c in cues] == ["The first one here.", "The second?", "Third one, read slowly."]
+    assert 2.0 <= cues[1]["start"] <= 4.0 and cues[2]["start"] == pytest.approx(6.5)
+    assert all(a["end"] <= b["start"] for a, b in zip(cues, cues[1:]))
+    # different sentence counts: spread by length over the scene's line
+    spread = at.subtitle_cues(data, {"s1": "One sentence only, spoken across both.", "s2": "Third."},
+                              timing, words)
+    assert spread[0]["start"] == 0.0 and spread[0]["end"] == pytest.approx(6.0)
+
+
+def test_a_flash_cue_joins_its_neighbour():
+    cues = [{"start": 0.0, "end": 0.4, "lines": ["Why?"], "scene": "s1"},
+            {"start": 0.4, "end": 2.0, "lines": ["It's his signal."], "scene": "s1"},
+            {"start": 2.0, "end": 4.0, "lines": ["Other scene."], "scene": "s2"}]
+    merged = at._merge_fast(cues)
+    assert merged[0]["lines"] == ["Why? It's his signal."] and merged[0]["end"] == 2.0
+    assert merged[1]["lines"] == ["Other scene."]

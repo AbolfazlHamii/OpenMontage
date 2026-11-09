@@ -18,8 +18,11 @@ render's loudness.
 from __future__ import annotations
 
 import json
+import math
+import re
 import shutil
 import subprocess
+import textwrap
 from pathlib import Path
 from typing import Optional
 
@@ -200,3 +203,180 @@ def preview(project: Path, language: str, video: Path) -> Path:
     _run([shutil.which("ffmpeg") or "ffmpeg", "-v", "error", "-y", "-i", str(video), "-i", str(track),
           "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(out)])
     return out
+
+
+# -- subtitles ---------------------------------------------------------------------
+
+LINE_CHARS = 42      # per subtitle line
+CUE_LINES = 2
+MIN_CUE = 1.0
+MAX_CPS = 17.0       # letters per second a viewer can read comfortably
+MAX_SHIFT = 0.6      # how far a cue edge may move off the voice to be readable
+_SENTENCE = re.compile(r"(?<=[.!?؟…:;؛])\s+")
+
+
+def sentences(text: str) -> list[str]:
+    return [s.strip() for s in _SENTENCE.split(text.strip()) if s.strip()]
+
+
+def sentence_times(scene: dict, persian: list[str], words: list[dict]) -> Optional[list[tuple[float, float]]]:
+    """Start and end of each Persian sentence in the video, from a transcript
+    of the video's own audio (words in video time) matched within the scene."""
+    start, end = scene["voice_start"], scene["voice_start"] + scene["voice_seconds"]
+    if len(persian) == 1:
+        return [(start, end)]
+    inside = [w for w in words if start - 0.3 <= w["start"] <= end + 0.3]
+    try:
+        breaks = mi.scene_breaks_from_words(inside, persian)
+    except ValueError:
+        return None
+    edges = [start] + [min(max(b, start), end) for b in breaks] + [end]
+    if any(b <= a for a, b in zip(edges, edges[1:])):
+        return None
+    return list(zip(edges, edges[1:]))
+
+
+def cues_for(text: str, start: float, end: float) -> list[dict]:
+    """One sentence on screen from start to end, cut into cues of at most
+    CUE_LINES lines; each cue gets time in proportion to its letters."""
+    blocks = [textwrap.wrap(part, LINE_CHARS) for part in _even_parts(text)]
+    sizes = [sum(len(line) for line in b) for b in blocks]
+    cues, t = [], start
+    for block, size in zip(blocks, sizes):
+        length = (end - start) * size / sum(sizes)
+        cues.append({"start": t, "end": t + length, "lines": block})
+        t += length
+    return cues
+
+
+def _even_parts(text: str) -> list[str]:
+    """A sentence too long for one cue, cut into parts of about equal length
+    (greedy filling leaves a one-word orphan at the end)."""
+    words = text.split()
+    n = max(1, math.ceil(len(textwrap.wrap(text, LINE_CHARS)) / CUE_LINES))
+    while True:
+        target = len(text) / n
+        parts, current = [], []
+        for word in words:
+            if current and len(" ".join(current + [word])) > target and len(parts) < n - 1:
+                parts.append(" ".join(current))
+                current = []
+            current.append(word)
+        parts.append(" ".join(current))
+        if all(len(textwrap.wrap(p, LINE_CHARS)) <= CUE_LINES for p in parts):
+            return parts
+        n += 1
+
+
+def subtitle_cues(data: dict, translated: dict, timing: dict, words: list[dict]) -> list[dict]:
+    """Translated text timed to the Persian narration: sentence by sentence
+    where both sides have the same number of sentences, else spread over the
+    scene's line in proportion to length."""
+    by_id = {s["id"]: s for s in timing["scenes"]}
+    cues = []
+    for scene in data["scenes"]:
+        sc = by_id[scene["id"]]
+        target = sentences(translated[scene["id"]])
+        persian = sentences(scene["narration"])
+        spans = sentence_times(sc, persian, words) if len(persian) == len(target) else None
+        if spans is None:
+            start, end = sc["voice_start"], sc["voice_start"] + sc["voice_seconds"]
+            sizes = [len(s) for s in target]
+            spans, t = [], start
+            for size in sizes:
+                spans.append((t, t + (end - start) * size / sum(sizes)))
+                t = spans[-1][1]
+        for text, (a, b) in zip(target, spans):
+            cues += [dict(c, scene=scene["id"]) for c in cues_for(text, a, b)]
+    cues = _balance(_merge_fast(cues))
+    # a cue too short to read borrows from the gap after it, never the next cue
+    for cue, nxt in zip(cues, cues[1:] + [None]):
+        limit = nxt["start"] if nxt else timing["duration"]
+        if cue["end"] - cue["start"] < MIN_CUE:
+            cue["end"] = min(limit, cue["start"] + MIN_CUE)
+    return cues
+
+
+def _cps(cue: dict) -> float:
+    return sum(len(line) for line in cue["lines"]) / max(0.01, cue["end"] - cue["start"])
+
+
+def _merge_fast(cues: list[dict]) -> list[dict]:
+    """A cue read faster than MAX_CPS, or shown for less than MIN_CUE, joins
+    its neighbour in the same scene when the two still fit on CUE_LINES lines."""
+    cues = list(cues)
+    changed = True
+    while changed:
+        changed = False
+        for i, cue in enumerate(cues):
+            if _cps(cue) <= MAX_CPS and cue["end"] - cue["start"] >= MIN_CUE:
+                continue
+            for j in (i + 1, i - 1):
+                if not 0 <= j < len(cues) or cues[j]["scene"] != cue["scene"]:
+                    continue
+                a, b = sorted((i, j))
+                lines = textwrap.wrap(" ".join(cues[a]["lines"] + cues[b]["lines"]), LINE_CHARS)
+                if len(lines) <= CUE_LINES:
+                    cues[a] = {"start": cues[a]["start"], "end": cues[b]["end"], "lines": lines,
+                               "scene": cue["scene"]}
+                    del cues[b]
+                    changed = True
+                    break
+            if changed:
+                break
+    return cues
+
+
+def _balance(cues: list[dict]) -> list[dict]:
+    """A cue still too fast takes up to MAX_SHIFT from a slower neighbour, or
+    stays up into the silence before the next cue."""
+    for i, cue in enumerate(cues):
+        if _cps(cue) <= MAX_CPS:
+            continue
+        nxt = cues[i + 1] if i + 1 < len(cues) else None
+        prev = cues[i - 1] if i else None
+        if nxt and nxt["start"] > cue["end"]:
+            cue["end"] = min(nxt["start"], cue["end"] + MAX_SHIFT)
+        for other, forward in ((nxt, True), (prev, False)):
+            if _cps(cue) <= MAX_CPS or not other or _cps(other) >= _cps(cue):
+                continue
+            letters = sum(len(line) for line in cue["lines"])
+            other_letters = sum(len(line) for line in other["lines"])
+            span = (other["end"] - cue["start"]) if forward else (cue["end"] - other["start"])
+            want = span * letters / (letters + other_letters)
+            if forward:
+                edge = min(cue["start"] + want, cue["end"] + MAX_SHIFT)
+                if edge > cue["end"] and edge >= other["start"]:
+                    cue["end"] = other["start"] = round(edge, 3)
+            else:
+                edge = max(cue["end"] - want, cue["start"] - MAX_SHIFT)
+                if edge < cue["start"] and edge <= other["end"]:
+                    cue["start"] = other["end"] = round(edge, 3)
+    return cues
+
+
+def _srt_time(seconds: float) -> str:
+    ms = int(round(seconds * 1000))
+    h, ms = divmod(ms, 3_600_000)
+    m, ms = divmod(ms, 60_000)
+    s, ms = divmod(ms, 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def to_srt(cues: list[dict]) -> str:
+    return "\n".join(f"{i}\n{_srt_time(c['start'])} --> {_srt_time(c['end'])}\n" + "\n".join(c["lines"]) + "\n"
+                     for i, c in enumerate(cues, 1))
+
+
+def subtitles(project: Path, language: str, video: Path, stt=None) -> dict:
+    """packaging/subtitles_<lang>.srt timed to the rendered video's Persian voice
+    (the video's audio is transcribed once, ~$0.0001 per second)."""
+    data = mi.load_shotlist(project)
+    timing = mi._read(mi.root(project) / "timing.json")
+    overlay = json.loads(narration_path(project, language).read_text(encoding="utf-8"))
+    words, cost = mi._take_words(video, stt, "fa")
+    cues = subtitle_cues(data, overlay["scenes"], timing, words)
+    out = Path(project) / "packaging" / f"subtitles_{language}.srt"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(to_srt(cues), encoding="utf-8")
+    return {"output": str(out), "cues": len(cues), "cost_usd": cost}
