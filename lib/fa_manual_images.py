@@ -542,7 +542,7 @@ def _split_take(take: Path, scenes: list[dict], paths: list[Path], breaks=None) 
             out.writeframes(raw[a * params.nchannels:b * params.nchannels].tobytes())
 
 
-def _take_words(take: Path, stt) -> tuple[list[dict], float]:
+def _take_words(take: Path, stt, language: str = "fa") -> tuple[list[dict], float]:
     """Word times for a take, transcribed once and kept beside it."""
     cached = take.with_suffix(".words.json")
     if cached.exists():
@@ -558,7 +558,7 @@ def _take_words(take: Path, stt) -> tuple[list[dict], float]:
         upload = take.with_suffix(".stt.mp3")
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(take), "-ac", "1", "-ar", "16000",
                         "-b:a", "48k", str(upload)], check=True)
-    result = stt.execute({"audio_path": str(upload), "word_timestamps": True, "language": "fa",
+    result = stt.execute({"audio_path": str(upload), "word_timestamps": True, "language": language,
                           "output_path": str(take.with_suffix(".transcript.json"))})
     if not result.success:
         raise RuntimeError(f"{take.name}: transcription failed: {result.error}")
@@ -566,17 +566,20 @@ def _take_words(take: Path, stt) -> tuple[list[dict], float]:
     return result.data["words"], result.cost_usd or 0.0
 
 
-def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _duration, stt=None) -> dict:
+def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _duration, stt=None,
+            data: Optional[dict] = None) -> dict:
     """One clip per scene. A scene's own `audio` file wins; otherwise TTS with
     the channel's narrator and lexicon, one call per voice group (split back
     into scenes at the pauses; with `voice.align: "transcript"` the take is
     transcribed so each cut lands on its scene's first word). Clips are keyed
-    by text and voice."""
+    by text and voice. `data` replaces the shot list (another language's
+    narration over the same scenes, `voice.language` set)."""
     from lib.channel_bible import load_channel
     from tools.audio.tts_selector import TTSSelector
 
-    data = load_shotlist(project)
+    data = data or load_shotlist(project)
     voice_cfg = data.get("voice") or {}
+    language = voice_cfg.get("language", "fa")
     narrator: dict = {}
     if voice_cfg.get("channel"):
         narrator = load_channel(voice_cfg["channel"]).voice_for("narrator")
@@ -594,7 +597,7 @@ def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _durati
             clips[scene["id"]] = {"path": str(path), "seconds": round(duration(path), 3), "source": "file"}
             continue
         request = {
-            "text": "\n\n".join(s["narration"] for s in group), "language_code": "fa",
+            "text": "\n\n".join(s["narration"] for s in group), "language_code": language,
             "voice_id": voice_cfg.get("voice_id") or narrator.get("voice") or "Kore",
             "style": scene.get("style") or voice_cfg.get("style") or narrator.get("style") or "",
             "model_id": voice_cfg.get("model_id") or narrator.get("model_final", "gemini-3.8-flash-tts"),
@@ -614,7 +617,7 @@ def narrate(project: Path, tts=None, duration: Callable[[Path], float] = _durati
             if len(group) > 1:
                 breaks = None
                 if voice_cfg.get("align") == "transcript":
-                    words, spent = _take_words(take, stt)
+                    words, spent = _take_words(take, stt, language)
                     cost += spent
                     breaks = scene_breaks_from_words(words, [s["narration"] for s in group])
                 _split_take(take, group, paths, breaks)
