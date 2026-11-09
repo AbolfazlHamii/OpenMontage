@@ -16,15 +16,18 @@ import yaml
 from tools.base_tool import ToolResult
 from tools.text import llm_selector as selector_mod
 from tools.text.llm_selector import LLMSelector
-from tools.text.openai_compat_llm import OpenAICompatLLM, extract_json, redact
+from tools.text.openai_compat_llm import OpenAICompatLLM, extract_json, redact, strip_reasoning
 
 KEY = "aa-TESTKEY1234567890abcdef"
+DAHL_KEY = "dahl_TESTKEY1234567890abcdef"
 
 ROUTING = {
     "mode": "interactive",
     "profiles": {
         "avalai": {"base_url": "https://api.avalai.ir/v1", "key_env": "AVALAI_API_KEY", "proxy": "direct"},
         "gemini": {"base_url": "https://g.example/v1", "key_env": "GOOGLE_API_KEY", "proxy": "env"},
+        "dahl": {"base_url": "https://inference.dahl.global/v1", "key_env": "DAHL_API_KEY",
+                 "text_only": True, "proxy": "direct"},
         "nokey": {"base_url": "https://n.example/v1", "key_env": "NOKEY_API_KEY"},
     },
     "tiers": {
@@ -51,6 +54,7 @@ def routing_path(tmp_path, monkeypatch):
     path.write_text(yaml.safe_dump(ROUTING), encoding="utf-8")
     monkeypatch.setenv("AVALAI_API_KEY", KEY)
     monkeypatch.setenv("GOOGLE_API_KEY", "g-key-abcdef123456")
+    monkeypatch.setenv("DAHL_API_KEY", DAHL_KEY)
     monkeypatch.delenv("NOKEY_API_KEY", raising=False)
     monkeypatch.setenv("OPENMONTAGE_LLM_CACHE_DIR", str(tmp_path / "cache"))
     monkeypatch.delenv("OPENMONTAGE_LLM_MODE", raising=False)
@@ -206,6 +210,69 @@ def test_direct_profiles_ignore_proxy_env(routing_path, monkeypatch):
     assert seen["trust_env"] is False and seen["timeout"] == 5
     llm._client(ROUTING["profiles"]["gemini"], "k", 5)
     assert seen["trust_env"] is True
+
+
+def test_inline_reasoning_is_stripped_and_dahl_is_priced_from_the_table(routing_path):
+    reply = "<think>The user wants Persian.\nLet me think.</think>\n\nسلام"
+    server = _Server((200, _completion(reply, 1_000_000, 1_000_000, model="MiniMaxAI/MiniMax-M2.7")))
+    r = _llm(routing_path, server).execute(
+        {"profile": "dahl", "model": "MiniMaxAI/MiniMax-M2.7", "prompt": "hi"})
+    assert r.success and r.data["text"] == "سلام"
+    assert r.cost_usd == pytest.approx(0.04)  # $0.02 per 1M in + out
+    assert server.requests[0].url.host == "inference.dahl.global"
+    assert server.requests[0].headers["authorization"] == f"Bearer {DAHL_KEY}"
+
+
+def test_json_after_a_reasoning_block_parses_without_repair(routing_path):
+    server = _Server((200, _completion('<think>JSON only.</think>{"hooks": ["a", "b"]}')))
+    r = _llm(routing_path, server).execute(
+        {"profile": "dahl", "model": "m", "prompt": "x", "json_mode": True})
+    assert r.success and r.data["json"] == {"hooks": ["a", "b"]} and not r.data["repaired"]
+    assert len(server.requests) == 1
+
+
+def test_strip_reasoning():
+    assert strip_reasoning("no reasoning here") == "no reasoning here"
+    assert strip_reasoning("  <think>a\nb</think>  answer") == "answer"
+    # Cut off while still thinking: nothing usable.
+    assert strip_reasoning("<think>still going") == ""
+    # Only a leading block is reasoning; later tags are content.
+    assert strip_reasoning("answer <think>x</think>") == "answer <think>x</think>"
+
+
+def test_text_only_profile_refuses_images_without_a_request(routing_path, tmp_path):
+    image = tmp_path / "frame.png"
+    image.write_bytes(b"not really a png")
+    server = _Server()
+    r = _llm(routing_path, server).execute(
+        {"profile": "dahl", "model": "m", "prompt": "label", "images": [str(image)]})
+    assert not r.success and "text-only" in r.error
+    assert server.requests == []
+
+
+def test_dahl_key_is_redacted():
+    assert redact(f"bad key {DAHL_KEY}") == "bad key dahl_***"
+
+
+def test_busy_dahl_model_falls_through_to_the_next_entry(routing_path):
+    routing = yaml.safe_load(routing_path.read_text(encoding="utf-8"))
+    routing["tiers"]["bulk"] = [{"profile": "dahl", "model": "zai-org/GLM-5.3-Flash"},
+                                {"profile": "avalai", "model": "cheap-a"}]
+    routing_path.write_text(yaml.safe_dump(routing), encoding="utf-8")
+    busy = {"error": {"code": "model_concurrency", "type": "rate_limit_error",
+                      "message": "This model is at concurrency capacity."}}
+
+    def handler(request):
+        if request.url.host == "inference.dahl.global":
+            return httpx.Response(429, json=busy, headers={"Retry-After": "5"})
+        return httpx.Response(200, json=_completion('{"label": "x"}'))
+
+    llm = OpenAICompatLLM(routing_path=routing_path, transport=httpx.MockTransport(handler))
+    r = LLMSelector(llm=llm, routing_path=routing_path).execute(
+        {"task": "classification", "prompt": "x"})
+    assert r.success and r.data["profile"] == "avalai"
+    assert [a["outcome"] for a in r.data["attempts"]] == ["failed", "accepted"]
+    assert r.data["fallback_from"][0]["profile"] == "dahl"
 
 
 def test_extract_json_handles_fences():

@@ -1,6 +1,6 @@
 """One tool for every OpenAI-compatible chat endpoint.
 
-AvalAI, Moonshot, OpenRouter, Ollama and Gemini's OpenAI endpoint all speak
+AvalAI, Dahl, Moonshot, OpenRouter, Ollama and Gemini's OpenAI endpoint all speak
 /v1/chat/completions, so they are profiles in config/llm_routing.yaml rather
 than separate tools. A profile whose key is missing reports unavailable; it
 never raises.
@@ -10,6 +10,9 @@ What this tool owns:
   config/fa_pricing.yaml (unknown price -> cost_status "unquoted");
 - a content-addressed cache for temperature 0 calls (`.llm_cache/`);
 - JSON mode: parse, validate against `json_schema`, one repair retry;
+- a leading `<think>...</think>` block is stripped from the reply (MiniMax on
+  Dahl puts its reasoning inline);
+- profiles marked `text_only` refuse images before any request is sent;
 - timeouts, proxy choice per profile, and no SDK auto-retry (max_retries=0;
   llm_selector decides what to retry);
 - keys never reach errors, logs or results (`redact`).
@@ -47,6 +50,7 @@ CACHE_ENV = "OPENMONTAGE_LLM_CACHE_DIR"
 _SECRET_PATTERNS = [
     (re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._~+/=-]{6,}"), r"\1***"),
     (re.compile(r"\b(sk|aa)-[A-Za-z0-9_-]{8,}"), r"\1-***"),
+    (re.compile(r"\bdahl_[A-Za-z0-9]{8,}"), "dahl_***"),
     (re.compile(r"(?i)([?&](?:key|api_key|token)=)[^&\s\"']+"), r"\1***"),
 ]
 
@@ -70,6 +74,21 @@ def redact(text: Any, secrets: Optional[list[str]] = None) -> str:
 def known_secrets(routing: dict[str, Any]) -> list[str]:
     names = {p.get("key_env") for p in routing.get("profiles", {}).values()}
     return [os.environ[n] for n in names if n and os.environ.get(n)]
+
+
+_THINK_RE = re.compile(r"^\s*<think>.*?</think>\s*", re.S)
+
+
+def strip_reasoning(text: str) -> str:
+    """Drop a reasoning block that some models put before the answer.
+
+    An unclosed block means the reply was cut off mid-thought, so nothing
+    usable is left.
+    """
+    if not text.lstrip().startswith("<think>"):
+        return text
+    stripped, found = _THINK_RE.subn("", text, count=1)
+    return stripped if found else ""
 
 
 def extract_json(text: str) -> Any:
@@ -109,7 +128,8 @@ class OpenAICompatLLM(BaseTool):
     dependencies = ["python:openai", "python:httpx"]
     install_instructions = (
         "Set the key for at least one profile in config/llm_routing.yaml "
-        "(AVALAI_API_KEY, GOOGLE_API_KEY, MOONSHOT_API_KEY or OPENROUTER_API_KEY), "
+        "(AVALAI_API_KEY, DAHL_API_KEY, GOOGLE_API_KEY, MOONSHOT_API_KEY or "
+        "OPENROUTER_API_KEY), "
         "or run Ollama locally."
     )
     agent_skills = ["provider-model-refresh"]
@@ -249,7 +269,7 @@ class OpenAICompatLLM(BaseTool):
 
     def _complete(self, client, request: dict[str, Any]) -> tuple[str, dict[str, int], str]:
         resp = client.chat.completions.create(**request)
-        text = resp.choices[0].message.content or ""
+        text = strip_reasoning(resp.choices[0].message.content or "")
         usage = resp.usage
         tokens = {
             "prompt_tokens": getattr(usage, "prompt_tokens", 0) or 0,
@@ -269,6 +289,9 @@ class OpenAICompatLLM(BaseTool):
             return ToolResult(success=False, error=f"profile {profile} unavailable: {reason}",
                               data={"unavailable": True, "profile": profile})
         cfg = routing["profiles"][profile]
+        if inputs.get("images") and cfg.get("text_only"):
+            return ToolResult(success=False, error=f"profile {profile} is text-only; images not accepted",
+                              data={"profile": profile, "model": model})
         defaults = routing.get("defaults", {})
         timeout = float(inputs.get("timeout_seconds", defaults.get("timeout_seconds", 60)))
         temperature = float(inputs.get("temperature", defaults.get("temperature", 0.7)))

@@ -45,8 +45,24 @@ Last updated: 2026-11-05 (remake from a link; earlier: build phases 1–3, 5; re
 - ffmpeg 8.1: `%LOCALAPPDATA%\Programs\ffmpeg\ffmpeg-n8.1-latest-win64-gpl-8.1\bin`
   (on the user PATH; shells started before the install need it added).
 - Vazirmatn installed per user; `.env` sets `SUBTITLE_FONTS_DIR`.
-- Keys in `.env` (git-ignored): `GOOGLE_API_KEY`, `AVALAI_API_KEY`. Key
-  values also live in the owner's private secrets file, never in the repo.
+- Keys in `.env` (git-ignored): `GOOGLE_API_KEY`, `AVALAI_API_KEY`,
+  `DAHL_API_KEY`. Key values also live in the owner's private secrets file,
+  never in the repo.
+- Dahl Inference (`https://inference.dahl.global/v1`, added 2026-11-09):
+  OpenAI-compatible, **text only** — `/audio/*`, `/images/*` and
+  `/embeddings` return 404, `image_url` parts are rejected. Live models:
+  `MiniMaxAI/MiniMax-M2.7` (puts `<think>…</think>` inline; the tool strips
+  it), `deepseek-ai/DeepSeek-V4-Flash-0731`, `zai-org/GLM-5.3-Flash`
+  (`GET /v1/models`, no key). $0.02 per 1M tokens in+out after the 100M free
+  grant; **the free grant burns after 7 days without a request**. Free
+  accounts get frequent `429 model_concurrency` at peak (paid first). Prompts
+  run on independent operators of the Gonka network (privacy policy): no
+  private material. Direct connection works from Iran; profile uses
+  `proxy: direct`. Key balance: `GET /tokens/current` with the key.
+  Verified 2026-11-09: JSON-mode hooks in Persian via `openai_compat_llm`
+  from MiniMax (~350 tokens) and GLM; DeepSeek returned 429 at that moment.
+  Persian quality is rough (emoji, a Latin fragment inside a Persian word),
+  so it is not in any tier until a bake-off run.
 - Network: Iran. Gemini API works directly from the laptop; Google's docs
   pages return 403. Downloads often truncate silently — retry through the
   local proxy `127.0.0.1:10808` with resume.
@@ -105,6 +121,7 @@ New since the upgrade (details in the progress file and in
 | Cost estimate + price table | `scripts/fa_estimate.py`, `config/fa_pricing.yaml`, `scripts/fa_pricing_update.py` |
 | Fast tests | `make test-fast`, `test-fast.bat`, `tests/slow_tests.txt` |
 | LLM router (worker/bulk/vision, CLI) | `tools/text/`, `config/llm_routing.yaml`, `skills/meta/delegation-protocol.md` |
+| Dahl profile (text only, not in a tier yet) | `config/llm_routing.yaml` (`dahl`), `config/fa_pricing.yaml` (`llm.dahl`) |
 | Bake-off | `scripts/llm_bakeoff.py`, `docs/fa/llm_bakeoff/` |
 | Camera language, editing tricks, edit style cards | `skills/creative/camera-language.md`, `editing-tricks.md`, `styles/editing/` |
 | Style learning + compliance check | `tools/analysis/edit_style_extractor.py` |
@@ -367,6 +384,9 @@ Reference analysis: `projects/_reference/ceozoned-coca-cola/` (`REFERENCE_NOTES.
    page since upgrade phase 6.)
 5. Owner: confirm or change the bake-off's worker/bulk model picks
    (`docs/fa/llm_bakeoff/report.html`, Studio FA → مسیریابی متن).
+   Dahl's three models are not in the bake-off yet; adding them (free
+   tokens) would show whether Dahl can take bulk tasks (classification,
+   JSON repair) from AvalAI. Putting it in a tier needs the owner's OK.
 6. `fa` is pushed to `AbolfazlHamii/OpenMontage` up to `6ff8807` (2026-11-05,
    owner's go-ahead; includes the fixes for eight edge cases found by the
    code review of the edit pass, hook lab and manual-images mode). Push

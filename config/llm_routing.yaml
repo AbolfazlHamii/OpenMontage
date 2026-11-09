@@ -22,6 +22,18 @@ profiles:
     # Through the VPN proxy AvalAI responses broke mid-stream (images, Nov 4);
     # direct works from Iran.
     proxy: direct
+  # Dahl Inference (inference.dahl.global): open models on the Gonka network,
+  # $0.02 per 1M tokens in+out (config/fa_pricing.yaml, llm.dahl), first 100M
+  # free; the free grant burns after 7 days without a request. Text only, no
+  # images. Free accounts often get 429 model_concurrency at peak; the
+  # selector then moves to the next entry. Live model ids: GET /v1/models.
+  # Direct works from Iran (checked 2026-11-09). Not in any tier yet: its
+  # Persian quality has not been through the bake-off.
+  dahl:
+    base_url: https://inference.dahl.global/v1
+    key_env: DAHL_API_KEY
+    text_only: true
+    proxy: direct
   gemini:
     base_url: https://generativelanguage.googleapis.com/v1beta/openai/
     key_env: GOOGLE_API_KEY

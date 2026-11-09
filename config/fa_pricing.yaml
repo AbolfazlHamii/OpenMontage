@@ -28,6 +28,10 @@ llm:
     qwen3.8-flash: {input: 0.15, output: 0.47}
     kimi-k2.6: {input: 0.95, output: 4.0}
     kimi-k3.1-pro: {input: 2.0, output: 10.0}
+  dahl:
+    MiniMaxAI/MiniMax-M2.7: {input: 0.02, output: 0.02}
+    deepseek-ai/DeepSeek-V4-Flash-0731: {input: 0.02, output: 0.02}
+    zai-org/GLM-5.3-Flash: {input: 0.02, output: 0.02}
 # Fitted from the Samsung sample (docs/fa/BASELINE.md): 6.6 s and 7.76 s of
 # narration billed $0.001499 and $0.001764 at $9/M audio tokens.
 assumptions:

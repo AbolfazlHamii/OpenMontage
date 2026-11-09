@@ -46,6 +46,13 @@ filling, classification, transcript-chunk summaries, claim extraction.
   bulk/worker/vision_bulk go to APIs.
 - **Headless** (`OPENMONTAGE_LLM_MODE=headless`): unattended runs; premium
   is called through AvalAI.
+- **Dahl** (`dahl` profile, `DAHL_API_KEY`): open models (MiniMax M2.7,
+  DeepSeek V4 Flash, GLM 5.3 Flash) at about $0.02 per 1M tokens, first
+  100M free. Text only. It is a profile but in no tier until its Persian
+  quality is benchmarked; to try it, call `openai_compat_llm` with
+  `profile: dahl` and a model id from `GET https://inference.dahl.global/v1/models`.
+  Free accounts often get `429 model_concurrency`; switch model or retry later.
+  Prompts go to third-party network nodes: never send private material.
 - **"Economy mode"** means running all of Claude Code on Kimi through
   `ANTHROPIC_BASE_URL`. It is not the default and its Persian quality is not
   guaranteed.
