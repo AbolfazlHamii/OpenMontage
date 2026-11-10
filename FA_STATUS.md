@@ -334,6 +334,21 @@ for the dogs and a nappy changed on the boot, per Macintyre / The Economist).
   boot shots, pop captions (Lalezar). Grade in YUV only (a screen-blended glow in
   RGB turned the frames magenta). -14.9 LUFS / -1.8 dBTP.
 
+## Live-stream prototype: "The Archivist" (2026-11-10)
+
+Offline test only; nothing streamed. Design note `docs/fa/ARCHIVIST_LIVE.md`, code
+`lib/archivist/` (archive retrieval over the KGB/MI6 scripts, Dahl brain with moderation
+and a fact-check pass, cipher game, rig and compositor), runner `scripts/archivist_test.py`
+(assets | chat | voice | render), tests `tests/lib/test_archivist.py` (12 pass).
+- Character stills (base, blink, two mouth shapes, page turn, shelf reach, file hold) in
+  `projects/archivist-live-fa/stills/`; one voice for every line via Google REST TTS with a
+  429 wait-and-retry (the SDK path hung).
+- 8-message fake chat: 5 answered from the sources, off-topic refused ("not in my archive"),
+  abuse dropped before it reaches the screen, cipher answer scored on the leaderboard.
+- Sample `projects/archivist-live-fa/renders/archivist_sample.mp4` (1080p, 6:31) + sheet.
+- Lesson: answer + verify took 17-80 s per question, far too slow for live; a live version
+  needs a faster model, pre-voiced files while thinking, and the fact-check run in parallel.
+
 ## Next production: MI6 long video, library 005 (2026-11-10)
 
 Chosen from the retention research (`channels/fa-main/research/2026-11-10_retention_and_next_long.md`):

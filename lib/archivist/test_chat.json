@@ -1,0 +1,13 @@
+{
+  "note": "Fake live chat for the offline Archivist test. Eight messages: five on KGB/MI6, one off-topic, one abusive, one cipher answer. Times are seconds into the sample stream.",
+  "messages": [
+    {"t": 8, "user": "Sara_K", "text": "سلام بایگان! کیم فیلبی آخرش چطوری از دست انگلیسی‌ها فرار کرد؟", "expect": "answer"},
+    {"t": 40, "user": "nightowl_77", "text": "اون مهر چوبی که بچه‌ها به سفارت آمریکا هدیه دادن و توش شنود بود، قضیه‌ش چی بود؟", "expect": "answer"},
+    {"t": 70, "user": "Arman.R", "text": "چرا رئیس MI6 همیشه با جوهر سبز امضا می‌کنه؟", "expect": "answer"},
+    {"t": 95, "user": "PixelHunter", "text": "بایگان جان یه سؤال، آیفون بخرم یا سامسونگ؟", "expect": "not_in_archive"},
+    {"t": 100, "user": "troll_2026", "text": "خفه شو پیرمرد خرفت، این مزخرفات چیه پخش می‌کنی", "expect": "drop"},
+    {"t": 120, "user": "Mina_H", "text": "گوردیفسکی چطوری از شوروی فرار کرد؟ واقعا توی صندوق عقب ماشین بود؟", "expect": "answer"},
+    {"t": 150, "user": "dr_watson", "text": "اون ماجرای جسدی که با نامه‌های جعلی انداختن تو دریا واقعی بود؟", "expect": "answer"},
+    {"t": 205, "user": "Mina_H", "text": "!کد ENIGMA", "expect": "cipher"}
+  ]
+}
