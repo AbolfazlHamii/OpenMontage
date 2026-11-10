@@ -334,6 +334,26 @@ for the dogs and a nappy changed on the boot, per Macintyre / The Economist).
   boot shots, pop captions (Lalezar). Grade in YUV only (a screen-blended glow in
   RGB turned the frames magenta). -14.9 LUFS / -1.8 dBTP.
 
+## Next production: MI6 long video, library 005 (2026-11-10)
+
+Chosen from the retention research (`channels/fa-main/research/2026-11-10_retention_and_next_long.md`):
+MI6 is a top topic with almost no Persian coverage. Project `projects/mi6-history-fa/`.
+- 104 scenes (`narration_draft.py`, revised by `revise1.py`/`revise2.py`): cold open on
+  Philby ("the spy-hunter was the spy"), an open loop on the green ink paid off in the last
+  line, a question or turn at least every 12 s (lint medium, no high), like-ask at s074.
+  Claims and sources: `artifacts/sources.md`.
+- Voiced in 9 groups with transcript alignment: 13.9 min of speech, video 14:32, $0.29
+  (`clip_seconds.json`).
+- Owner asked for more images: 428 cue-timed shots in `shots.py` (avg 1.95 s, longest
+  ~4 s, `rhythm.max_still` 2.6), 48 typed English titles, 20 SFX marks, recurring
+  visual callbacks (green pen, wolf in a shepherd's coat, green chess knight, invisible
+  building). `build_shotlist.py` writes `manual_images/shotlist.json`.
+- Owner hand-off: `manual_images/zapi_flow.txt` (428 lines, also `Downloads/zapi_mi6.txt`),
+  `music/SUNO_PROMPTS.md` (m01–m09, also `Downloads/suno_mi6.md`); packaging in
+  `SPOIL/005_long_mi6-history/`.
+- Next: owner makes images (ZAPI FLOW, row numbers on) and music; `import`, `check`,
+  `build --render`; then Shorts from this video with the 45–60 s story formula.
+
 ## Next production: Stasi (2026-11-06/07)
 
 Owner chose the episode the KGB video teases. Own script (no ArchiveInMinutes
