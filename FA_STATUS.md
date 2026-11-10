@@ -303,6 +303,27 @@ topic, plus a viral strategy. `projects/short-thing-fa/` (git-ignored):
   centred, ugly" → replaced. Captions on Shorts are an exception to the
   channel's no-text rule (viral strategy); confirm with the owner.
 
+### Blender Short 2: "escape in the boot" (2026-11-10)
+
+Owner: the eagle short was weak; wanted a far better, more creative 16 s Blender short
+on another KGB topic. `projects/short-escape-fa/`: Gordievsky's 1985 escape (crisps
+for the dogs and a nappy changed on the boot, per Macintyre / The Economist).
+- `blender/build_escape.py`: second-generation 2D characters (almond eyes with
+  glints, mood brows, talking mouths, sleeves with hands, shoes, walk cycles, ushanka,
+  bob hair, a baby), two 3D German shepherds (sniff, tail wag, walk), a bevelled
+  sedan with lamps and a hinged boot lid, a checkpoint with a lifting striped boom,
+  booth, watchtower searchlight, pine forest, fog, moon; a POV set inside the boot
+  (slit light, the dog's shadow, dust, heartbeat shake); a dawn set in Finland.
+  10 shots in 16 s. `probe` mode times chosen frames at full size.
+- Lessons: parenting with `matrix_parent_inverse` while the parent's world matrix
+  is still identity puts children at parent + local, so give child coordinates
+  relative to the pivot; keyed props can drift into another set's camera (hide
+  them outside their shot); AgX greys flat whites (use Standard and grade later);
+  motion blur + 32 samples + dense volumes made frames ~40 s, without them 1-4 s.
+- Render 384 frames in ~11 min. Mix: owner's Suno m06, synth heartbeat on the
+  boot shots, pop captions (Lalezar). Grade in YUV only (a screen-blended glow in
+  RGB turned the frames magenta). -14.9 LUFS / -1.8 dBTP.
+
 ## Next production: Stasi (2026-11-06/07)
 
 Owner chose the episode the KGB video teases. Own script (no ArchiveInMinutes
