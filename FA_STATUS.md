@@ -303,6 +303,16 @@ topic, plus a viral strategy. `projects/short-thing-fa/` (git-ignored):
   centred, ugly" → replaced. Captions on Shorts are an exception to the
   channel's no-text rule (viral strategy); confirm with the owner.
 
+### Video library (2026-11-10)
+
+Owner asked for clean folders and numbered names. Finished videos now live in
+`D:\projectideio v\SPOIL\` (outside the repo), one folder per video with a fixed
+three-digit number: 001 KGB (fa, en-audio, phone preview, thumbs, texts), 002 Stasi
+(in production: prompts, narration, sources), 003 spy-eagle Short, 004 boot-escape
+Short. `SPOIL/README.md` is the Persian index (status, main file, working folder,
+upload links). Next number: 005. KGB previews and superseded cuts moved to
+`projects/kgb-history-fa/renders/_old/` (~4 GB, not deleted).
+
 ### Blender Short 2: "escape in the boot" (2026-11-10)
 
 Owner: the eagle short was weak; wanted a far better, more creative 16 s Blender short
