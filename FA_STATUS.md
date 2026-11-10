@@ -281,6 +281,28 @@ Owner: "build it to the end until I give you the music". Done:
   only. Timing unchanged, so the chapters in `packaging/description.txt` hold.
   The `youtube-upload` session (channel @spoilfa) was told to use this file.
 
+## Blender Shorts test: "the spy eagle" (2026-11-10)
+
+Owner sent three references (a tutorial on making 3D-background / flat-2D-character
+Shorts with code, and two such Shorts, 27.8M and 0.8M views) and asked for a
+20 s Blender test with detail, several characters, smoke and light, on a channel
+topic, plus a viral strategy. `projects/short-thing-fa/` (git-ignored):
+- `blender/build_thing.py` builds three toon sets in code (embassy garden, the
+  ambassador's study, the street at night), flat 2D round-head characters
+  (blink, talk, idle), smoke sprites, volume haze, a pulsing radio beam, 9
+  cameras switched by markers; `-- timing.json out [preview]`.
+- Laptop: RTX 2050 4 GB, Ryzen 5 7535HS, Blender 5.2 at `D:\software\New folder (2)`.
+  Eevee 1080x1920: 446 frames in ~16 min (~2.2 s/frame; street with many lights
+  hits "shadow buffer full" warnings).
+- Voice: one take, 5 beats, $0.005. Captions: `make_captions.py` (word times
+  from whisper, $0.002) then `make_captions_pop.py` (Lalezar OFL in `fonts/`,
+  key words yellow, pop-in, lower third), drawn by headless Chrome because PIL
+  here has no Persian shaping. Mix: `make_short.py` (music = KGB m04, SFX on
+  cuts, two-pass loudness → -15.2 LUFS / -1.4 dBTP).
+- Owner feedback so far: the first captions (Vazirmatn, centre) were "bad,
+  centred, ugly" → replaced. Captions on Shorts are an exception to the
+  channel's no-text rule (viral strategy); confirm with the owner.
+
 ## Next production: Stasi (2026-11-06/07)
 
 Owner chose the episode the KGB video teases. Own script (no ArchiveInMinutes
