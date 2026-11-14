@@ -246,6 +246,10 @@ asks for a Persian version: follow `skills/meta/remake-from-link.md`
   storage, which answers 403 from Iran. Point it at the installed Chrome:
   `HYPERFRAMES_BROWSER_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`
   (lint, check and snapshot already work without it).
+- `gemini_tts` (SDK `interactions` endpoint) hung for minutes per call on
+  2026-11-10 while a plain REST `generateContent` to the same model through
+  the same proxy answered in seconds. `lib/archivist/show.py`
+  (`GoogleRestTTS`) uses REST with the AvalAI adapter's request body.
 - Downloads (pip, npm, GitHub release assets) often stop halfway with no
   error, leaving a truncated file. Check sizes/zip integrity, and retry
   through a proxy with resume (`curl -C -`).
@@ -309,6 +313,13 @@ of the spend, and 57% of tool time went to failed calls.
   whole output budget; qwen misspelled the founder's name (لی بونگ‌چول).
 - Google's OpenAI-compatible endpoint answered 403 from the owner's network
   on 2026-11-04, same as images; the router falls through to AvalAI.
+- Live answers (the Archivist prototype, `lib/archivist/`) are the one place
+  a cheap model speaks to viewers unreviewed. Guard rails: answer only from
+  retrieved channel scripts, a second Dahl pass deletes unsupported
+  sentences (first run without it: wrong count of MI6 chiefs, "126-year"
+  tradition instead of the script's 116, an invented "stayed in Moscow until
+  he died"), and Latin user handles are replaced by «رفیق» because TTS
+  reads them badly. Review the answer log daily.
 - Cheap models add preambles ("for a YouTube video I wrote…") to
   translations; strip them, and ask for "output only the text".
 

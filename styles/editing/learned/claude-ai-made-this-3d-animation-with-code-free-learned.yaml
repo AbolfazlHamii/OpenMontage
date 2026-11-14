@@ -1,0 +1,141 @@
+name: claude-ai-made-this-3d-animation-with-code-free-learned
+title: Learned from claude-ai-made-this-3d-animation-with-code-free
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The formula is a contrast-and-proof hook followed by
+  skepticism preemption, a roadmap promise, and a hidden-problem tease.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\claude-ai-made-this-3d-animation-with-code-free\source.mp4
+  date: '2026-11-10'
+  measured:
+    duration_seconds: 360.3
+    shots: 55
+    asl_seconds: 6.55
+    shot_length_range:
+    - 0.63
+    - 55.83
+    cuts_per_minute: 9.0
+    words_per_minute: 176.7
+    onset_sync:
+      ratio: 0.111
+      chance: 0.466
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 22.0
+    - start: 30.0
+      cuts_per_minute: 18.0
+    - start: 60.0
+      cuts_per_minute: 8.0
+    - start: 90.0
+      cuts_per_minute: 8.0
+    - start: 120.0
+      cuts_per_minute: 18.0
+    - start: 150.0
+      cuts_per_minute: 6.0
+    - start: 180.0
+      cuts_per_minute: 6.0
+    - start: 210.0
+      cuts_per_minute: 6.0
+    - start: 240.0
+      cuts_per_minute: 10.0
+    - start: 270.0
+      cuts_per_minute: 4.0
+    - start: 300.0
+      cuts_per_minute: 0.0
+    - start: 330.0
+      cuts_per_minute: 2.0
+    - start: 360.0
+      cuts_per_minute: 0.0
+    shot_size:
+      wide: 24
+      medium: 15
+      extreme_wide: 1
+    camera_angle:
+      eye_level: 39
+      high: 1
+    content:
+      illustration: 21
+      live_action: 8
+      text: 11
+    motion:
+      fast_motion: 17
+      static: 12
+      ken_burns: 11
+    text_on_screen_share: 0.75
+pacing:
+  sections:
+    hook:
+      asl_seconds: 2.53
+      cuts_per_minute: 22.0
+      duration_seconds: 30.0
+    body:
+      asl_seconds: 7.37
+      cuts_per_minute: 8.4
+      duration_seconds: 301.5
+    outro:
+      asl_seconds: 20.33
+      cuts_per_minute: 2.1
+      duration_seconds: 28.8
+  words_per_minute: 176.7
+  beat_sync_ratio: 0.111
+hook_formula:
+  duration_seconds: 30.0
+  beats:
+  - Contrast a high-performing example with the creator’s own result to create an
+    immediate curiosity gap.
+  - Preempt skepticism by rejecting an obvious assumption and revealing an unexpected
+    method.
+  - Promise a concrete roadmap of what the viewer will learn, including mistakes and
+    fixes.
+  - Tease an overlooked problem and imply a practical solution or payoff.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 0.42
+  note: from frame differences inside each sampled shot
+- name: static
+  weight: 0.3
+- name: ken_burns
+  weight: 0.28
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 0.55
+- at: 0.2
+  energy: 0.48
+- at: 0.4
+  energy: 0.49
+- at: 0.6
+  energy: 0.44
+- at: 0.8
+  energy: 0.69
+- at: 1.0
+  energy: 1.0
+pattern_interrupt_seconds:
+  min: 2.1
+  max: 12.4
+color_type:
+  palette:
+  - '#4a5361'
+  - '#081722'
+  - '#2a252e'
+  - '#a1a093'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

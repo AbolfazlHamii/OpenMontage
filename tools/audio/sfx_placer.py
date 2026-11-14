@@ -171,24 +171,37 @@ def audio_tags(cues: Sequence[dict], src_dir: str = "assets/sfx", id_prefix: str
 
 
 def render_stem(cues: Sequence[dict], folder: Path, out: Path, duration: float, rate: int = 48000) -> Path:
-    """Mix every cue into one WAV with ffmpeg (for runtimes without <audio> clips)."""
+    """Mix every cue into one WAV (for runtimes without <audio> clips).
+
+    Each sound file is decoded once and the cues are summed in memory: one
+    ffmpeg input per cue overflows the Windows command line on a long video
+    (a 14-minute cut has a few hundred cues)."""
+    import wave
+
+    import numpy as np
+
     ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
-    cmd = [ffmpeg, "-v", "error", "-y", "-f", "lavfi", "-t", f"{duration:.3f}",
-           "-i", f"anullsrc=r={rate}:cl=stereo"]
-    parts = []
-    for i, c in enumerate(cues, start=1):
-        cmd += ["-i", str(folder / c["file"])]
-        delay = int(round(c["start"] * 1000))
-        parts.append(f"[{i}:a]atrim=start={c['media_start']:.3f}:duration={c['duration']:.3f},asetpts=PTS-STARTPTS,"
-                     f"aresample={rate},aformat=channel_layouts=stereo,volume={c['volume']:.3f},"
-                     f"adelay={delay}|{delay}[c{i}]")
-    mix = "".join(f"[c{i}]" for i in range(1, len(cues) + 1))
-    parts.append(f"[0:a]{mix}amix=inputs={len(cues) + 1}:duration=first:normalize=0[out]")
+    decoded: dict[str, np.ndarray] = {}
+    for name in {c["file"] for c in cues}:
+        proc = subprocess.run([ffmpeg, "-v", "error", "-i", str(folder / name), "-ac", "2", "-ar", str(rate),
+                               "-f", "f32le", "-"], capture_output=True, timeout=120)
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.decode("utf-8", "replace")[-400:])
+        decoded[name] = np.frombuffer(proc.stdout, dtype=np.float32).reshape(-1, 2)
+    bed = np.zeros((int(round(duration * rate)), 2), dtype=np.float32)
+    for c in cues:
+        sound = decoded[c["file"]]
+        a = int(round(c["media_start"] * rate))
+        piece = sound[a:a + int(round(c["duration"] * rate))] * float(c["volume"])
+        at = int(round(c["start"] * rate))
+        piece = piece[:max(0, len(bed) - at)]
+        bed[at:at + len(piece)] += piece
     out.parent.mkdir(parents=True, exist_ok=True)
-    cmd += ["-filter_complex", ";".join(parts), "-map", "[out]", "-c:a", "pcm_s16le", str(out)]
-    proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
-    if proc.returncode != 0:
-        raise RuntimeError(proc.stderr[-400:])
+    with wave.open(str(out), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes((np.clip(bed, -1, 1) * 32767).astype("<i2").tobytes())
     return out
 
 

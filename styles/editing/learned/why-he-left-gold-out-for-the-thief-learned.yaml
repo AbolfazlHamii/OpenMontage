@@ -1,0 +1,110 @@
+name: why-he-left-gold-out-for-the-thief-learned
+title: Learned from why-he-left-gold-out-for-the-thief
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The Escalating Loop Cliffhanger: establish a repeating
+  conflict, show it intensifying through a countable pattern, then cut off just as
+  the outcome is about to land.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\why-he-left-gold-out-for-the-thief\source.mp4
+  date: '2026-11-10'
+  measured:
+    duration_seconds: 64.1
+    shots: 12
+    asl_seconds: 5.33
+    shot_length_range:
+    - 0.93
+    - 15.6
+    cuts_per_minute: 10.3
+    words_per_minute: 199.5
+    onset_sync:
+      ratio: 0.727
+      chance: 0.579
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 8.0
+    - start: 30.0
+      cuts_per_minute: 12.0
+    - start: 60.0
+      cuts_per_minute: 14.8
+    shot_size:
+      medium: 7
+      close_up: 3
+      wide: 2
+    camera_angle:
+      eye_level: 11
+      high: 1
+    content:
+      illustration: 12
+    motion:
+      fast_motion: 12
+    text_on_screen_share: 1.0
+pacing:
+  sections:
+    hook:
+      asl_seconds: 15.6
+      cuts_per_minute: 0.0
+      duration_seconds: 10.0
+    body:
+      asl_seconds: 4.74
+      cuts_per_minute: 12.3
+      duration_seconds: 48.9
+    outro:
+      asl_seconds: 2.85
+      cuts_per_minute: 11.7
+      duration_seconds: 5.1
+  words_per_minute: 199.5
+  beat_sync_ratio: 0.727
+hook_formula:
+  duration_seconds: 10.0
+  beats:
+  - Introduce a repeating action-and-response loop
+  - Escalate the loop with a simple countable progression
+  - Break off mid-sentence at the moment of consequence
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 1.0
+  note: from frame differences inside each sampled shot
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 1.0
+- at: 0.2
+  energy: 0.91
+- at: 0.4
+  energy: 0.93
+- at: 0.6
+  energy: 0.85
+- at: 0.8
+  energy: 0.76
+- at: 1.0
+  energy: 0.88
+pattern_interrupt_seconds:
+  min: 2.0
+  max: 10.9
+color_type:
+  palette:
+  - '#7d6c5a'
+  - '#634233'
+  - '#332e34'
+  - '#ccc19c'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

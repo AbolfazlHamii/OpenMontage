@@ -464,6 +464,29 @@ def test_music_sections_cross_fade_and_carry_into_a_window():
     assert mi.music_tracks({}, timing) == []
 
 
+def test_ducked_music_dips_under_voice_and_drops_before_a_cue(monkeypatch):
+    from tools.audio import music_duck
+    from tools.audio.music_duck import level_at
+
+    timing = {"duration": 20.0, "scenes": [
+        {"id": "a", "start": 0.0, "voice_start": 0.0, "voice_seconds": 8.0},
+        {"id": "b", "start": 10.0, "voice_start": 10.0, "voice_seconds": 6.0}]}
+    data = {"scenes": [{"id": "a", "narration": "یک دو سه. اسمش؟ کیم"}, {"id": "b", "narration": "پایان"}]}
+    said = {"a.wav": [(0.0, 3.0), (3.8, 8.0)], "b.wav": [(0.0, 6.0)]}
+    monkeypatch.setattr(music_duck, "speech_segments",
+                        lambda path, offset=0.0: [(a + offset, b + offset) for a, b in said[path.name]])
+    clips = {"a": {"path": "a.wav"}, "b": {"path": "b.wav"}}
+    cfg = {"duck": {"under": 0.1, "gaps": 0.3}, "drops": [{"scene": "a", "cue": "اسمش"}],
+           "sections": [{"from": "a", "path": "m1.mp3", "gain": 2.0, "fade_in": 0.0},
+                        {"from": "b", "path": "m2.mp3"}]}
+    first, second = mi.music_mix(cfg, data, timing, clips)
+    assert level_at(first["keys"], 1.5) == pytest.approx(0.2)    # under the voice, times the gain
+    assert level_at(first["keys"], 8.9) == pytest.approx(0.6)    # pause between scenes
+    assert level_at(first["keys"], 3.6) == pytest.approx(0.0)    # dropped in the pause before the cue
+    assert level_at(second["keys"], 3.0) == pytest.approx(0.1)
+    assert "keys" not in mi.music_mix({"sections": cfg["sections"]}, data, timing, clips)[0]
+
+
 def test_workspace_places_section_music(project, tmp_path, monkeypatch):
     inbox = project / "manual_images" / "in"
     for shot in ("s1a", "s1b", "s2"):

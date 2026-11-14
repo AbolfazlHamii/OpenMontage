@@ -1,0 +1,155 @@
+name: melvin-zombie-6days-learned
+title: Learned from melvin-zombie-6days
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): Mundane specificity plus countdown secret plus sensory
+  warning plus vanishing evidence creates a paranoid-urgency hook.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\melvin-zombie-6days\source.mp4
+  date: '2026-11-12'
+  measured:
+    duration_seconds: 590.9
+    shots: 166
+    asl_seconds: 3.56
+    shot_length_range:
+    - 0.5
+    - 23.3
+    cuts_per_minute: 16.8
+    words_per_minute: 176.0
+    onset_sync:
+      ratio: 0.394
+      chance: 0.542
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 12.0
+    - start: 30.0
+      cuts_per_minute: 20.0
+    - start: 60.0
+      cuts_per_minute: 12.0
+    - start: 90.0
+      cuts_per_minute: 26.0
+    - start: 120.0
+      cuts_per_minute: 20.0
+    - start: 150.0
+      cuts_per_minute: 22.0
+    - start: 180.0
+      cuts_per_minute: 12.0
+    - start: 210.0
+      cuts_per_minute: 12.0
+    - start: 240.0
+      cuts_per_minute: 18.0
+    - start: 270.0
+      cuts_per_minute: 22.0
+    - start: 300.0
+      cuts_per_minute: 16.0
+    - start: 330.0
+      cuts_per_minute: 16.0
+    - start: 360.0
+      cuts_per_minute: 16.0
+    - start: 390.0
+      cuts_per_minute: 22.0
+    - start: 420.0
+      cuts_per_minute: 18.0
+    - start: 450.0
+      cuts_per_minute: 12.0
+    - start: 480.0
+      cuts_per_minute: 8.0
+    - start: 510.0
+      cuts_per_minute: 22.0
+    - start: 540.0
+      cuts_per_minute: 14.0
+    - start: 570.0
+      cuts_per_minute: 14.3
+    shot_size:
+      wide: 14
+      medium: 25
+      extreme_close_up: 1
+    camera_angle:
+      eye_level: 37
+      high: 1
+      top_down: 1
+      low: 1
+    content:
+      illustration: 38
+      text: 2
+    motion:
+      fast_motion: 20
+      ken_burns: 18
+      static: 2
+    text_on_screen_share: 0.6
+pacing:
+  sections:
+    hook:
+      asl_seconds: 4.36
+      cuts_per_minute: 12.0
+      duration_seconds: 30.0
+    body:
+      asl_seconds: 3.51
+      cuts_per_minute: 17.2
+      duration_seconds: 530.9
+    outro:
+      asl_seconds: 3.85
+      cuts_per_minute: 14.0
+      duration_seconds: 30.0
+  words_per_minute: 176.0
+  beat_sync_ratio: 0.394
+hook_formula:
+  duration_seconds: 30.0
+  beats:
+  - Ground the viewer in a hyper-specific ordinary moment to create immediacy.
+  - Introduce a countdown-driven high-stakes premise with exclusive secret knowledge.
+  - Trigger the inciting incident through a familiar sensory alert that states the
+    stakes and deadline.
+  - Add mystery by erasing the evidence, forcing the protagonist to act on uncertain
+    information.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 0.5
+  note: from frame differences inside each sampled shot
+- name: ken_burns
+  weight: 0.45
+- name: static
+  weight: 0.05
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 0.94
+- at: 0.2
+  energy: 0.95
+- at: 0.4
+  energy: 1.0
+- at: 0.6
+  energy: 0.98
+- at: 0.8
+  energy: 0.92
+- at: 1.0
+  energy: 0.96
+pattern_interrupt_seconds:
+  min: 1.8
+  max: 6.4
+color_type:
+  palette:
+  - '#886e5f'
+  - '#1a161b'
+  - '#5b2f2a'
+  - '#b9ae9b'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

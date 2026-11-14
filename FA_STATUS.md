@@ -38,6 +38,7 @@ Last updated: 2026-11-05 (remake from a link; earlier: build phases 1–3, 5; re
 | Remake from a link | `tools/analysis/reference_kit.py`, `scripts/fa_remake.py`, Studio FA «از لینک بساز» | YouTube Shorts / long, Instagram (cookies.txt or file), TikTok, X → kit in `projects/_reference/<slug>/`; transcreate by default, dub only with rights; `skills/meta/remake-from-link.md` |
 | Manual images (owner makes stills) | `lib/fa_manual_images.py`, `scripts/fa_manual_images.py`, `skills/meta/manual-images.md` | Prompt pack, image check, build/render. **ZAPI FLOW**: `zapi_flow.txt` (one prompt per line) + `import --from <download folder>` (row number in file name, else download order; extras to `in/alts/`); `style.characters` repeats a person's description in each prompt |
 | Second-language audio track (YouTube multi-language audio) | `lib/fa_audio_track.py`, `scripts/fa_audio_track.py` | `manual_images/narration_<lang>.json` (text per scene + voice) → `synth` (same voice groups, transcript split, reports each line against its window; > x1.12 speed-up = rewrite shorter) → `mix` (the render's own music sections and SFX cues, -14 LUFS) → `preview` (video with the new track); `srt` = subtitles in that language timed to the video's Persian voice (transcribes the render once, ~$0.04; merges cues under 1 s or over 17 chars/s). KGB English, 2026-11-09: 37 lines all fit (max x1.07), $0.14, `renders/kgb-history_audio_en.wav` + `renders/kgb_final_en.mp4`. Upload needs the channel's Advanced features; delete YouTube's auto dub for that language first |
+| YouTube Data API publisher | `tools/publishers/youtube_api.py`, owner guide `docs/fa/YOUTUBE_API_SETUP.md` | Works on library folders `SPOIL/NNN_*/` (path or number): `auth` (Desktop OAuth client, loopback + PKCE, scope `youtube.force-ssl`; client id/secret and refresh token go to `.env` only), `whoami`, `captions` (every `NNN_subtitles_<lang>.srt`, skips languages already on the video, 400 units each), `meta` (title option A from `NNN_titles.txt`, description, tags, `NNN_title_<lang>.txt` localizations), `comment` (pinning is not in the API), `upload` (private, resumable 8 MB chunks, 1600 units). Dry run unless `--apply`; prints quota first; `--channel spoilfa|mr82` (default spoilfa, or `YOUTUBE_CHANNEL`), one `YOUTUBE_REFRESH_TOKEN_<CHANNEL>` each; refuses videos of other channels and a sign-in that picked the wrong channel. All traffic through `OPENMONTAGE_LOCAL_PROXY` (Google 403s Iran). Writes the video ID, link and what was done to `SPOIL/README.md`'s upload table. Unaudited projects' uploads stay locked private, so public videos are uploaded in Studio. Set up 2026-11-11: Cloud project `spoil-publisher` under abolfazl7896, consent screen External/Testing with both Gmails as test users, Desktop client `spoil-laptop` (JSON in `projects-hub/secrets/youtube-spoil-publisher-client.json`); both channels signed in, `whoami` verified. In Testing the refresh tokens die after 7 days (re-run `auth`) unless the app is published |
 | Desktop shortcut | `Desktop\استودیو ویدیو فارسی.lnk` | Opens `studio-fa.bat` minimized (not in the repo) |
 
 ## Environment (owner's Windows laptop)
@@ -368,6 +369,23 @@ MI6 is a top topic with almost no Persian coverage. Project `projects/mi6-histor
   `SPOIL/005_long_mi6-history/`.
 - Next: owner makes images (ZAPI FLOW, row numbers on) and music; `import`, `check`,
   `build --render`; then Shorts from this video with the 45–60 s story formula.
+- **Final (2026-11-11 13:23): `renders/mi6_final.mp4`** (14:32, 1080p30, QA pass: −14.6 LUFS,
+  −1.5 dBTP; the only black span is the 0.37 s end fade), copied to
+  `SPOIL/005_long_mi6-history/005_mi6-history_fa.mp4` with a 720p phone preview and thumbnails A/B/C
+  (`packaging/thumb_*.json`, recommended A).
+  - Images: `Downloads/-mi6_4` (resume5) imported by its rows file; ZAPI lag on files 05–07 and
+    7 exact copies from the ZAPI cache (md5-identical to far-away rows, also in the resume4 batch)
+    fixed, log `manual_images/image_fix_2026-11-11.json`. 8 shots made with AvalAI
+    gemini-3.1-flash-image 1K + 2 style refs each, $0.60. Every timeline shot was matched to its
+    source image (frame vs crop correlation, lowest 24 checked by eye).
+  - Music: owner chose free licensed music over Suno: 9 Mixkit tracks as `music/m01`–`m09`,
+    licence and credits in `music/LICENSE.md` and the description.
+  - Render: `render_existing` failed twice: the 26 GB frame cache did not fit on C: (16 GB free),
+    and its 1800 s subprocess timeout is shorter than a 14-min render. Rendered with
+    `npx hyperframes render` directly, `TEMP` on `D:\hf-tmp` (28.5 min at ~21 fps, 4 workers), then
+    `LoudnessNormalize` (true peak −2.5). For resumable renders use `render_chunks.sh`
+    (2-min `--start/--end` chunks, skips finished ones, joins video by copy and audio in one pass;
+    written but not yet run).
 
 ## Next production: Stasi (2026-11-06/07)
 
