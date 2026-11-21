@@ -90,32 +90,68 @@ def _run(cmd: list[str]) -> None:
         raise RuntimeError(proc.stderr[-600:])
 
 
-def _voice_stem(clips: dict, timing: dict, out: Path) -> Path:
+def _lufs(path: Path) -> Optional[float]:
+    proc = subprocess.run([shutil.which("ffmpeg") or "ffmpeg", "-hide_banner", "-nostats", "-i", str(path),
+                           "-af", "ebur128", "-f", "null", "-"],
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+    found = re.findall(r"I:\s+(-?[\d.]+) LUFS", proc.stderr)
+    return float(found[-1]) if found else None
+
+
+def voice_gains(clips: dict, target: Optional[float] = None, limit: float = 3.0) -> dict[str, float]:
+    """dB per scene that brings each line toward the same loudness (the median
+    line unless `target` is given), at most `limit` dB either way: the takes of
+    different voice groups come out a few dB apart."""
+    levels = {sc: _lufs(Path(c["path"])) for sc, c in clips.items()}
+    known = sorted(v for v in levels.values() if v is not None and v > -70)
+    if not known:
+        return {}
+    target = known[len(known) // 2] if target is None else target
+    return {sc: round(max(-limit, min(limit, target - v)), 2) for sc, v in levels.items()
+            if v is not None and v > -70}
+
+
+def _voice_stem(clips: dict, timing: dict, out: Path, gains: Optional[dict] = None) -> Path:
+    """Every line at its scene's voice start, decoded one by one and summed in
+    memory (one ffmpeg input per scene overflows the Windows command line)."""
+    import wave
+
+    import numpy as np
+
     ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
     rows = {r["scene"]: r for r in fit(clips, timing)}
-    cmd = [ffmpeg, "-v", "error", "-y", "-f", "lavfi", "-t", f"{timing['duration']:.3f}",
-           "-i", f"anullsrc=r={RATE}:cl=stereo"]
-    parts = []
-    for i, sc in enumerate(timing["scenes"], start=1):
-        cmd += ["-i", clips[sc["id"]]["path"]]
+    gains = gains or {}
+    bed = np.zeros((int(round(timing["duration"] * RATE)), 2), dtype=np.float32)
+    for sc in timing["scenes"]:
         tempo = min(rows[sc["id"]]["tempo"], MAX_TEMPO)
-        speed = f"atempo={tempo:.4f}," if tempo > 1.0 else ""
-        delay = int(round(sc["voice_start"] * 1000))
-        parts.append(f"[{i}:a]{speed}aresample={RATE},aformat=channel_layouts=stereo,"
-                     f"atrim=duration={rows[sc['id']]['window'] + LINE_GAP:.3f},"
-                     f"adelay={delay}|{delay}[v{i}]")
-    mix = "".join(f"[v{i}]" for i in range(1, len(timing["scenes"]) + 1))
-    parts.append(f"[0:a]{mix}amix=inputs={len(timing['scenes']) + 1}:duration=first:normalize=0[out]")
-    cmd += ["-filter_complex", ";".join(parts), "-map", "[out]", "-c:a", "pcm_s16le", str(out)]
-    _run(cmd)
+        chain = f"atempo={tempo:.4f}," if tempo > 1.0 else ""
+        if gains.get(sc["id"]):
+            chain += f"volume={gains[sc['id']]}dB,"
+        chain += f"atrim=duration={rows[sc['id']]['window'] + LINE_GAP:.3f}"
+        proc = subprocess.run([ffmpeg, "-v", "error", "-i", clips[sc["id"]]["path"], "-af", chain,
+                               "-ac", "2", "-ar", str(RATE), "-f", "f32le", "-"], capture_output=True, timeout=300)
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.decode("utf-8", "replace")[-600:])
+        line = np.frombuffer(proc.stdout, dtype=np.float32).reshape(-1, 2)
+        at = int(round(sc["voice_start"] * RATE))
+        line = line[:max(0, len(bed) - at)]
+        bed[at:at + len(line)] += line
+    with wave.open(str(out), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(RATE)
+        w.writeframes((np.clip(bed, -1, 1) * 32767).astype("<i2").tobytes())
     return out
 
 
-def _music_stem(project: Path, data: dict, timing: dict, out: Path) -> Optional[Path]:
+def _music_stem(project: Path, data: dict, timing: dict, out: Path, clips: dict) -> Optional[Path]:
     """The render's music sections: each fades in and out over
-    min(1 s, length / 3) and plays at music.volume (manual-images page)."""
+    min(1 s, length / 3) and plays at music.volume (manual-images page), or
+    follows its ducking curve when music.duck is set."""
+    from tools.audio.music_duck import render as render_curve
+
     music_cfg = data.get("music") or {}
-    tracks = mi.music_tracks(music_cfg, timing)
+    tracks = mi.music_mix(music_cfg, data, timing, clips)
     if not tracks:
         return None
     volume = float(music_cfg.get("volume", 0.18))
@@ -131,6 +167,11 @@ def _music_stem(project: Path, data: dict, timing: dict, out: Path) -> Optional[
         length = track["end"] - track["start"]
         fade = min(1.0, length / 3)
         delay = int(round(track["start"] * 1000))
+        if "keys" in track:
+            shaped = render_curve(src, track["keys"], out.with_name(f"{out.stem}_{n}.wav"), length, rate=RATE)
+            cmd += ["-i", str(shaped)]
+            parts.append(f"[{n}:a]aresample={RATE},aformat=channel_layouts=stereo,adelay={delay}|{delay}[m{n}]")
+            continue
         cmd += ["-i", str(src)]
         parts.append(f"[{n}:a]atrim=duration={length:.3f},asetpts=PTS-STARTPTS,aresample={RATE},"
                      f"aformat=channel_layouts=stereo,volume={volume:.3f},afade=t=in:d={fade:.3f},"
@@ -167,12 +208,24 @@ def mix(project: Path, language: str, loudness=None) -> dict:
 
     report = mi._read(mi.root(project) / f"audio_{language}.json")
     clips = report["clips"]
-    data = mi.load_shotlist(project)
     timing = mi._read(mi.root(project) / "timing.json")
+    slug = Path(project).name.removesuffix("-fa")
+    out = Path(project) / "renders" / f"{slug}_audio_{language}.wav"
+    result = _mixdown(project, clips, timing, language, out, loudness=loudness)
+    rows = fit(clips, timing)
+    return {**result, "sped_up": [r["scene"] for r in rows if r["tempo"] > 1.0],
+            "too_long": [r["scene"] for r in rows if not r["fits"]]}
+
+
+def _mixdown(project: Path, clips: dict, timing: dict, language: str, out: Path,
+             gains: Optional[dict] = None, loudness=None) -> dict:
+    from tools.audio.loudness_normalize import LoudnessNormalize
+
+    data = mi.load_shotlist(project)
     stems_dir = Path(project) / "renders" / f"stems_{language}"
     stems_dir.mkdir(parents=True, exist_ok=True)
-    stems = [_voice_stem(clips, timing, stems_dir / "voice.wav"),
-             _music_stem(project, data, timing, stems_dir / "music.wav"),
+    stems = [_voice_stem(clips, timing, stems_dir / "voice.wav", gains),
+             _music_stem(project, data, timing, stems_dir / "music.wav", clips),
              _sfx_stem(project, data, timing, stems_dir / "sfx.wav")]
     stems = [s for s in stems if s]
     ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
@@ -183,16 +236,40 @@ def mix(project: Path, language: str, loudness=None) -> dict:
           f"{''.join(f'[{i}:a]' for i in range(len(stems)))}amix=inputs={len(stems)}:duration=longest:normalize=0,"
           f"afade=t=out:st={fade_at:.3f}:d={END_FADE}[out]",
           "-map", "[out]", "-c:a", "pcm_s16le", str(raw)])
-    slug = Path(project).name.removesuffix("-fa")
-    out = Path(project) / "renders" / f"{slug}_audio_{language}.wav"
     loudness = loudness or LoudnessNormalize()
     result = loudness.execute({"input_path": str(raw), "output_path": str(out), "true_peak": -2.5})
     if not result.success:
         raise RuntimeError(f"loudness: {result.error}")
-    rows = fit(clips, timing)
     return {"output": str(out), "duration": timing["duration"], "stems": [str(s) for s in stems],
-            "sped_up": [r["scene"] for r in rows if r["tempo"] > 1.0],
-            "too_long": [r["scene"] for r in rows if not r["fits"]], "loudness": result.data}
+            "loudness": result.data}
+
+
+class _NoVoice:
+    """Remastering reuses the narration on disk; a missing clip must not buy a new take."""
+
+    def execute(self, inputs: dict):
+        raise RuntimeError("a narration clip is missing; narrate the project before remastering")
+
+
+def remaster(project: Path, video: Path, out: Optional[Path] = None, level_voice: bool = True,
+             loudness=None) -> dict:
+    """A new Persian soundtrack for a rendered video without rendering the
+    picture again: the cached narration (lines brought to one loudness when
+    level_voice), the shot list's current music (ducking, drops, gains) and
+    sound effects, mixed to -14 LUFS and muxed over the video's own picture."""
+    data = mi.load_shotlist(project)
+    timing = mi._read(mi.root(project) / "timing.json")
+    clips = mi.narrate(project, tts=_NoVoice(), stt=_NoVoice())["clips"]
+    if {s["id"] for s in timing["scenes"]} != set(clips) or len(data["scenes"]) != len(clips):
+        raise ValueError("timing.json does not match the shot list; build the workspace first")
+    gains = voice_gains(clips) if level_voice else {}
+    slug = Path(project).name.removesuffix("-fa")
+    track = Path(project) / "renders" / f"{slug}_audio_fa.wav"
+    result = _mixdown(project, clips, timing, "fa", track, gains=gains, loudness=loudness)
+    out = Path(out or Path(video).with_name(Path(video).stem + "_remaster.mp4"))
+    _run([shutil.which("ffmpeg") or "ffmpeg", "-v", "error", "-y", "-i", str(video), "-i", str(track),
+          "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(out)])
+    return {**result, "video": str(out), "voice_gains": gains}
 
 
 def preview(project: Path, language: str, video: Path) -> Path:

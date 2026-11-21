@@ -45,6 +45,11 @@ SYNTH = {
     "gunshot": ("gunshot", {}),
     "gunshots-3": ("gunshot", {"shots": 3}),
     "typing": ("typing", {"duration": 1.0}),
+    # fa-v2: darker sounds for documentaries (no siren tone, no hiss, no ring)
+    "air": ("air", {}),
+    "swell-1.5": ("swell", {"duration": 1.5}),
+    "thud": ("thud", {}),
+    "keys": ("keys", {"duration": 1.0}),
 }
 PIXABAY = "Pixabay Content License (https://pixabay.com/service/terms/, last updated 20 October 2026)"
 

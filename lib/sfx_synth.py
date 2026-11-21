@@ -180,8 +180,61 @@ def typing(duration: float = 1.0, step: float = 0.045, seed: int = 8) -> np.ndar
     return _normalize(out)
 
 
+def air(duration: float = 0.9, peak: float = 0.5, seed: int = 9) -> np.ndarray:
+    """Dark, slow pass of air for a documentary cut: no hiss on top, so it can
+    sit under a voice. whoosh() opens up to 4 kHz and reads as a cartoon swipe."""
+    n = int(duration * RATE)
+    t = np.linspace(0, 1, n)
+    env = np.where(t <= peak, np.sin(np.pi / 2 * t / peak) ** 2,
+                   np.cos(np.pi / 2 * np.clip((t - peak) / (1 - peak), 0, 1)) ** 2)
+    noise = _rng(seed).standard_normal(n)
+    return _normalize(_highpass(_lowpass(noise, 160 + 1300 * env), 70) * env)
+
+
+def swell(duration: float = 1.5, seed: int = 10) -> np.ndarray:
+    """A riser without a tone: noise opening from dull to bright over a low
+    rumble. riser() carries a 180-720 Hz sine sweep, which sounds like a siren."""
+    n = int(duration * RATE)
+    t = np.linspace(0, 1, n)
+    env = (np.exp(3.0 * t) - 1) / (np.exp(3.0) - 1)
+    tail = int(0.05 * RATE)
+    env[-tail:] *= np.linspace(1, 0, tail)
+    rng = _rng(seed)
+    noise = _highpass(_lowpass(rng.standard_normal(n), 220 + 2600 * t ** 2), 90)
+    rumble = _lowpass(rng.standard_normal(n), 90) * 1.8
+    return _normalize((noise + rumble) * env)
+
+
+def thud(duration: float = 1.6, seed: int = 11) -> np.ndarray:
+    """Deep cinematic boom: a sub drop with a muffled attack and a long tail,
+    no crack, no distortion (hit() is a short, clipped thump)."""
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    body = _sweep(58, 31, n) * (1 - np.exp(-t / 0.004)) * np.exp(-t / 0.45)
+    knock = _lowpass(_rng(seed).standard_normal(n), 380) * np.exp(-t / 0.025) * 1.4
+    return _normalize(body + knock)
+
+
+def keys(duration: float = 1.0, step: float = 0.06, seed: int = 12) -> np.ndarray:
+    """Soft typewriter: dull clacks a little apart, no metallic ring (the ring
+    in typing() sits at 2.4-3.1 kHz and whistles when it repeats)."""
+    rng = _rng(seed)
+    n = int((duration + 0.1) * RATE)
+    out = np.zeros(n)
+    m = int(0.03 * RATE)
+    t = np.arange(m) / RATE
+    at = 0.0
+    while at < duration:
+        clack = _lowpass(_highpass(rng.standard_normal(m), 700), 4200) * np.exp(-t / 0.005)
+        a = int(at * RATE)
+        # the first key is the strongest, so the sound's peak is its start
+        out[a:a + m] += clack[: n - a] * (1.0 if a == 0 else rng.uniform(0.5, 0.9))
+        at += step * rng.uniform(0.7, 1.4)
+    return _normalize(out)
+
+
 SYNTHS = {"whoosh": whoosh, "swish": swish, "pop": pop, "hit": hit, "riser": riser, "crackle": crackle,
-          "gunshot": gunshot, "typing": typing}
+          "gunshot": gunshot, "typing": typing, "air": air, "swell": swell, "thud": thud, "keys": keys}
 
 
 def write_wav(path: Path, samples: np.ndarray, rate: int = RATE) -> Path:
