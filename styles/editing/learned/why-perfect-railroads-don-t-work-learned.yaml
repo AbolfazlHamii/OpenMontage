@@ -1,0 +1,109 @@
+name: why-perfect-railroads-don-t-work-learned
+title: Learned from why-perfect-railroads-don-t-work
+description: 'Learned from a reference video by edit_style_extractor. Measured pacing;
+  transitions, SFX and fonts are not measured and should be set by hand. Hook (worker
+  draft, agent to finalise): The Strange Specific → High-Stakes Context → Winner-Take-All
+  Payoff hook.'
+source:
+  kind: learned
+  reference: D:\project\videio v\OpenMontage\projects\_reference\why-perfect-railroads-don-t-work\source.mp4
+  date: '2026-11-10'
+  measured:
+    duration_seconds: 65.2
+    shots: 29
+    asl_seconds: 2.25
+    shot_length_range:
+    - 0.5
+    - 7.7
+    cuts_per_minute: 25.8
+    words_per_minute: 196.3
+    onset_sync:
+      ratio: 0.607
+      chance: 0.633
+    cut_rate_curve:
+    - start: 0.0
+      cuts_per_minute: 28.0
+    - start: 30.0
+      cuts_per_minute: 26.0
+    - start: 60.0
+      cuts_per_minute: 11.5
+    shot_size:
+      medium: 9
+      wide: 7
+    camera_angle:
+      eye_level: 13
+      high: 2
+      low: 1
+    content:
+      illustration: 16
+    motion:
+      fast_motion: 16
+    text_on_screen_share: 1.0
+pacing:
+  sections:
+    hook:
+      asl_seconds: 3.29
+      cuts_per_minute: 18.0
+      duration_seconds: 10.0
+    body:
+      asl_seconds: 2.0
+      cuts_per_minute: 28.8
+      duration_seconds: 50.0
+    outro:
+      asl_seconds: 3.68
+      cuts_per_minute: 11.5
+      duration_seconds: 5.2
+  words_per_minute: 196.3
+  beat_sync_ratio: 0.607
+hook_formula:
+  duration_seconds: 10.0
+  beats:
+  - Open with a bizarre, highly specific action that demands an explanation.
+  - Zoom out to a competitive, high-stakes situation that reframes the odd detail.
+  - Reveal the winner-take-all payoff that makes the stakes feel enormous.
+transitions:
+- name: hard_cut
+  weight: 1.0
+  note: detector sees cuts only; dissolves/wipes not classified
+camera_moves:
+- name: fast_motion
+  weight: 1.0
+  note: from frame differences inside each sampled shot
+subtitles:
+  style: plain
+  words_per_card:
+  - 3
+  - 7
+  position: bottom
+sfx_palette:
+- name: not_measured
+  weight: 0
+  note: listen to the reference and fill in
+music_energy_curve:
+- at: 0.0
+  energy: 1.0
+- at: 0.2
+  energy: 0.94
+- at: 0.4
+  energy: 0.79
+- at: 0.6
+  energy: 0.73
+- at: 0.8
+  energy: 0.85
+- at: 1.0
+  energy: 0.88
+pattern_interrupt_seconds:
+  min: 0.6
+  max: 6.3
+color_type:
+  palette:
+  - '#774651'
+  - '#9bb0d0'
+  - '#2f2a4d'
+  - '#827791'
+  fonts:
+  - Vazirmatn
+rtl_notes:
+- Captions and labels are HTML in the composition, right-aligned, dir=rtl, Vazirmatn;
+  never baked into generated images.
+- Slides and reveals that mean 'forward in time' move right to left.

@@ -830,7 +830,73 @@ def music_tracks(music_cfg: dict, timing: dict) -> list[dict]:
     for i, sec in enumerate(placed):
         nxt = placed[i + 1]["start"] if i + 1 < len(placed) else timing["duration"]
         end = min(timing["duration"], nxt + (MUSIC_XFADE if i + 1 < len(placed) else 0))
-        tracks.append({"path": sec["path"], "start": round(sec["start"], 3), "end": round(end, 3)})
+        tracks.append({"path": sec["path"], "start": round(sec["start"], 3), "end": round(end, 3),
+                       "gain": float(sec.get("gain", 1.0)), "fade_in": sec.get("fade_in")})
+    return tracks
+
+
+def speech_from_clips(clips: dict, timing: dict) -> list[tuple[float, float]]:
+    """Where the narrator is talking on the timeline, pauses inside lines included."""
+    from tools.audio.music_duck import speech_segments
+
+    speech = []
+    for sc in timing["scenes"]:
+        end = sc["voice_start"] + sc["voice_seconds"]
+        speech += [(a, min(b, end)) for a, b in speech_segments(Path(clips[sc["id"]]["path"]),
+                                                               offset=sc["voice_start"]) if a < end]
+    return speech
+
+
+def music_drops(music_cfg: dict, data: dict, timing: dict, speech: list) -> list[dict]:
+    """music.drops = [{"scene", "cue"}]: the bed goes silent in the pause just
+    before the cue and comes back on its first word. The cue's place comes from
+    its letter share, then snaps to the nearest real pause (within a second)."""
+    from tools.audio.music_duck import merge_close
+
+    scenes = {s["id"]: s for s in timing["scenes"]}
+    text = {s["id"]: s.get("narration", "") for s in data["scenes"]}
+    merged = merge_close(speech, 0.0)
+    pauses = [(b, a2) for (_, b), (a2, _) in zip(merged, merged[1:]) if a2 - b >= 0.15]
+    drops = []
+    for drop in music_cfg.get("drops") or []:
+        sc, narration = scenes.get(drop["scene"]), text.get(drop["scene"], "")
+        if not sc or drop["cue"] not in narration:
+            continue
+        share = _letters(narration[:narration.find(drop["cue"])]) / max(1, _letters(narration))
+        guess = sc["voice_start"] + sc["voice_seconds"] * share
+        near = [p for p in pauses if abs(p[1] - guess) <= 1.0]
+        start, end = min(near, key=lambda p: abs(p[1] - guess)) if near else (guess - 0.4, guess)
+        drops.append({"kind": "drop", "start": round(max(start, end - drop.get("max", 1.2)), 3),
+                      "end": round(end, 3), "fade": 0.12})
+    return drops
+
+
+def music_mix(music_cfg: dict, data: dict, timing: dict, clips: dict) -> list[dict]:
+    """music_tracks with a volume curve each, when music.duck is set: the bed
+    sits at duck.under under the voice and rises to duck.gaps in pauses, times
+    the section's gain, with the section fades and the drops folded in.
+    Keys are (seconds into the track, gain); gains are absolute volumes."""
+    from tools.audio.music_duck import duck_keyframes
+
+    tracks = music_tracks(music_cfg, timing)
+    duck = music_cfg.get("duck")
+    if not duck or not tracks:
+        return tracks
+    speech = speech_from_clips(clips, timing)
+    drops = music_drops(music_cfg, data, timing, speech)
+    for track in tracks:
+        start, length = track["start"], track["end"] - track["start"]
+        fade = min(1.0, length / 3)
+        fade_in = fade if track["fade_in"] is None else float(track["fade_in"])
+        local = [(a - start, b - start) for a, b in speech if b > start and a < track["end"]]
+        events = [dict(d, start=d["start"] - start, end=d["end"] - start) for d in drops
+                  if start <= d["start"] < track["end"]]
+        events.append({"kind": "fade_out", "start": length - fade, "end": length})
+        g = track["gain"]
+        track["keys"] = duck_keyframes(local, length, under=duck.get("under", 0.14) * g,
+                                       gaps=duck.get("gaps", 0.24) * g, attack=duck.get("attack", 0.08),
+                                       release=duck.get("release", 0.3), min_gap=duck.get("min_gap", 0.45),
+                                       fade_in=fade_in, events=events)
     return tracks
 
 
@@ -929,7 +995,7 @@ def build_workspace(project: Path, clips: dict) -> dict:
         audio_tags.append(
             f'<audio id="bgm" src="assets/audio/music{src.suffix.lower()}" data-start="0" '
             f'data-duration="{timing["duration"]}" data-track-index="9" data-volume="{music_volume}"></audio>')
-    tracks = music_tracks(music_cfg, timing)
+    tracks = music_mix(music_cfg, data, timing, clips)
     for i, track in enumerate(tracks):
         src = _resolve(project, track["path"])
         if not src.exists():
@@ -938,10 +1004,11 @@ def build_workspace(project: Path, clips: dict) -> dict:
         name = f"music_{i}{src.suffix.lower()}"
         shutil.copyfile(src, ws / "assets" / "audio" / name)
         # Neighbouring sections overlap by MUSIC_XFADE; alternate tracks so they can.
+        # A ducked track is tweened to absolute volumes, so its element stays at 1.
         audio_tags.append(
             f'<audio id="bgm-{i}" src="assets/audio/{name}" data-start="{track["start"]}" '
             f'data-duration="{round(track["end"] - track["start"], 3)}" data-track-index="{7 + i % 2}" '
-            f'data-volume="{music_volume}"></audio>')
+            f'data-volume="{1 if "keys" in track else music_volume}"></audio>')
         track["id"] = f"bgm-{i}"
 
     sfx_cfg = data.get("sfx") or {}
@@ -996,7 +1063,9 @@ def build_workspace(project: Path, clips: dict) -> dict:
             "captions": [{"start": c["start"], "end": c["end"]} for c in timing["captions"]],
             "titles": title_plan, "type_step": TYPE_STEP,
             "duration": timing["duration"], "music": bool(music), "music_volume": music_volume,
-            "music_tracks": [{"id": t["id"], "start": t["start"], "end": t["end"]} for t in tracks if "id" in t],
+            "music_tracks": [{"id": t["id"], "start": t["start"], "end": t["end"],
+                              **({"keys": [[round(t["start"] + a, 3), v] for a, v in t["keys"]]} if "keys" in t else {})}
+                             for t in tracks if "id" in t],
         }, ensure_ascii=False))
     (ws / "index.html").write_text(page, encoding="utf-8")
     _write(root(project) / "timing.json", timing)
@@ -1115,6 +1184,14 @@ WORKSPACE_PAGE = """<!doctype html>
         tl.to("#bgm", {{ volume: 0, duration: 0.8, ease: "power1.in" }}, PLAN.duration - 0.8);
       }}
       PLAN.music_tracks.forEach((m) => {{
+        if (m.keys) {{
+          tl.set("#" + m.id, {{ volume: m.keys[0][1] }}, m.keys[0][0]);
+          m.keys.slice(1).forEach(([t, v], k) => {{
+            const [t0, v0] = m.keys[k];
+            if (Math.abs(v - v0) > 1e-4) tl.to("#" + m.id, {{ volume: v, duration: t - t0, ease: "none" }}, t0);
+          }});
+          return;
+        }}
         const fade = Math.min(1.0, (m.end - m.start) / 3);
         tl.fromTo("#" + m.id, {{ volume: 0 }}, {{ volume: PLAN.music_volume, duration: fade }}, m.start);
         tl.to("#" + m.id, {{ volume: 0, duration: fade, ease: "power1.in" }}, m.end - fade);
